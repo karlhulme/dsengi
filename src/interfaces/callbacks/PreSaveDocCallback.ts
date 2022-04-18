@@ -1,0 +1,73 @@
+import { DocBase } from "../doc/index.ts";
+import { DocType } from "../docType/index.ts";
+
+/**
+ * Defines the properties passed to the pre save doc callback.
+ */
+export interface PreSaveDocCallbackProps<
+  RequestProps,
+  Doc extends DocBase,
+  DocStoreOptions,
+  User,
+  Filter,
+  Query,
+  QueryResult,
+> {
+  /**
+   * The name of the client that invoked the operation.
+   */
+  clientName: string;
+
+  /**
+   * The resolved set of document store options.
+   */
+  docStoreOptions: DocStoreOptions;
+
+  /**
+   * The document type associated with the document to be saved.
+   */
+  docType: DocType<Doc, DocStoreOptions, User, Filter, Query, QueryResult>;
+
+  /**
+   * Any properties passed along with the request.
+   */
+  reqProps: RequestProps;
+
+  /**
+   * The document that is about to be saved.
+   */
+  doc: Doc;
+
+  /**
+   * True if the document is new, otherwise this document is being updated.
+   */
+  isNew: boolean | null;
+
+  /**
+   * The user that triggered the callback.
+   */
+  user: User;
+}
+
+/**
+ * Defines the callback that is raised just before a document is saved.
+ */
+export type PreSaveDocCallback<
+  RequestProps,
+  Doc extends DocBase,
+  DocStoreOptions,
+  User,
+  Filter,
+  Query,
+  QueryResult,
+> = (
+  props: PreSaveDocCallbackProps<
+    RequestProps,
+    Doc,
+    DocStoreOptions,
+    User,
+    Filter,
+    Query,
+    QueryResult
+  >,
+) => Promise<void>;
