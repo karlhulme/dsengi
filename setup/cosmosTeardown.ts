@@ -1,5 +1,7 @@
-import { convertCosmosKeyToCryptoKey } from "../src/cosmosDocStore/convertCosmosKeyToCryptoKey.ts";
-import { deleteDatabase } from "../src/cosmosDocStore/deleteDatabase.ts";
+import {
+  convertCosmosKeyToCryptoKey,
+  deleteDatabase,
+} from "../src/cosmosClient/index.ts";
 
 /**
  * Deletes the sengi database used for CI testing.

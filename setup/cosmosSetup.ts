@@ -1,8 +1,10 @@
-import { convertCosmosKeyToCryptoKey } from "../src/cosmosDocStore/convertCosmosKeyToCryptoKey.ts";
-import { createCollection } from "../src/cosmosDocStore/createCollection.ts";
-import { createDatabase } from "../src/cosmosDocStore/createDatabase.ts";
-import { listCollections } from "../src/cosmosDocStore/listCollections.ts";
-import { listDatabases } from "../src/cosmosDocStore/listDatabases.ts";
+import {
+  convertCosmosKeyToCryptoKey,
+  createCollection,
+  createDatabase,
+  listCollections,
+  listDatabases,
+} from "../src/cosmosClient/index.ts";
 
 /**
  * Adds the database and containers to the Cosmos DB instance as required for the test.
