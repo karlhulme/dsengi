@@ -1,2 +1,1 @@
-// export * from './CosmosDbDocStore.ts'
-// export * from "./generateCosmosReqHeaders.ts";
+export * from "./CosmosDbDocStore.ts";

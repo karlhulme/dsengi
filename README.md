@@ -6,9 +6,14 @@ The basis of a data layer based on a series of schemas and mutations.
 
 In process of migrating from the NodeJS version.
 
-Next up, is the Cosmos document store. The main job here is issuing the REST
-statements to the Cosmos service, complete with valid signatures, without the
-Cosmos library doing the hard work for us!
+Next up, required methods:
+
+Y Get collection partition key Y Execute query for documents with SQL-style
+string (also used for exists) Y Delete item using id and partition key Y Fetch
+individual doc using id and partition key
+
+- Upsert document (POST with x-ms-documentdb-is-upsert = true), with support for
+  required version
 
 Then we're on to the engine itself. There will be changes here to work with the
 validator methods that Jsonotron creates from the types, rather than AJV. (It
