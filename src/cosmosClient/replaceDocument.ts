@@ -33,7 +33,8 @@ export async function replaceDocument(
     key: cryptoKey,
     method: "PUT",
     resourceType: "docs",
-    resourceLink: `dbs/${databaseName}/colls/${collectionName}/docs`,
+    resourceLink:
+      `dbs/${databaseName}/colls/${collectionName}/docs/${document.id}`,
   });
 
   const didReplace = await cosmosRetryable(async () => {

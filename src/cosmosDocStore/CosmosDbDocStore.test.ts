@@ -1,4 +1,4 @@
-import { assertEquals } from "../../deps.ts";
+import { assertEquals, assertObjectMatch } from "../../deps.ts";
 import {
   convertCosmosKeyToCryptoKey,
   createDocument,
@@ -8,6 +8,7 @@ import {
 import {
   DocRecord,
   DocStoreDeleteByIdResultCode,
+  DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
 import { CosmosDbDocStore } from "./CosmosDbDocStore.ts";
 
@@ -277,182 +278,304 @@ Deno.test("A non-existent document is not found.", async () => {
   });
 });
 
-// Deno.test('A document can be fetched.', async () => {
-//   await initDb();
+Deno.test("A document can be fetched.", async () => {
+  await initDb();
 
-//   const docStore = createCosmosDbDocStore()
+  const docStore = createCosmosDbDocStore();
 
-//   await expect(docStore.fetch('tree', 'trees', '02', {}, {})).resolves.toEqual({
-//     doc: expect.objectContaining({ id: '02', docType: 'tree', name: 'beech', heightInCms: 225, docVersion: expect.any(String), docOpIds: [] })
-//   })
-// })
+  const fetchResult = await docStore.fetch("tree", "trees", "02", {}, {});
 
-// Deno.test('A non-existent document cannot be fetched.', async () => {
-//   await initDb();
+  assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
+    id: "02",
+    docType: "tree",
+    name: "beech",
+    heightInCms: 225,
+    docOpIds: [],
+  });
+});
 
-//   const docStore = createCosmosDbDocStore()
+Deno.test("A non-existent document cannot be fetched.", async () => {
+  await initDb();
 
-//   await expect(docStore.fetch('tree', 'trees', '202', {}, {})).resolves.toEqual({ doc: null })
-// })
+  const docStore = createCosmosDbDocStore();
 
-// Deno.test('A document can be fetched from a container with an unknown partition key.', async () => {
-//   await initDb();
+  const fetchResult = await docStore.fetch("tree", "trees", "202", {}, {});
 
-//   const docStore = createCosmosDbDocStore()
+  assertEquals(fetchResult.doc, null);
+});
 
-//   // getPartitionKeyFunc will return, forcing the partition key to be looked up.
-//   await expect(docStore.fetch('treePack', 'treePacks', '02', {}, {})).resolves.toEqual({
-//     doc: expect.objectContaining({ id: '02', docType: 'treePack', name: 'beech', environment: 'forest', heightInCms: 225, docVersion: expect.any(String), docOpIds: [] })
-//   })
-// })
+Deno.test("A document can be fetched from a container that uses a partition key that is not id.", async () => {
+  await initDb();
 
-// Deno.test('A sql query can be executed.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const fetchResult = await docStore.fetch(
+    "treePack",
+    "treePacks",
+    "02",
+    {},
+    {},
+  );
 
-//   await expect(docStore.query('tree', 'trees', { sqlQuery: 'SELECT VALUE COUNT(1) FROM Docs d' }, {}, {})).resolves.toEqual({
-//     data: {
-//       sqlQueryResult: expect.objectContaining({
-//         resources: [3]
-//       })
-//     }
-//   })
-// })
+  assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
+    id: "02",
+    docType: "treePack",
+    name: "beech",
+    environment: "forest",
+    heightInCms: 225,
+    docOpIds: [],
+  });
+});
 
-// Deno.test('An empty query can be executed.', async () => {
-//   await initDb();
+Deno.test("A non-existent document cannot be fetched from a container that uses a partition key that is not id.", async () => {
+  await initDb();
 
-//   const docStore = createCosmosDbDocStore()
+  const docStore = createCosmosDbDocStore();
 
-//   await expect(docStore.query('tree', 'trees', {}, {}, {})).resolves.toEqual({ data: {} })
-// })
+  const fetchResult = await docStore.fetch(
+    "treePack",
+    "treePacks",
+    "202",
+    {},
+    {},
+  );
 
-// Deno.test('All documents of a type can be selected.', async () => {
-//   await initDb();
+  assertEquals(fetchResult.doc, null);
+});
 
-//   const docStore = createCosmosDbDocStore()
+Deno.test("A sql query can be executed.", async () => {
+  await initDb();
 
-//   const result = await docStore.selectAll('tree', 'trees', ['id'], {}, {})
-//   const sortedDocs = result.docs.sort((a, b) => (a.id as string).localeCompare(b.id as string))
-//   expect(sortedDocs).toEqual([{ id: '01' }, { id: '02' }, { id: '03' }])
-// })
+  const docStore = createCosmosDbDocStore();
 
-// Deno.test('All documents of a type can be retrieved in pages.', async () => {
-//   await initDb();
+  const queryResult = await docStore.query(
+    "tree",
+    "trees",
+    { sqlQuery: 'SELECT * FROM Docs d WHERE d.id = "01"' },
+    {},
+    {},
+  );
 
-//   const docStore = createCosmosDbDocStore()
+  assertEquals(queryResult.data.docs?.length, 1);
+  assertObjectMatch(queryResult.data.docs?.[0] as Record<string, unknown>, {
+    id: "01",
+    docType: "tree",
+    name: "ash",
+    heightInCms: 210,
+  });
+});
 
-//   const result = await docStore.selectAll('tree', 'trees', ['id'], {}, { limit: 2 })
-//   expect(result.docs).toHaveLength(2)
+Deno.test("An empty query can be executed.", async () => {
+  await initDb();
 
-//   const result2 = await docStore.selectAll('tree', 'trees', ['id'], {}, { limit: 2, offset: 2 })
-//   expect(result2.docs).toHaveLength(1)
-// })
+  const docStore = createCosmosDbDocStore();
 
-// Deno.test('Select documents using a filter.', async () => {
-//   await initDb();
+  const queryResult = await docStore.query(
+    "tree",
+    "trees",
+    {},
+    {},
+    {},
+  );
 
-//   const docStore = createCosmosDbDocStore()
+  assertEquals(queryResult.data, {});
+});
 
-//   const result = await docStore.selectByFilter('treePack', 'treePacks', ['id'], { whereClause: 'd.heightInCms > 200' }, {}, {})
-//   expect(result.docs).toHaveLength(2)
-//   expect(result.docs.findIndex(d => d.id === '01')).toBeGreaterThanOrEqual(0)
-//   expect(result.docs.findIndex(d => d.id === '02')).toBeGreaterThanOrEqual(0)
-// })
+Deno.test("All documents of a type can be selected.", async () => {
+  await initDb();
 
-// Deno.test('Select documents using a filter and paging.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const result = await docStore.selectAll("tree", "trees", ["id"], {}, {});
+  const sortedDocs = result.docs.sort((a, b) =>
+    (a.id as string).localeCompare(b.id as string)
+  );
+  assertEquals(sortedDocs, [{ id: "01" }, { id: "02" }, { id: "03" }]);
+});
 
-//   const result = await docStore.selectByFilter('tree', 'trees', ['id'], { whereClause: 'd.heightInCms > 200' }, {}, { limit: 1, offset: 1 })
-//   expect(result.docs).toHaveLength(1)
-//   expect(result.docs.findIndex(d => ['01', '02'].includes(d.id as string))).toBeGreaterThanOrEqual(0)
-// })
+Deno.test("Select documents using a filter.", async () => {
+  await initDb();
 
-// Deno.test('Select documents using ids.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const result = await docStore.selectByFilter(
+    "treePack",
+    "treePacks",
+    ["id"],
+    { whereClause: "d.heightInCms > 200" },
+    {},
+    {},
+  );
+  const sortedDocs = result.docs.sort((a, b) =>
+    (a.id as string).localeCompare(b.id as string)
+  );
+  assertEquals(sortedDocs, [{ id: "01" }, { id: "02" }]);
+});
 
-//   const result = await docStore.selectByIds('tree', 'trees', ['id', 'name', 'docVersion'], ['02', '03'] , {}, {})
-//   expect(result.docs).toHaveLength(2)
-//   expect(result.docs.find(d => d.id === '02')).toEqual({ id: '02', name: 'beech', docVersion: expect.any(String) })
-//   expect(result.docs.find(d => d.id === '03')).toEqual({ id: '03', name: 'pine', docVersion: expect.any(String) })
-// })
+Deno.test("Select documents using ids.", async () => {
+  await initDb();
 
-// Deno.test('Select documents using ids that appear multiple times.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const result = await docStore.selectByIds(
+    "tree",
+    "trees",
+    ["id", "name"],
+    ["02", "03"],
+    {},
+    {},
+  );
+  const sortedDocs = result.docs.sort((a, b) =>
+    (a.id as string).localeCompare(b.id as string)
+  );
+  assertEquals(sortedDocs, [{ id: "02", name: "beech" }, {
+    id: "03",
+    name: "pine",
+  }]);
+});
 
-//   const result = await docStore.selectByIds('tree', 'trees', ['name'], ['02', '03', '03', '02'] , {}, {})
-//   expect(result.docs).toHaveLength(2)
-//   expect(result.docs.find(d => d.name === 'beech')).toEqual({ name: 'beech' })
-//   expect(result.docs.find(d => d.name === 'pine')).toEqual({ name: 'pine' })
-// })
+Deno.test("Select documents using ids that appear multiple times.", async () => {
+  await initDb();
 
-// Deno.test('Insert a new document and rely on doc store to generate doc version.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const result = await docStore.selectByIds(
+    "tree",
+    "trees",
+    ["name"],
+    ["02", "03", "03", "02"],
+    {},
+    {},
+  );
+  const sortedDocs = result.docs.sort((a, b) =>
+    (a.name as string).localeCompare(b.name as string)
+  );
+  assertEquals(sortedDocs, [{ name: "beech" }, { name: "pine" }]);
+});
 
-//   // docVersion will be stripped out before upsert
-//   const doc: DocRecord = { id: '04', docType: 'tree', name: 'oak', heightInCms: 150, docVersion: 'ignore_me', docOpIds: [] }
-//   await expect(docStore.upsert('tree', 'trees', doc, {}, {})).resolves.toEqual({ code: DocStoreUpsertResultCode.CREATED })
+Deno.test("Insert a new document and rely on doc store to generate doc version.", async () => {
+  await initDb();
 
-//   const contents = await readContainer('trees')
-//   expect(contents).toHaveLength(4)
-//   expect(contents.find(d => d.id === '04')).toEqual(expect.objectContaining({
-//     id: '04', docType: 'tree', name: 'oak', heightInCms: 150, _etag: expect.any(String)
-//   }))
-// })
+  const docStore = createCosmosDbDocStore();
 
-// Deno.test('Update an existing document.', async () => {
-//   await initDb();
+  // docVersion will be stripped out before upsert
+  const doc: DocRecord = {
+    id: "04",
+    docType: "tree",
+    name: "oak",
+    heightInCms: 150,
+    docVersion: "ignore_me",
+    docOpIds: [],
+  };
+  assertEquals(await docStore.upsert("tree", "trees", doc, {}, {}), {
+    code: DocStoreUpsertResultCode.CREATED,
+  });
 
-//   const docStore = createCosmosDbDocStore()
+  const docs = await readContainer("trees");
+  assertEquals(docs.length, 4);
 
-//   const doc: DocRecord = { id: '03', docType: 'tree', name: 'palm', heightInCms: 123, docVersion: 'not_used', docOpIds: [] }
-//   await expect(docStore.upsert('tree', 'trees', doc, {}, {})).resolves.toEqual({ code: DocStoreUpsertResultCode.REPLACED })
+  const newDoc = docs.find((d) => d.id === "04") as Record<string, unknown>;
+  assertObjectMatch(newDoc, {
+    id: "04",
+    docType: "tree",
+    name: "oak",
+    heightInCms: 150,
+  });
+  assertEquals(typeof newDoc._etag, "string");
+});
 
-//   const contents = await readContainer('trees')
-//   expect(contents).toHaveLength(3)
-//   expect(contents.find(d => d.id === '03')).toEqual(expect.objectContaining({
-//     id: '03', docType: 'tree', name: 'palm', heightInCms: 123, _etag: expect.any(String)
-//   }))
-// })
+Deno.test("Update an existing document.", async () => {
+  await initDb();
 
-// Deno.test('Update an existing document with a required version.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const doc: DocRecord = {
+    id: "03",
+    docType: "tree",
+    name: "palm",
+    heightInCms: 123,
+    docVersion: "not_used",
+    docOpIds: [],
+  };
+  assertEquals(await docStore.upsert("tree", "trees", doc, {}, {}), {
+    code: DocStoreUpsertResultCode.REPLACED,
+  });
 
-//   const initialContents = await readContainer('trees')
-//   const reqVersion = (initialContents.find(d => d.id === '03') || {})._etag as string
+  const docs = await readContainer("trees");
+  assertEquals(docs.length, 3);
 
-//   const doc: DocRecord = { id: '03', docType: 'tree', name: 'palm', heightInCms: 123, docVersion: 'not_used', docOpIds: [] }
-//   await expect(docStore.upsert('tree', 'trees', doc, {}, { reqVersion })).resolves.toEqual({ code: DocStoreUpsertResultCode.REPLACED })
+  const newDoc = docs.find((d) => d.id === "03") as Record<string, unknown>;
+  assertObjectMatch(newDoc, {
+    id: "03",
+    docType: "tree",
+    name: "palm",
+    heightInCms: 123,
+  });
+  assertEquals(typeof newDoc._etag, "string");
+});
 
-//   const contents = await readContainer('trees')
-//   expect(contents).toHaveLength(3)
-//   expect(contents.find(d => d.id === '03')).toEqual(expect.objectContaining({
-//     id: '03', docType: 'tree', name: 'palm', heightInCms: 123, _etag: expect.any(String)
-//   }))
-// })
+Deno.test("Update an existing document with a required version.", async () => {
+  await initDb();
 
-// Deno.test('Fail to update an existing document if the required version is unavailable.', async () => {
-//   await initDb();
+  const docStore = createCosmosDbDocStore();
 
-//   const docStore = createCosmosDbDocStore()
+  const initialContents = await readContainer("trees");
+  const reqVersion = (initialContents.find((d) => d.id === "03") || {})
+    ._etag as string;
 
-//   const doc: DocRecord = { id: '03', docType: 'tree', name: 'palm', heightInCms: 123, docVersion: 'not_used', docOpIds: [] }
-//   await expect(docStore.upsert('tree', 'trees', doc, {}, { reqVersion: 'bbbb' })).resolves.toEqual({ code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE })
+  const doc: DocRecord = {
+    id: "03",
+    docType: "tree",
+    name: "palm",
+    heightInCms: 123,
+    docVersion: "not_used",
+    docOpIds: [],
+  };
+  assertEquals(
+    await docStore.upsert("tree", "trees", doc, {}, { reqVersion }),
+    { code: DocStoreUpsertResultCode.REPLACED },
+  );
 
-//   const contents = await readContainer('trees')
-//   expect(contents).toHaveLength(3)
-//   expect(contents.find(d => d.id === '03')).toEqual(expect.objectContaining({
-//     id: '03', docType: 'tree', name: 'pine', heightInCms: 180, _etag: expect.any(String)
-//   }))
-// })
+  const docs = await readContainer("trees");
+  assertEquals(docs.length, 3);
+
+  const newDoc = docs.find((d) => d.id === "03") as Record<string, unknown>;
+  assertObjectMatch(newDoc, {
+    id: "03",
+    docType: "tree",
+    name: "palm",
+    heightInCms: 123,
+  });
+  assertEquals(typeof newDoc._etag, "string");
+});
+
+Deno.test("Fail to update an existing document if the required version is unavailable.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const doc: DocRecord = {
+    id: "03",
+    docType: "tree",
+    name: "palm",
+    heightInCms: 123,
+    docVersion: "not_used",
+    docOpIds: [],
+  };
+  assertEquals(
+    await docStore.upsert("tree", "trees", doc, {}, { reqVersion: "bbbb" }),
+    { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE },
+  );
+
+  const docs = await readContainer("trees");
+  assertEquals(docs.length, 3);
+
+  const newDoc = docs.find((d) => d.id === "03") as Record<string, unknown>;
+  assertObjectMatch(newDoc, {
+    id: "03",
+    docType: "tree",
+    name: "pine",
+    heightInCms: 180,
+  });
+  assertEquals(typeof newDoc._etag, "string");
+});

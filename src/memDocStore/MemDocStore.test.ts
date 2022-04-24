@@ -149,20 +149,6 @@ Deno.test("All documents of a type can be selected.", async () => {
   });
 });
 
-Deno.test("All documents of a type can be retrieved in pages.", async () => {
-  const docs = createDocs();
-  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.selectAll("test", "tests", ["id"], {}, {
-    limit: 2,
-  });
-  assertEquals(result, { docs: [{ id: "001" }, { id: "002" }] });
-  const result2 = await docStore.selectAll("test", "tests", ["id"], {}, {
-    limit: 2,
-    offset: 2,
-  });
-  assertEquals(result2, { docs: [{ id: "003" }] });
-});
-
 Deno.test("All documents of a recognised type can selected.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
@@ -190,29 +176,6 @@ Deno.test("Select documents using a filter.", async () => {
   assertEquals(result, {
     docs: [{ id: "101", vehicle: "car" }, { id: "102", vehicle: "cargoBoat" }],
   });
-});
-
-Deno.test("Select documents using a filter and paging.", async () => {
-  const docs = createDocs();
-  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.selectByFilter(
-    "test2",
-    "test2s",
-    ["id", "vehicle"],
-    (d) => Boolean(d.vehicle),
-    {},
-    { limit: 1 },
-  );
-  assertEquals(result, { docs: [{ id: "101", vehicle: "car" }] });
-  const result2 = await docStore.selectByFilter(
-    "test2",
-    "test2s",
-    ["id", "vehicle"],
-    (d) => Boolean(d.vehicle),
-    {},
-    { limit: 1, offset: 1 },
-  );
-  assertEquals(result2, { docs: [{ id: "102", vehicle: "cargoBoat" }] });
 });
 
 Deno.test("Select documents using ids.", async () => {

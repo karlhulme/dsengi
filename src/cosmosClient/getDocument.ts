@@ -11,12 +11,13 @@ export async function getDocument(
   collectionName: string,
   documentId: string,
   documentPartitionKeyValue: string | number,
-): Promise<DocRecord> {
+): Promise<DocRecord | null> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
     method: "GET",
     resourceType: "docs",
-    resourceLink: `dbs/${databaseName}/colls/${collectionName}/docs`,
+    resourceLink:
+      `dbs/${databaseName}/colls/${collectionName}/docs/${documentId}`,
   });
 
   const doc = await cosmosRetryable(async () => {
@@ -37,16 +38,20 @@ export async function getDocument(
 
     handleCosmosTransitoryErrors(response);
 
-    if (!response.ok) {
+    if (!response.ok && response.status !== 404) {
       throw new Error(
         `Unable to get document ${databaseName}/${collectionName}/${documentId}.\n${await response
           .text()}`,
       );
     }
 
-    const result = await response.json() as DocRecord;
-
-    return result;
+    if (response.status === 404) {
+      await response.body?.cancel();
+      return null;
+    } else {
+      const result = await response.json() as DocRecord;
+      return result;
+    }
   });
 
   return doc;

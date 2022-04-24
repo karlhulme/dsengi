@@ -178,14 +178,10 @@ export class CosmosDbDocStore implements
   /**
    * Returns a select query based on the given inputs.
    * @param fieldNames An array of field names.
-   * @param limit The maximum number of documents to retrieve.
-   * @param offset The number of documents to skip before retrieving documents.
    * @param whereClause A Cosmos WHERE clause.
    */
   private buildSelectCommand(
     fieldNames: string[],
-    limit?: number,
-    offset?: number,
     whereClause?: string,
   ): string {
     // the select and from clauses, plus the basic where clause
@@ -197,13 +193,6 @@ export class CosmosDbDocStore implements
     // the detailed where clause
     if (typeof whereClause === "string") {
       sql += `  WHERE (${whereClause})`;
-    }
-
-    // the limit and offset clauses
-    if (limit && limit > 0 && offset && offset > 0) {
-      sql += `  OFFSET ${offset} LIMIT ${limit}`;
-    } else if (limit && limit > 0) {
-      sql += `  OFFSET 0 LIMIT ${limit}`;
     }
 
     return sql;
@@ -456,7 +445,7 @@ export class CosmosDbDocStore implements
           containerName,
         );
 
-      let rawDoc: DocRecord;
+      let rawDoc: DocRecord | null = null;
 
       if (partitionKeyFieldName === "id") {
         rawDoc = await getDocument(
@@ -482,18 +471,14 @@ export class CosmosDbDocStore implements
           },
         );
 
-        if (rawDocs.length === 0) {
-          throw new Error(
-            `Document with id ${id} not found in ${databaseName}/${containerName}.`,
-          );
+        if (rawDocs.length === 1) {
+          rawDoc = rawDocs[0];
         }
-
-        rawDoc = rawDocs[0];
       }
 
       let doc = null;
 
-      if (rawDoc.docType === docTypeName) {
+      if (rawDoc && rawDoc.docType === docTypeName) {
         const { _rid, _ts, _self, _etag, _attachments, ...others } = rawDoc;
         doc = { ...others, docVersion: _etag };
       }
@@ -578,7 +563,7 @@ export class CosmosDbDocStore implements
     docTypePluralName: string,
     fieldNames: string[],
     options: CosmosDbDocStoreOptions,
-    props: DocStoreSelectProps,
+    _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     try {
       const databaseName = this.getDatabaseNameFunc(
@@ -596,8 +581,6 @@ export class CosmosDbDocStore implements
 
       const queryCmd = this.buildSelectCommand(
         fieldNames,
-        props.limit,
-        props.offset,
       );
 
       const docs = await queryDocuments(
@@ -627,7 +610,7 @@ export class CosmosDbDocStore implements
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
    * @param fieldNames An array of field names to include in the response.
-   * @param filterExpression A filter expression that resulted from invoking the filter.
+   * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -639,7 +622,7 @@ export class CosmosDbDocStore implements
     fieldNames: string[],
     filter: CosmosDbDocStoreFilter,
     options: CosmosDbDocStoreOptions,
-    props: DocStoreSelectProps,
+    _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     try {
       const databaseName = this.getDatabaseNameFunc(
@@ -657,8 +640,6 @@ export class CosmosDbDocStore implements
 
       const queryCmd = this.buildSelectCommand(
         fieldNames,
-        props.limit,
-        props.offset,
         filter.whereClause,
       );
 
@@ -700,7 +681,7 @@ export class CosmosDbDocStore implements
     fieldNames: string[],
     ids: string[],
     options: CosmosDbDocStoreOptions,
-    props: DocStoreSelectProps,
+    _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     try {
       const databaseName = this.getDatabaseNameFunc(
@@ -716,13 +697,11 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const whereClauses = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
+      const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
 
       const queryCmd = this.buildSelectCommand(
         fieldNames,
-        props.limit,
-        props.offset,
-        whereClauses as string,
+        whereClause,
       );
 
       const docs = await queryDocuments(

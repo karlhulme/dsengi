@@ -245,17 +245,16 @@ export class MemDocStore implements
    * @param fieldNames An array of field names to include in the response.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param _props Properties that define how to carry out this action.
    */
   async selectAll(
     docTypeName: string,
     _docTypePluralName: string,
     fieldNames: string[],
     _options: MemDocStoreOptions,
-    props: DocStoreSelectProps,
+    _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) => d.docType === docTypeName);
-    this.spliceArrayForLimitAndOffset(matchedDocs, props.limit, props.offset);
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
 
@@ -267,7 +266,7 @@ export class MemDocStore implements
    * @param filter A filter.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param _props Properties that define how to carry out this action.
    */
   async selectByFilter(
     docTypeName: string,
@@ -275,12 +274,11 @@ export class MemDocStore implements
     fieldNames: string[],
     filter: MemDocStoreFilter,
     _options: MemDocStoreOptions,
-    props: DocStoreSelectProps,
+    _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
       d.docType === docTypeName && filter(d)
     );
-    this.spliceArrayForLimitAndOffset(matchedDocs, props.limit, props.offset);
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
 
