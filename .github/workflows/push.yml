@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 jobs:
-  test:
+  setup:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,12 +26,19 @@ jobs:
       - name: Run linter
         run: deno lint
 
-      - name: Setup
+  test:
+    runs-on: ubuntu-latest
+    env:
+      SENGI_COSMOS_URL: ${{ secrets.SENGI_COSMOS_URL }}
+      SENGI_COSMOS_KEY: ${{ secrets.SENGI_COSMOS_KEY }}
+
+    steps:
+      - name: Setup cosmos
         run: deno task setup_cosmos
 
       - name: Run tests
         run: deno test --coverage=cov_profile
 
-      - name: Cleanup
+      - name: Cleanup cosmos
         if: success() || failure()
         run: deno task teardown_cosmos
