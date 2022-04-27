@@ -3,7 +3,7 @@ import {
   convertCosmosKeyToCryptoKey,
   createDocument,
   deleteDocument,
-  queryDocuments,
+  queryDocumentsGateway,
 } from "../cosmosClient/index.ts";
 import {
   DocRecord,
@@ -45,7 +45,7 @@ async function initDb(): Promise<void> {
 
   // empty trees container
 
-  const treeDocs = await queryDocuments(
+  const treeDocs = await queryDocumentsGateway(
     TEST_COSMOS_KEY,
     TEST_COSMOS_URL,
     "sengi",
@@ -53,7 +53,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartition: true,
+      crossPartitionQuery: true,
     },
   );
 
@@ -76,7 +76,7 @@ async function initDb(): Promise<void> {
 
   // empty treePacks container
 
-  const treePackDocs = await queryDocuments(
+  const treePackDocs = await queryDocumentsGateway(
     TEST_COSMOS_KEY,
     TEST_COSMOS_URL,
     "sengi",
@@ -84,7 +84,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartition: true,
+      crossPartitionQuery: true,
     },
   );
 
@@ -203,7 +203,7 @@ async function initDb(): Promise<void> {
 async function readContainer(
   containerName: string,
 ): Promise<Record<string, unknown>[]> {
-  const docs = await queryDocuments(
+  const docs = await queryDocumentsGateway(
     TEST_COSMOS_KEY,
     TEST_COSMOS_URL,
     "sengi",
@@ -211,7 +211,7 @@ async function readContainer(
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartition: true,
+      crossPartitionQuery: true,
     },
   );
 
@@ -410,6 +410,69 @@ Deno.test("Select documents using a filter.", async () => {
     (a.id as string).localeCompare(b.id as string)
   );
   assertEquals(sortedDocs, [{ id: "01" }, { id: "02" }]);
+});
+
+Deno.test("Select documents using a filter, order by clause and limit.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByFilter(
+    "treePack",
+    "treePacks",
+    ["id"],
+    {
+      whereClause: "d.heightInCms > 200",
+      orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
+      limit: 1,
+    },
+    {},
+    {},
+  );
+
+  assertEquals(result.docs, [{ id: "01" }]);
+});
+
+Deno.test("Select documents using a filter, descending order by clause and limit.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByFilter(
+    "treePack",
+    "treePacks",
+    ["id"],
+    {
+      whereClause: "d.heightInCms > 200",
+      orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
+      limit: 1,
+    },
+    {},
+    {},
+  );
+
+  assertEquals(result.docs, [{ id: "02" }]);
+});
+
+Deno.test("Select documents using an ordering clause with multiple results.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByFilter(
+    "treePack",
+    "treePacks",
+    ["id"],
+    {
+      orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
+    },
+    {},
+    {},
+  );
+
+  assertEquals(result.docs, [{ id: "02" }, { id: "01" }, { id: "03" }, {
+    id: "04",
+  }]);
 });
 
 Deno.test("Select documents using ids.", async () => {

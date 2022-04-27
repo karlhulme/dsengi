@@ -3,8 +3,14 @@ import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
 
-interface QueryDocumentOptions {
-  crossPartition?: boolean;
+interface QueryDocumentsGatewayOptions {
+  /**
+   * True if the query should be executed across multiple
+   * partitions and the results then combined.
+   * This value should be set to true if the query is based
+   * on anything other than a single partition key.
+   */
+  crossPartitionQuery?: boolean;
 }
 
 interface CosmosQueryParameter {
@@ -19,14 +25,14 @@ interface CosmosQueryParameter {
   value: string;
 }
 
-export async function queryDocuments(
+export async function queryDocumentsGateway(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
   query: string,
   parameters: CosmosQueryParameter[],
-  options: QueryDocumentOptions,
+  options: QueryDocumentsGatewayOptions,
 ): Promise<DocRecord[]> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -36,6 +42,7 @@ export async function queryDocuments(
   });
 
   const records: DocRecord[] = [];
+
   let continuationToken: string | null = null;
   let isAllRecordsLoaded = false;
 
@@ -46,7 +53,7 @@ export async function queryDocuments(
       optionalHeaders["x-ms-continuation"] = continuationToken;
     }
 
-    if (options.crossPartition) {
+    if (options.crossPartitionQuery) {
       optionalHeaders["x-ms-documentdb-query-enablecrosspartition"] = "True";
     }
 

@@ -4,7 +4,8 @@ import {
   deleteDocument,
   getCollection,
   getDocument,
-  queryDocuments,
+  queryDocumentsDirect,
+  queryDocumentsGateway,
   replaceDocument,
 } from "../cosmosClient/index.ts";
 import {
@@ -38,9 +39,35 @@ export type CosmosDbDocStoreOptions = Record<string, unknown>;
 export interface CosmosDbDocStoreFilter {
   /**
    * The WHERE clause of a cosmos SQL statement, that completes the phrase
-   * SELECT d.* FROM docs d WHERE <filter>.
+   * SELECT d.* FROM docs d WHERE <filter>.  Note that any referenced
+   * field names should also be prefixed with "d.".
    */
-  whereClause: string;
+  whereClause?: string;
+
+  /**
+   * An array of fields to sort by.
+   * Cosmos only supports ordering by fields that are included
+   * in an index.  To order on multiple fields, there will need
+   * to be a corresponding composite index.
+   */
+  orderByFields?: CosmosDbDocStoreFilterOrderByField[];
+
+  /**
+   * The maximum number of documents to return.
+   */
+  limit?: number;
+}
+
+export interface CosmosDbDocStoreFilterOrderByField {
+  /**
+   * The name of a field.
+   */
+  fieldName: string;
+
+  /**
+   * The order direction.  If not specified, an ascending order is used.
+   */
+  direction?: "ascending" | "descending";
 }
 
 /**
@@ -51,6 +78,26 @@ export interface CosmosDbDocStoreQuery {
    * If populated, executes the given SQL directly against the collection.
    */
   sqlQuery?: string;
+
+  /**
+   * True if the query is filtered based on anything other than the
+   * partition key.  If a transform is specified, then query will be
+   * executed cross-partition automatically, and this value has no effect.
+   */
+  crossPartitionQuery?: boolean;
+
+  /**
+   * If the query includes SUM, AVG, COUNT, OFFSET, LIMIT or ORDER BY then
+   * the gateway cannot process the query and we need to
+   * execute the query on each of the containers individually.
+   * As a result, we may retrieve more results that the client would like.
+   * To bypass the gateway, provide a transform function that will convert
+   * the combined results of the queries into an array to be returned
+   * to the client.  By providing this function, cosmos will be queried
+   * first for the applicable pkranges and then queried again for the results
+   * from each container.
+   */
+  transform?: (docs: DocRecord[]) => DocRecord[];
 }
 
 /**
@@ -183,16 +230,33 @@ export class CosmosDbDocStore implements
   private buildSelectCommand(
     fieldNames: string[],
     whereClause?: string,
+    orderByFields?: CosmosDbDocStoreFilterOrderByField[],
+    limit?: number,
   ): string {
-    // the select and from clauses, plus the basic where clause
+    // additional fields
+    const extraFieldNames = Array.isArray(orderByFields)
+      ? orderByFields.map(o => o.fieldName)
+      : []
+
+    // the select and from clauses
     let sql = `
-      SELECT d._etag ${fieldNames.map((f) => `, d.${f}`).join("")}
+      SELECT ${limit ? `TOP ${limit}` : ""} d._etag ${
+        extraFieldNames.concat(fieldNames).map((f) => `, d.${f}`).join("")
+    }
       FROM Docs d
     `;
 
-    // the detailed where clause
+    // the where clause
     if (typeof whereClause === "string") {
       sql += `  WHERE (${whereClause})`;
+    }
+
+    // the order by clause
+    if (Array.isArray(orderByFields)) {
+      const orderSnippets = orderByFields.map((f) =>
+        `d.${f.fieldName} ${f.direction === "descending" ? "DESC" : "ASC"}`
+      );
+      sql += ` ORDER BY ${orderSnippets.join(", ")}`;
     }
 
     return sql;
@@ -238,6 +302,59 @@ export class CosmosDbDocStore implements
 
       return result;
     }, {});
+  }
+
+  /**
+   * Returns a subset of the given array such that the filter parameters
+   * have been honoured.  This additional transform is necessary if the original
+   * filter operation was executed by multiple containers.
+   * @param docs An array of documents retrieved by a selectByFilter operation.
+   * @param filter The filter to be applied.
+   */
+  private transformSelectByFilterDocs(
+    docs: DocRecord[],
+    filter: CosmosDbDocStoreFilter,
+  ) {
+    const comparer = function (
+      docA: DocRecord,
+      docB: DocRecord,
+      fieldName: string,
+      invertValue: boolean
+    ) {
+      const valueA = docA[fieldName];
+      const valueB = docB[fieldName];
+      const scaler = invertValue ? -1 : 1;
+
+      if (typeof valueA === "number" && typeof valueB === "number") {
+        return (valueA - valueB) * scaler;
+      } else {
+        return (valueA || "").toString().localeCompare(
+          (valueB || "").toString(),
+        ) * scaler;
+      }
+    };
+
+    const orderedDocs = filter.orderByFields
+      ? docs.sort((docA, docB) => {
+        let fieldNumber = 0;
+        let lastCompareResult = 0;
+        const orderByFieldLength = filter.orderByFields?.length || 0;
+
+        while (lastCompareResult === 0 && fieldNumber < orderByFieldLength) {
+          lastCompareResult = comparer(
+            docA,
+            docB,
+            filter.orderByFields?.[fieldNumber].fieldName as string,
+            filter.orderByFields?.[fieldNumber].direction === 'descending'
+          );
+          fieldNumber++;
+        }
+
+        return lastCompareResult;
+      })
+      : docs;
+
+    return filter.limit ? orderedDocs.slice(0, filter.limit) : orderedDocs;
   }
 
   /**
@@ -293,7 +410,7 @@ export class CosmosDbDocStore implements
       if (partitionKeyFieldName === "id") {
         partitionKeyValue = id;
       } else {
-        const docs = await queryDocuments(
+        const docs = await queryDocumentsGateway(
           this.cosmosKey,
           this.cosmosUrl,
           databaseName,
@@ -303,7 +420,7 @@ export class CosmosDbDocStore implements
             { name: "@id", value: id },
           ],
           {
-            crossPartition: true,
+            crossPartitionQuery: true,
           },
         );
 
@@ -378,7 +495,13 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const docs = await queryDocuments(
+      const partitionKeyFieldName = await this
+        .getPartitionKeyFieldNameForCollection(
+          databaseName,
+          containerName,
+        );
+
+      const docs = await queryDocumentsGateway(
         this.cosmosKey,
         this.cosmosUrl,
         databaseName,
@@ -388,7 +511,7 @@ export class CosmosDbDocStore implements
           { name: "@id", value: id },
         ],
         {
-          crossPartition: true,
+          crossPartitionQuery: partitionKeyFieldName !== "id",
         },
       );
 
@@ -457,7 +580,7 @@ export class CosmosDbDocStore implements
           id,
         );
       } else {
-        const rawDocs = await queryDocuments(
+        const rawDocs = await queryDocumentsGateway(
           this.cosmosKey,
           this.cosmosUrl,
           databaseName,
@@ -467,7 +590,7 @@ export class CosmosDbDocStore implements
             { name: "@id", value: id },
           ],
           {
-            crossPartition: true,
+            crossPartitionQuery: true,
           },
         );
 
@@ -524,17 +647,29 @@ export class CosmosDbDocStore implements
           options,
         );
 
-        const docs = await queryDocuments(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          query.sqlQuery,
-          [],
-          {
-            crossPartition: true,
-          },
-        );
+        const docs = query.transform
+          ? await queryDocumentsDirect(
+            this.cosmosKey,
+            this.cosmosUrl,
+            databaseName,
+            containerName,
+            query.sqlQuery,
+            [],
+            {
+              transform: query.transform,
+            },
+          )
+          : await queryDocumentsGateway(
+            this.cosmosKey,
+            this.cosmosUrl,
+            databaseName,
+            containerName,
+            query.sqlQuery,
+            [],
+            {
+              crossPartitionQuery: query.crossPartitionQuery,
+            },
+          );
 
         return { data: { docs } };
       } else {
@@ -556,7 +691,7 @@ export class CosmosDbDocStore implements
    * @param fieldNames An array of field names to include in the response.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param _props Properties that define how to carry out this action.
    */
   async selectAll(
     docTypeName: string,
@@ -583,7 +718,7 @@ export class CosmosDbDocStore implements
         fieldNames,
       );
 
-      const docs = await queryDocuments(
+      const docs = await queryDocumentsGateway(
         this.cosmosKey,
         this.cosmosUrl,
         databaseName,
@@ -591,7 +726,7 @@ export class CosmosDbDocStore implements
         queryCmd,
         [],
         {
-          crossPartition: true,
+          crossPartitionQuery: true,
         },
       );
 
@@ -641,25 +776,39 @@ export class CosmosDbDocStore implements
       const queryCmd = this.buildSelectCommand(
         fieldNames,
         filter.whereClause,
+        filter.orderByFields,
+        filter.limit,
       );
 
-      const docs = await queryDocuments(
-        this.cosmosKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        queryCmd,
-        [],
-        {
-          crossPartition: true,
-        },
-      );
+      const docs = Array.isArray(filter.orderByFields) || filter.limit
+        ? await queryDocumentsDirect(
+          this.cosmosKey,
+          this.cosmosUrl,
+          databaseName,
+          containerName,
+          queryCmd,
+          [],
+          {
+            transform: (docs) => this.transformSelectByFilterDocs(docs, filter),
+          },
+        )
+        : await queryDocumentsGateway(
+          this.cosmosKey,
+          this.cosmosUrl,
+          databaseName,
+          containerName,
+          queryCmd,
+          [],
+          {
+            crossPartitionQuery: true,
+          },
+        );
 
       return { docs: this.buildResultDocs(docs, fieldNames) };
     } catch (err) {
       // istanbul ignore next
       throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'queryAll'.",
+        "Cosmos database error processing 'selectByFilter'.",
         err as Error,
       );
     }
@@ -673,7 +822,7 @@ export class CosmosDbDocStore implements
    * @param ids An array of document ids.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param _props Properties that define how to carry out this action.
    */
   async selectByIds(
     docTypeName: string,
@@ -704,7 +853,7 @@ export class CosmosDbDocStore implements
         whereClause,
       );
 
-      const docs = await queryDocuments(
+      const docs = await queryDocumentsGateway(
         this.cosmosKey,
         this.cosmosUrl,
         databaseName,
@@ -712,7 +861,7 @@ export class CosmosDbDocStore implements
         queryCmd,
         [],
         {
-          crossPartition: true,
+          crossPartitionQuery: true,
         },
       );
 
@@ -720,7 +869,7 @@ export class CosmosDbDocStore implements
     } catch (err) {
       // istanbul ignore next
       throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'queryAll'.",
+        "Cosmos database error processing 'selectByIds'.",
         err as Error,
       );
     }
