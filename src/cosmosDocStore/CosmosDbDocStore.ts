@@ -235,13 +235,13 @@ export class CosmosDbDocStore implements
   ): string {
     // additional fields
     const extraFieldNames = Array.isArray(orderByFields)
-      ? orderByFields.map(o => o.fieldName)
-      : []
+      ? orderByFields.map((o) => o.fieldName)
+      : [];
 
     // the select and from clauses
     let sql = `
       SELECT ${limit ? `TOP ${limit}` : ""} d._etag ${
-        extraFieldNames.concat(fieldNames).map((f) => `, d.${f}`).join("")
+      extraFieldNames.concat(fieldNames).map((f) => `, d.${f}`).join("")
     }
       FROM Docs d
     `;
@@ -319,7 +319,7 @@ export class CosmosDbDocStore implements
       docA: DocRecord,
       docB: DocRecord,
       fieldName: string,
-      invertValue: boolean
+      invertValue: boolean,
     ) {
       const valueA = docA[fieldName];
       const valueB = docB[fieldName];
@@ -345,7 +345,7 @@ export class CosmosDbDocStore implements
             docA,
             docB,
             filter.orderByFields?.[fieldNumber].fieldName as string,
-            filter.orderByFields?.[fieldNumber].direction === 'descending'
+            filter.orderByFields?.[fieldNumber].direction === "descending",
           );
           fieldNumber++;
         }
