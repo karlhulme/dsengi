@@ -2,7 +2,7 @@
  * Defines the system fields that are common to all documents
  * that can be sent to or returned from a document store.  All properties are
  * optional because they are populated at different points
- * in the creation dnd save process.  All the properties will
+ * in the creation and save process.  All the properties will
  * be populated in a retrieved document if all properties
  * are requested.
  */

@@ -16,9 +16,10 @@ export interface DocTypeFilter<User, Filter, Parameters> {
   deprecation?: string;
 
   /**
-   * A JSON schema that describes the shape of the filter parameters.
+   * A function that returns an error message if the given parameters are not valid.
+   * This function may alter the parameters to make them validate, such as removing unrecognised fields.
    */
-  parametersJsonSchema: Record<string, unknown>;
+  validateParameters?: (parameters: unknown) => string | void;
 
   /**
    * A function that builds a doc store filter based on the given parameters.

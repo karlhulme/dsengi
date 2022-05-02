@@ -49,18 +49,6 @@ export class SengiCtorParamsValidationFailedError extends SengiRequestError {
   }
 }
 
-export class SengiDocTypeValidateFunctionError extends SengiRequestError {
-  constructor(readonly docTypeName: string, readonly message: string) {
-    super(
-      `The validate function defined for document type '${docTypeName}' raised an error.\n${message}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-    this.docTypeName = docTypeName;
-    this.message = message;
-  }
-}
-
 export class SengiDocValidationFailedError extends SengiRequestError {
   constructor(readonly docTypeName: string, readonly validationError: string) {
     super(

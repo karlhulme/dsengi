@@ -1,5 +1,22 @@
 import { SengiEngineError } from "./baseErrors.ts";
 
+export class SengiAuthoriseFunctionFailedError extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly authoriseFunctionName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `Authorise function '${authoriseFunctionName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.authoriseFunctionName = authoriseFunctionName;
+    this.innerErr = innerErr;
+  }
+}
+
 export class SengiCallbackError extends SengiEngineError {
   constructor(readonly callbackName: string, readonly innerErr: Error) {
     super(
@@ -29,6 +46,24 @@ export class SengiConstructorFailedError extends SengiEngineError {
   }
 }
 
+export class SengiConstructorValidateParametersFailedError
+  extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly constructorName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The validateParameters function of constructor '${constructorName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.constructorName = constructorName;
+    this.innerErr = innerErr;
+  }
+}
+
 export class SengiConstructorNonObjectResponseError extends SengiEngineError {
   constructor(readonly docTypeName: string, readonly constructorName: string) {
     super(
@@ -48,7 +83,24 @@ export class SengiFilterParseFailedError extends SengiEngineError {
     readonly innerErr: Error,
   ) {
     super(
-      `Parsing function of filter '${filterName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+      `The parse function of filter '${filterName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.filterName = filterName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiFilterValidateParametersFailedError extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly filterName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The validateParameters function of filter '${filterName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
@@ -74,6 +126,24 @@ export class SengiInvalidOperationPatchError extends SengiEngineError {
   }
 }
 
+export class SengiOperationAuthoriseFunctionFailedError
+  extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly operationName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The authorise function on operation '${operationName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.operationName = operationName;
+    this.innerErr = innerErr;
+  }
+}
+
 export class SengiOperationFailedError extends SengiEngineError {
   constructor(
     readonly docTypeName: string,
@@ -91,14 +161,49 @@ export class SengiOperationFailedError extends SengiEngineError {
   }
 }
 
-export class SengiPreSaveFailedError extends SengiEngineError {
-  constructor(readonly docTypeName: string, readonly innerErr: Error) {
+export class SengiOperationValidateParametersFailedError
+  extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly operationName: string,
+    readonly innerErr: Error,
+  ) {
     super(
-      `Pre-save function on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+      `The validateParameters function of operation '${operationName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
     this.docTypeName = docTypeName;
+    this.operationName = operationName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiPreSaveFailedError extends SengiEngineError {
+  constructor(readonly docTypeName: string, readonly innerErr: Error) {
+    super(
+      `The preSave function on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiQueryAuthoriseFunctionFailedError extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly queryName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The authorise function on query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.queryName = queryName;
     this.innerErr = innerErr;
   }
 }
@@ -110,7 +215,7 @@ export class SengiQueryCoerceFailedError extends SengiEngineError {
     readonly innerErr: Error,
   ) {
     super(
-      `Coercing function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+      `The coerce function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
@@ -144,12 +249,69 @@ export class SengiQueryParseFailedError extends SengiEngineError {
     readonly innerErr: Error,
   ) {
     super(
-      `Parsing function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+      `The parse function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
     this.docTypeName = docTypeName;
     this.queryName = queryName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiQueryValidateParametersFailedError extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly queryName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The validateParameters function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.queryName = queryName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiQueryValidateResponseFailedError extends SengiEngineError {
+  constructor(
+    readonly docTypeName: string,
+    readonly queryName: string,
+    readonly innerErr: Error,
+  ) {
+    super(
+      `The validateResponse function of query '${queryName}' on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.queryName = queryName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiValidateDocFailedError extends SengiEngineError {
+  constructor(readonly docTypeName: string, readonly innerErr: Error) {
+    super(
+      `The validateDoc function on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.docTypeName = docTypeName;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiValiateUserFunctionError extends SengiEngineError {
+  constructor(readonly innerErr: Error) {
+    super(
+      `The validateUser function raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
     this.innerErr = innerErr;
   }
 }

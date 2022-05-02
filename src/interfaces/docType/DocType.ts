@@ -53,20 +53,6 @@ export interface DocType<
   summary?: string;
 
   /**
-   * A JSON schema that fully describes the acceptable shape of this document type.
-   * The common fields (id, docType, docOpIds and docVersion) will be added
-   * automatically if they are not present on the supplied schema.
-   */
-  jsonSchema: Record<string, unknown>;
-
-  /**
-   * The names of the fields that cannot be patched directly.  These fields can be
-   * set by operations, constructors and a preSave function.  System field names
-   * are treated as readonly automatically.
-   */
-  readonlyFieldNames?: string[];
-
-  /**
    * If populated, this document type has been deprecated, and this property describes
    * the reason and/or the document type to use in it's place.
    */
@@ -102,9 +88,20 @@ export interface DocType<
 
   /**
    * A function that returns an error message if the given doc does not contain valid field values.
-   * This function is used to perform validation where fields might depend upon each other.
+   * This function may alter the document to make it validate, such as removing unrecognised fields.
    */
-  validate?: (doc: Doc) => string | void;
+  validateDoc?: (doc: unknown) => string | void;
+
+  /**
+   * An array of field names that cannot be patched.
+   */
+  readOnlyFieldNames?: string[];
+
+  /**
+   * A function that returns an error message if the given user does not contain valid field values.
+   * This function may alter the user to make it validate, such as removing unrecognised fields.
+   */
+  validateUser?: (user: unknown) => string | void;
 
   /**
    * The policy of the document type that governs which high level actions

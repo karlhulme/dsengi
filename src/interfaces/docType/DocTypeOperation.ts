@@ -17,9 +17,10 @@ export interface DocTypeOperation<Doc, User, Parameters> {
   deprecation?: string;
 
   /**
-   * A JSON schema that describes the shape of the parameters to the operation.
+   * A function that returns an error message if the given parameters are not valid.
+   * This function may alter the parameters to make them validate, such as removing unrecognised fields.
    */
-  parametersJsonSchema: Record<string, unknown>;
+  validateParameters?: (parameters: unknown) => string | void;
 
   /**
    * A function that updates a document based on the given operation parameters.

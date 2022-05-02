@@ -10,9 +10,10 @@ export interface DocTypeConstructor<Doc, User, Parameters> {
   summary?: string;
 
   /**
-   * A JSON schema that describes the shape of the constructor parameters.
+   * A function that returns an error message if the given parameters are not valid.
+   * This function may alter the parameters to make them validate, such as removing unrecognised fields.
    */
-  parametersJsonSchema: Record<string, unknown>;
+  validateParameters?: (parameters: unknown) => string | void;
 
   /**
    * A function that returns a new document based on the given parameters.

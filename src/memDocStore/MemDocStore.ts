@@ -86,20 +86,15 @@ export class MemDocStore implements
   generateDocVersionFunc: () => string;
 
   /**
-   * Splices the given docs array so as to honour the offset and limit arguments.
+   * Splices the given docs array so as to honour the limit argument.
    * @param docs An array of documents.
    * @param limit The maximum number of documents to return.
-   * @param offset The number of documents to skip.
    */
   private spliceArrayForLimitAndOffset(
     docs: DocRecord[],
     limit?: number,
-    offset?: number,
   ): void {
-    if (limit && limit > 0 && offset && offset > 0) {
-      docs.splice(0, offset);
-      docs.splice(limit);
-    } else if (limit && limit > 0) {
+    if (limit && limit > 0) {
       docs.splice(limit);
     }
   }

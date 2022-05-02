@@ -44,12 +44,6 @@ export interface SelectDocumentsByFilterProps<RequestProps, DocStoreOptions> {
   limit?: number;
 
   /**
-   * The number of documents in the result set to skip
-   * before returning documents to the client.
-   */
-  offset?: number;
-
-  /**
    * The user that is making the request.
    */
   user: unknown;

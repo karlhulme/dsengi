@@ -17,14 +17,10 @@ export interface DocTypeQuery<User, Response, Parameters, QueryResult, Query> {
   deprecation?: string;
 
   /**
-   * A JSON schema that describes the shape of the query parameters.
+   * A function that returns an error message if the given parameters are not valid.
+   * This function may alter the parameters to make them validate, such as removing unrecognised fields.
    */
-  parametersJsonSchema: Record<string, unknown>;
-
-  /**
-   * A JSON schema that describes the shape of the response of the query.
-   */
-  responseJsonSchema: Record<string, unknown>;
+  validateParameters?: (parameters: unknown) => string | void;
 
   /**
    * A function that converts the parameters into a Query that the
@@ -32,6 +28,12 @@ export interface DocTypeQuery<User, Response, Parameters, QueryResult, Query> {
    * upon the choice of document store.
    */
   parse: (props: DocTypeQueryParseProps<User, Parameters>) => Query;
+
+  /**
+   * A function that returns an error message if the given response is not valid.
+   * This function may alter the response to make it validate, such as removing unrecognised fields.
+   */
+  validateResponse?: (response: unknown) => string | void;
 
   /**
    * A function that converts the document store result into a response
