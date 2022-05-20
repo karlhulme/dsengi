@@ -28,7 +28,6 @@ function createDocType() {
     unknown,
     unknown,
     unknown,
-    unknown,
     unknown
   > = {
     name: "test",
@@ -126,7 +125,6 @@ Deno.test("Silent return if auth method is not defined.", () => {
       unknown,
       unknown,
       unknown,
-      unknown,
       unknown
     >,
     { user: {}, parameters: {} },
@@ -167,7 +165,6 @@ Deno.test("Silent return if auth method returns void.", () => {
     docType,
     "testQuery",
     docType.queries?.testQuery as DocTypeQuery<
-      unknown,
       unknown,
       unknown,
       unknown,
@@ -232,7 +229,6 @@ Deno.test("Raise error if auth method returns a string.", () => {
         docType,
         "testQuery",
         docType.queries?.testQuery as DocTypeQuery<
-          unknown,
           unknown,
           unknown,
           unknown,
@@ -303,7 +299,6 @@ Deno.test("Raise error if auth method raises an error.", () => {
         docType,
         "testQuery",
         docType.queries?.testQuery as DocTypeQuery<
-          unknown,
           unknown,
           unknown,
           unknown,

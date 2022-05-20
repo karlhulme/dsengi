@@ -22,7 +22,7 @@ interface CosmosQueryParameter {
   /**
    * The value of a parameter, e.g. "Bournemouth".
    */
-  value: string;
+  value: unknown;
 }
 
 export async function queryDocumentsGateway(

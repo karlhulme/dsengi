@@ -45,6 +45,7 @@ Deno.test("Select by document filter with support for paging.", async () => {
   assert(spySelectByFilter.calledWith(
     "car",
     "cars",
+    "_central",
     ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },
@@ -81,6 +82,7 @@ Deno.test("Select by document filter with onPreSelectDocs delegate and without p
   assert(spySelectByFilter.calledWith(
     "car",
     "cars",
+    "_central",
     ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },

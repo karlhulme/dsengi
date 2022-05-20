@@ -10,8 +10,7 @@ export interface PreSelectDocsCallbackProps<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > {
   /**
    * The name of the client that invoked the operation.
@@ -26,7 +25,7 @@ export interface PreSelectDocsCallbackProps<
   /**
    * The document type associated with the documents being queried.
    */
-  docType: DocType<Doc, DocStoreOptions, User, Filter, Query, QueryResult>;
+  docType: DocType<Doc, DocStoreOptions, User, Filter, Query>;
 
   /**
    * Any properties passed along with the request.
@@ -53,8 +52,7 @@ export type PreSelectDocsCallback<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > = (
   props: PreSelectDocsCallbackProps<
     RequestProps,
@@ -62,7 +60,6 @@ export type PreSelectDocsCallback<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >,
 ) => Promise<void>;

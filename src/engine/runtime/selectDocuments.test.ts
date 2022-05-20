@@ -84,6 +84,7 @@ Deno.test("Select all documents of a type in a collection with support for pagin
     spySelectAll.calledWith(
       "car",
       "cars",
+      "_central",
       ["id", "model"],
       { custom: "prop" },
       { limit: 3 },
@@ -109,7 +110,7 @@ Deno.test("Select all documents of a type in a collection with an onSelectDocs d
 
   assertEquals(spySelectAll.callCount, 1);
   assert(
-    spySelectAll.calledWith("car", "cars", ["id"], { custom: "prop" }, {
+    spySelectAll.calledWith("car", "cars", "_central", ["id"], { custom: "prop" }, {
       limit: undefined,
     }),
   );

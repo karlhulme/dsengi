@@ -43,7 +43,7 @@ console.log(` Collection Ids: ${collectionIds.join(", ")}`);
 
 if (!collectionIds.includes("trees")) {
   console.log("Create trees collection.");
-  await createCollection(cryptoKey, testCosmosUrl, "sengi", "trees", "/id");
+  await createCollection(cryptoKey, testCosmosUrl, "sengi", "trees");
   console.log(" Done.");
 }
 
@@ -54,7 +54,6 @@ if (!collectionIds.includes("treePacks")) {
     testCosmosUrl,
     "sengi",
     "treePacks",
-    "/environment",
   );
   console.log(" Done.");
 }

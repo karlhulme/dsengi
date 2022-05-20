@@ -12,20 +12,14 @@ interface CreateDocumentOptions {
  * Returns true if a new document was created.  Returns false if an
  * existing document was replaced because the upsert option was specified.
  * In all other cases an error is raised.
- * @param cryptoKey
- * @param cosmosUrl
- * @param databaseName
- * @param collectionName
- * @param document
- * @param options
  */
 export async function createDocument(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
+  partition: string,
   document: DocRecord,
-  documentPartitionKeyValue: string | number,
   options: CreateDocumentOptions,
 ): Promise<boolean> {
   const reqHeaders = await generateCosmosReqHeaders({
@@ -42,6 +36,10 @@ export async function createDocument(
       optionalHeaders["x-ms-documentdb-is-upsert"] = "True";
     }
 
+    if (document.pkey !== partition) {
+      document.pkey = partition
+    }
+
     const response = await fetch(
       `${cosmosUrl}/dbs/${databaseName}/colls/${collectionName}/docs`,
       {
@@ -52,7 +50,7 @@ export async function createDocument(
           "content-type": "application/json",
           "x-ms-version": reqHeaders.xMsVersion,
           "x-ms-documentdb-partitionkey": formatPartitionKeyValue(
-            documentPartitionKeyValue,
+            partition,
           ),
           ...optionalHeaders,
         },

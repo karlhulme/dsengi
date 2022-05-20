@@ -27,7 +27,6 @@ function createDocType() {
     unknown,
     unknown,
     ExampleFilter,
-    unknown,
     unknown
   > = {
     name: "test",

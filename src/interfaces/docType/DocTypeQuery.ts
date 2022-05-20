@@ -4,7 +4,7 @@ import { DocTypeQueryParseProps } from "./DocTypeQueryParseProps.ts";
 /**
  * Represents a query that can be executed against a collection of documents.
  */
-export interface DocTypeQuery<User, Response, Parameters, QueryResult, Query> {
+export interface DocTypeQuery<User, Response, Parameters, Query> {
   /**
    * A description of the query.
    */
@@ -39,7 +39,7 @@ export interface DocTypeQuery<User, Response, Parameters, QueryResult, Query> {
    * A function that converts the document store result into a response
    * for clients to consume.
    */
-  coerce: (queryResult: QueryResult) => Response;
+  coerce: (queryResult: unknown) => Response;
 
   /**
    * A function that returns an authorisation error if the request

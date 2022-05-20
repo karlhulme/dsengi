@@ -136,7 +136,7 @@ export function ensureDocTypePatchRequestAuthorised(
 export function ensureDocTypeQueryRequestAuthorised(
   docType: AnyDocType,
   queryName: string,
-  docTypeQuery: DocTypeQuery<unknown, unknown, unknown, unknown, unknown>,
+  docTypeQuery: DocTypeQuery<unknown, unknown, unknown, unknown>,
   authProps: DocTypeQueryAuthProps<unknown, unknown>,
 ): void {
   if (docTypeQuery.authorise) {

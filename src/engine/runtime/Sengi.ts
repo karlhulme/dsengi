@@ -80,8 +80,7 @@ export interface SengiConstructorProps<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > {
   /**
    * The clients that have access to the sengi engine.
@@ -91,12 +90,12 @@ export interface SengiConstructorProps<
   /**
    * The document store that provides long-term storage for the sengi engine.
    */
-  docStore?: DocStore<DocStoreOptions, Filter, Query, QueryResult>;
+  docStore?: DocStore<DocStoreOptions, Filter, Query>;
 
   /**
    * The document types that are managed by the sengi engine.
    */
-  docTypes?: DocType<any, DocStoreOptions, User, Filter, Query, QueryResult>[];
+  docTypes?: DocType<any, DocStoreOptions, User, Filter, Query>[];
 
   /**
    * A function that returns the number of milliseconds since the unix epoch.
@@ -129,8 +128,7 @@ export interface SengiConstructorProps<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
 
   /**
@@ -142,8 +140,7 @@ export interface SengiConstructorProps<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
 
   /**
@@ -156,8 +153,7 @@ export interface SengiConstructorProps<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
 
   /**
@@ -170,8 +166,7 @@ export interface SengiConstructorProps<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
 }
 
@@ -184,23 +179,20 @@ export class Sengi<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > {
   private docTypes: DocType<
     any,
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >[];
   private clients: Client[];
   private safeDocStore: SafeDocStore<
     DocStoreOptions,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
   private apiKeysLoadedFromEnv: number;
   private apiKeysNotFoundInEnv: number;
@@ -215,8 +207,7 @@ export class Sengi<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
   private onDeletedDoc?: DeletedDocCallback<
     RequestProps,
@@ -224,8 +215,7 @@ export class Sengi<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
   private onPreSaveDoc?: PreSaveDocCallback<
     RequestProps,
@@ -233,8 +223,7 @@ export class Sengi<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
   private onPreSelectDocs?: PreSelectDocsCallback<
     RequestProps,
@@ -242,8 +231,7 @@ export class Sengi<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >;
 
   /**
@@ -256,8 +244,7 @@ export class Sengi<
       DocStoreOptions,
       User,
       Filter,
-      Query,
-      QueryResult
+      Query
     >,
   ) {
     this.docTypes = props.docTypes || [];
@@ -350,6 +337,7 @@ export class Sengi<
     const existsResult = await this.safeDocStore.exists(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.id,
       combinedDocStoreOptions,
       {},
@@ -394,6 +382,7 @@ export class Sengi<
       await this.safeDocStore.upsert(
         docType.name,
         docType.pluralName,
+        props.partition,
         doc,
         combinedDocStoreOptions,
         {},
@@ -435,6 +424,7 @@ export class Sengi<
     const fetchResult = await this.safeDocStore.fetch(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.id,
       combinedDocStoreOptions,
       {},
@@ -452,6 +442,7 @@ export class Sengi<
       const deleteByIdResult = await this.safeDocStore.deleteById(
         docType.name,
         docType.pluralName,
+        props.partition,
         props.id,
         combinedDocStoreOptions,
         {},
@@ -498,6 +489,7 @@ export class Sengi<
     const existsResult = await this.safeDocStore.exists(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.id,
       combinedDocStoreOptions,
       {},
@@ -537,6 +529,7 @@ export class Sengi<
       await this.safeDocStore.upsert(
         docType.name,
         docType.pluralName,
+        props.partition,
         doc,
         combinedDocStoreOptions,
         {},
@@ -577,9 +570,10 @@ export class Sengi<
     const fetchResult = await this.safeDocStore.fetch(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.id,
       combinedDocStoreOptions,
-      {},
+      {  },
     );
 
     const doc = ensureDocWasFound(docType.name, props.id, fetchResult.doc);
@@ -618,6 +612,7 @@ export class Sengi<
       const upsertResult = await this.safeDocStore.upsert(
         docType.name,
         docType.pluralName,
+        props.partition,
         doc,
         combinedDocStoreOptions,
         { reqVersion: props.reqVersion || (doc.docVersion as string) },
@@ -657,6 +652,7 @@ export class Sengi<
     const fetchResult = await this.safeDocStore.fetch(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.id,
       combinedDocStoreOptions,
       {},
@@ -698,6 +694,7 @@ export class Sengi<
       const upsertResult = await this.safeDocStore.upsert(
         docType.name,
         docType.pluralName,
+        props.partition,
         doc,
         combinedDocStoreOptions,
         { reqVersion: props.reqVersion || (doc.docVersion as string) },
@@ -802,6 +799,7 @@ export class Sengi<
     const upsertResult = await this.safeDocStore.upsert(
       docType.name,
       docType.pluralName,
+      props.partition,
       doc,
       combinedDocStoreOptions,
       {},
@@ -857,6 +855,7 @@ export class Sengi<
     const queryResult = await this.safeDocStore.selectByFilter(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.fieldNames,
       filter,
       combinedDocStoreOptions,
@@ -907,6 +906,7 @@ export class Sengi<
     const queryResult = await this.safeDocStore.selectByIds(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.fieldNames,
       props.ids,
       combinedDocStoreOptions,
@@ -956,6 +956,7 @@ export class Sengi<
     const queryResult = await this.safeDocStore.selectAll(
       docType.name,
       docType.pluralName,
+      props.partition,
       props.fieldNames,
       combinedDocStoreOptions,
       {

@@ -10,8 +10,7 @@ export interface PreSaveDocCallbackProps<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > {
   /**
    * The name of the client that invoked the operation.
@@ -26,7 +25,7 @@ export interface PreSaveDocCallbackProps<
   /**
    * The document type associated with the document to be saved.
    */
-  docType: DocType<Doc, DocStoreOptions, User, Filter, Query, QueryResult>;
+  docType: DocType<Doc, DocStoreOptions, User, Filter, Query>;
 
   /**
    * Any properties passed along with the request.
@@ -58,8 +57,7 @@ export type PreSaveDocCallback<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > = (
   props: PreSaveDocCallbackProps<
     RequestProps,
@@ -67,7 +65,6 @@ export type PreSaveDocCallback<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >,
 ) => Promise<void>;

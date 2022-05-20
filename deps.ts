@@ -16,7 +16,7 @@ export {
   encode as encodeBase64,
 } from "https://deno.land/std@0.128.0/encoding/base64.ts";
 
-export { spy } from "https://cdn.skypack.dev/sinon?dts";
+export { spy, match } from "https://cdn.skypack.dev/sinon?dts";
 
 export {
   OperationTransitoryError,

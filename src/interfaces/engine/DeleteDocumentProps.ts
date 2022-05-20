@@ -13,6 +13,11 @@ export interface DeleteDocumentProps<RequestProps, DocStoreOptions> {
   docTypeName: string;
 
   /**
+   * The name of a document partition.
+   */
+  partition: string;
+
+  /**
    * The id of a document.
    */
   id: string;

@@ -6,8 +6,7 @@ export async function createCollection(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
-  collectionName: string,
-  partitionKey: string,
+  collectionName: string
 ) {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -29,7 +28,7 @@ export async function createCollection(
         id: collectionName,
         partitionKey: {
           paths: [
-            partitionKey,
+            "/pkey",
           ],
           kind: "Hash",
           Version: 2,

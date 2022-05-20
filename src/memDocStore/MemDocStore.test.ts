@@ -14,6 +14,7 @@ function createDocs(): DocRecord[] {
       fruit: "apple",
       docVersion: "aaa1",
       docOpIds: [],
+      pkey: "_central"
     },
     {
       id: "002",
@@ -21,6 +22,7 @@ function createDocs(): DocRecord[] {
       fruit: "banana",
       docVersion: "aaa2",
       docOpIds: [],
+      pkey: "_central"
     },
     {
       id: "003",
@@ -28,6 +30,7 @@ function createDocs(): DocRecord[] {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
+      pkey: "_central"
     },
     {
       id: "101",
@@ -35,6 +38,7 @@ function createDocs(): DocRecord[] {
       vehicle: "car",
       docVersion: "a101",
       docOpIds: [],
+      pkey: "_central"
     },
     {
       id: "102",
@@ -42,6 +46,7 @@ function createDocs(): DocRecord[] {
       vehicle: "cargoBoat",
       docVersion: "a102",
       docOpIds: [],
+      pkey: "_central"
     },
     {
       id: "103",
@@ -49,6 +54,7 @@ function createDocs(): DocRecord[] {
       vehicle: "plane",
       docVersion: "a103",
       docOpIds: [],
+      pkey: "_central"
     },
   ];
 }
@@ -60,7 +66,7 @@ function generateDocVersionFunc() {
 Deno.test("A document can be deleted.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.deleteById("test", "tests", "003", {}, {});
+  const result = await docStore.deleteById("test", "tests", "_central", "003", {}, {});
   assertEquals(result, { code: DocStoreDeleteByIdResultCode.DELETED });
   assertEquals(docs.length, 5);
   assertEquals(docs.map((d) => d.id), ["001", "002", "101", "102", "103"]);
@@ -69,7 +75,7 @@ Deno.test("A document can be deleted.", async () => {
 Deno.test("A non-existent document can be deleted without error.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.deleteById("test", "tests", "200", {}, {});
+  const result = await docStore.deleteById("test", "tests", "_central", "200", {}, {});
   assertEquals(result, { code: DocStoreDeleteByIdResultCode.NOT_FOUND });
   assertEquals(docs.length, 6);
   assertEquals(docs.map((d) => d.id), [
@@ -85,21 +91,21 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
 Deno.test("A document can be found to exist.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.exists("test", "tests", "003", {}, {});
+  const result = await docStore.exists("test", "tests", "_central", "003", {}, {});
   assertEquals(result, { found: true });
 });
 
 Deno.test("A non-existent document is not found.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.exists("test", "tests", "005", {}, {});
+  const result = await docStore.exists("test", "tests", "_central", "005", {}, {});
   assertEquals(result, { found: false });
 });
 
 Deno.test("A document can be fetched.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.fetch("test", "tests", "003", {}, {});
+  const result = await docStore.fetch("test", "tests", "_central", "003", {}, {});
   assertEquals(result, {
     doc: {
       id: "003",
@@ -107,6 +113,7 @@ Deno.test("A document can be fetched.", async () => {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
+      pkey: "_central"
     },
   });
 });
@@ -114,32 +121,26 @@ Deno.test("A document can be fetched.", async () => {
 Deno.test("A non-existent document cannot be fetched.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.fetch("test", "tests", "005", {}, {});
+  const result = await docStore.fetch("test", "tests", "_central", "005", {}, {});
   assertEquals(result, { doc: null });
 });
 
 Deno.test("A count query can be executed.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.query("test", "tests", { count: true }, {}, {});
-  assertEquals(result, { data: { count: 3 } });
-});
-
-Deno.test("An unknown query can be executed.", async () => {
-  const docs = createDocs();
-  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.query("test", "tests", {}, {}, {});
-  assertEquals(result, { data: {} });
+  const result = await docStore.query("test", "tests", { reducer: (agg) => (agg as number) + 1, initialValue: 0 }, {}, {});
+  assertEquals(result, { data: 3 });
 });
 
 Deno.test("All documents of a type can be selected.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.selectAll("test", "tests", ["id"], {}, {});
+  const result = await docStore.selectAll("test", "tests", "_central", ["id"], {}, {});
   assertEquals(result, { docs: [{ id: "001" }, { id: "002" }, { id: "003" }] });
   const result2 = await docStore.selectAll(
     "test2",
     "test2s",
+    "_central",
     ["vehicle"],
     {},
     {},
@@ -155,6 +156,7 @@ Deno.test("All documents of a recognised type can selected.", async () => {
   const result = await docStore.selectAll(
     "test3",
     "tests",
+    "_central",
     ["fieldA", "fieldB"],
     {},
     {},
@@ -168,6 +170,7 @@ Deno.test("Select documents using a filter.", async () => {
   const result = await docStore.selectByFilter(
     "test2",
     "test2s",
+    "_central",
     ["id", "vehicle"],
     (d) => (d.vehicle as string).startsWith("c"),
     {},
@@ -184,6 +187,7 @@ Deno.test("Select documents using ids.", async () => {
   const result = await docStore.selectByIds(
     "test",
     "tests",
+    "_central",
     ["id", "fruit"],
     ["002", "003"],
     {},
@@ -200,6 +204,7 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   const result = await docStore.selectByIds(
     "test",
     "tests",
+    "_central",
     ["id", "fruit"],
     ["002", "003", "002"],
     {},
@@ -216,6 +221,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   const result = await docStore.upsert(
     "test",
     "tests",
+    "_central",
     {
       id: "004",
       docType: "test",
@@ -243,6 +249,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     fruit: "kiwi",
     docVersion: "xxxx",
     docOpIds: [],
+    pkey: "_central"
   });
 });
 
@@ -252,6 +259,7 @@ Deno.test("Update an existing document.", async () => {
   const result = await docStore.upsert(
     "test2",
     "test2s",
+    "_central",
     {
       id: "102",
       docType: "test2",
@@ -278,6 +286,7 @@ Deno.test("Update an existing document.", async () => {
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
+    pkey: "_central"
   });
 });
 
@@ -287,6 +296,7 @@ Deno.test("Update an existing document with a required version.", async () => {
   const result = await docStore.upsert(
     "test2",
     "test2s",
+    "_central",
     {
       id: "102",
       docType: "test2",
@@ -313,6 +323,7 @@ Deno.test("Update an existing document with a required version.", async () => {
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
+    pkey: "_central"
   });
 });
 
@@ -322,6 +333,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
   const result = await docStore.upsert(
     "test2",
     "test2s",
+    "_central",
     {
       id: "102",
       docType: "test2",
@@ -342,5 +354,6 @@ Deno.test("Fail to update an existing document if the required version is unavai
     vehicle: "cargoBoat",
     docVersion: "a102",
     docOpIds: [],
+    pkey: "_central"
   });
 });

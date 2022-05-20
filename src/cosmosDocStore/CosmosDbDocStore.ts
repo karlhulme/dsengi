@@ -2,7 +2,6 @@
 import {
   createDocument,
   deleteDocument,
-  getCollection,
   getDocument,
   queryDocumentsDirect,
   queryDocumentsGateway,
@@ -27,6 +26,12 @@ import {
   DocStoreUpsertResultCode,
   UnexpectedDocStoreError,
 } from "../interfaces/index.ts";
+
+/**
+ * The central partition where documents are placed that do not
+ * have a dedicated partition.
+ */
+export const CentralPartition = "_central";
 
 /**
  * Represents the options that can be passed to the cosmosdb store.
@@ -70,32 +75,49 @@ export interface CosmosDbDocStoreFilterOrderByField {
   direction?: "ascending" | "descending";
 }
 
+export interface CosmosDbDocStoreQueryParameter {
+  /**
+   * The name of a parameter in the sqlStatement that should
+   * be prefixed with an @ symbol.
+   */
+  name: string;
+  
+  /**
+   * The value to use where the parameter appears in the sqlStatement.
+   */
+  value: unknown;
+}
+
 /**
- * Represents a query that can be executed against a document collection.
+ * Represents a query that can be executed against a document collection
+ * which potentially operates across multiple partitions.
  */
 export interface CosmosDbDocStoreQuery {
   /**
    * If populated, executes the given SQL directly against the collection.
    */
-  sqlQuery?: string;
+  sqlStatement: string;
 
   /**
-   * True if the query is filtered based on anything other than the
-   * partition key.  If a transform is specified, then query will be
+   * An array of parameters to be substituted into the given sqlStatement.
+   */
+  sqlParameters: CosmosDbDocStoreQueryParameter[];
+
+  /**
+   * True if the query does not include a filter for a specific partition.
+   * If a transform is specified, then the query will be
    * executed cross-partition automatically, and this value has no effect.
    */
   crossPartitionQuery?: boolean;
 
   /**
-   * If the query includes SUM, AVG, COUNT, OFFSET, LIMIT or ORDER BY then
-   * the gateway cannot process the query and we need to
-   * execute the query on each of the containers individually.
-   * As a result, we may retrieve more results that the client would like.
-   * To bypass the gateway, provide a transform function that will convert
-   * the combined results of the queries into an array to be returned
-   * to the client.  By providing this function, cosmos will be queried
-   * first for the applicable pkranges and then queried again for the results
-   * from each container.
+   * If the query includes SUM, AVG, COUNT, OFFSET, LIMIT or ORDER BY and
+   * does not filter to a specific partition then the gateway cannot process
+   * the query and we need to execute the query on each of the containers individually.
+   * As a result, we may retrieve more results than the client would like.
+   * By providing this function, cosmos will be queried first for the applicable
+   * pk-ranges and then queried again for the results from each container
+   * and finally this function is used to combine the results.
    */
   transform?: (docs: DocRecord[]) => DocRecord[];
 }
@@ -148,14 +170,14 @@ interface CosmosDbDocStoreConstructorProps {
   /**
    * A function that gets the partition key value from a document.
    */
-  getPartitionKeyValueFunc: (
-    databaseName: string,
-    containerName: string,
-    docTypeName: string,
-    docTypePluralName: string,
-    doc: DocRecord,
-    options: CosmosDbDocStoreOptions,
-  ) => string | number;
+  // getPartitionKeyValueFunc: (
+  //   databaseName: string,
+  //   containerName: string,
+  //   docTypeName: string,
+  //   docTypePluralName: string,
+  //   doc: DocRecord,
+  //   options: CosmosDbDocStoreOptions,
+  // ) => string | number;
 }
 
 /**
@@ -165,8 +187,7 @@ export class CosmosDbDocStore implements
   DocStore<
     CosmosDbDocStoreOptions,
     CosmosDbDocStoreFilter,
-    CosmosDbDocStoreQuery,
-    CosmosDbDocStoreQueryResult
+    CosmosDbDocStoreQuery
   > {
   collectionsPartitionKeyCache: Record<string, string> = {};
   cosmosUrl: string;
@@ -182,45 +203,45 @@ export class CosmosDbDocStore implements
     docTypePluralName: string,
     options: CosmosDbDocStoreOptions,
   ) => string;
-  getPartitionKeyValueFunc: (
-    databaseName: string,
-    containerName: string,
-    docTypeName: string,
-    docTypePluralName: string,
-    doc: DocRecord,
-    options: CosmosDbDocStoreOptions,
-  ) => string | number;
+  // getPartitionKeyValueFunc: (
+  //   databaseName: string,
+  //   containerName: string,
+  //   docTypeName: string,
+  //   docTypePluralName: string,
+  //   doc: DocRecord,
+  //   options: CosmosDbDocStoreOptions,
+  // ) => string | number;
 
   /**
    * Returns the field name of the partition key for a collection.
    * @param databaseName The name of a database.
    * @param containerName The name of a container.
    */
-  private async getPartitionKeyFieldNameForCollection(
-    databaseName: string,
-    containerName: string,
-  ): Promise<string> {
-    const fqcn = `${databaseName}/${containerName}`;
+  // private async getPartitionKeyFieldNameForCollection(
+  //   databaseName: string,
+  //   containerName: string,
+  // ): Promise<string> {
+  //   const fqcn = `${databaseName}/${containerName}`;
 
-    if (this.collectionsPartitionKeyCache[fqcn]) {
-      return this.collectionsPartitionKeyCache[fqcn];
-    }
+  //   if (this.collectionsPartitionKeyCache[fqcn]) {
+  //     return this.collectionsPartitionKeyCache[fqcn];
+  //   }
 
-    const collection = await getCollection(
-      this.cosmosKey,
-      this.cosmosUrl,
-      databaseName,
-      containerName,
-    );
+  //   const collection = await getCollection(
+  //     this.cosmosKey,
+  //     this.cosmosUrl,
+  //     databaseName,
+  //     containerName,
+  //   );
 
-    // istanbul ignore next - all containers have a partition key (legacy ones did not)
-    const partitionKeyFieldName =
-      collection.partitionKey.paths[0].substring(1) ||
-      "missing_partition_key";
+  //   // istanbul ignore next - all containers have a partition key (legacy ones did not)
+  //   const partitionKeyFieldName =
+  //     collection.partitionKey.paths[0].substring(1) ||
+  //     "missing_partition_key";
 
-    this.collectionsPartitionKeyCache[fqcn] = partitionKeyFieldName;
-    return partitionKeyFieldName;
-  }
+  //   this.collectionsPartitionKeyCache[fqcn] = partitionKeyFieldName;
+  //   return partitionKeyFieldName;
+  // }
 
   /**
    * Returns a select query based on the given inputs.
@@ -248,7 +269,9 @@ export class CosmosDbDocStore implements
 
     // the where clause
     if (typeof whereClause === "string") {
-      sql += `  WHERE (${whereClause})`;
+      sql += `  WHERE d.pkey = @pkey AND (${whereClause})`;
+    } else {
+      sql += `  WHERE d.pkey = @pkey`;
     }
 
     // the order by clause
@@ -311,51 +334,51 @@ export class CosmosDbDocStore implements
    * @param docs An array of documents retrieved by a selectByFilter operation.
    * @param filter The filter to be applied.
    */
-  private transformSelectByFilterDocs(
-    docs: DocRecord[],
-    filter: CosmosDbDocStoreFilter,
-  ) {
-    const comparer = function (
-      docA: DocRecord,
-      docB: DocRecord,
-      fieldName: string,
-      invertValue: boolean,
-    ) {
-      const valueA = docA[fieldName];
-      const valueB = docB[fieldName];
-      const scaler = invertValue ? -1 : 1;
+  // private transformSelectByFilterDocs(
+  //   docs: DocRecord[],
+  //   filter: CosmosDbDocStoreFilter,
+  // ) {
+  //   const comparer = function (
+  //     docA: DocRecord,
+  //     docB: DocRecord,
+  //     fieldName: string,
+  //     invertValue: boolean,
+  //   ) {
+  //     const valueA = docA[fieldName];
+  //     const valueB = docB[fieldName];
+  //     const scaler = invertValue ? -1 : 1;
 
-      if (typeof valueA === "number" && typeof valueB === "number") {
-        return (valueA - valueB) * scaler;
-      } else {
-        return (valueA || "").toString().localeCompare(
-          (valueB || "").toString(),
-        ) * scaler;
-      }
-    };
+  //     if (typeof valueA === "number" && typeof valueB === "number") {
+  //       return (valueA - valueB) * scaler;
+  //     } else {
+  //       return (valueA || "").toString().localeCompare(
+  //         (valueB || "").toString(),
+  //       ) * scaler;
+  //     }
+  //   };
 
-    const orderedDocs = filter.orderByFields
-      ? docs.sort((docA, docB) => {
-        let fieldNumber = 0;
-        let lastCompareResult = 0;
-        const orderByFieldLength = filter.orderByFields?.length || 0;
+  //   const orderedDocs = filter.orderByFields
+  //     ? docs.sort((docA, docB) => {
+  //       let fieldNumber = 0;
+  //       let lastCompareResult = 0;
+  //       const orderByFieldLength = filter.orderByFields?.length || 0;
 
-        while (lastCompareResult === 0 && fieldNumber < orderByFieldLength) {
-          lastCompareResult = comparer(
-            docA,
-            docB,
-            filter.orderByFields?.[fieldNumber].fieldName as string,
-            filter.orderByFields?.[fieldNumber].direction === "descending",
-          );
-          fieldNumber++;
-        }
+  //       while (lastCompareResult === 0 && fieldNumber < orderByFieldLength) {
+  //         lastCompareResult = comparer(
+  //           docA,
+  //           docB,
+  //           filter.orderByFields?.[fieldNumber].fieldName as string,
+  //           filter.orderByFields?.[fieldNumber].direction === "descending",
+  //         );
+  //         fieldNumber++;
+  //       }
 
-        return lastCompareResult;
-      })
-      : docs;
+  //       return lastCompareResult;
+  //     })
+  //     : docs;
 
-    return filter.limit ? orderedDocs.slice(0, filter.limit) : orderedDocs;
-  }
+  //   return filter.limit ? orderedDocs.slice(0, filter.limit) : orderedDocs;
+  // }
 
   /**
    * Constructs a new instance of the document store.
@@ -366,13 +389,14 @@ export class CosmosDbDocStore implements
     this.cosmosKey = props.cosmosKey;
     this.getDatabaseNameFunc = props.getDatabaseNameFunc;
     this.getContainerNameFunc = props.getContainerNameFunc;
-    this.getPartitionKeyValueFunc = props.getPartitionKeyValueFunc;
+    // this.getPartitionKeyValueFunc = props.getPartitionKeyValueFunc;
   }
 
   /**
    * Delete a single document from the store using it's id.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -381,6 +405,7 @@ export class CosmosDbDocStore implements
   async deleteById(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: CosmosDbDocStoreOptions,
     _props: DocStoreDeleteByIdProps,
@@ -399,56 +424,56 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const partitionKeyFieldName = await this
-        .getPartitionKeyFieldNameForCollection(
-          databaseName,
-          containerName,
-        );
+      // const partitionKeyFieldName = await this
+      //   .getPartitionKeyFieldNameForCollection(
+      //     databaseName,
+      //     containerName,
+      //   );
 
-      let partitionKeyValue: string | number = "";
+      // let partitionKeyValue: string | number = "";
 
-      if (partitionKeyFieldName === "id") {
-        partitionKeyValue = id;
-      } else {
-        const docs = await queryDocumentsGateway(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          `SELECT d.${partitionKeyFieldName} FROM Docs d WHERE d.id = @id`,
-          [
-            { name: "@id", value: id },
-          ],
-          {
-            crossPartitionQuery: true,
-          },
-        );
+      // if (partitionKeyFieldName === "id") {
+      //   partitionKeyValue = id;
+      // } else {
+      //   const docs = await queryDocumentsGateway(
+      //     this.cosmosKey,
+      //     this.cosmosUrl,
+      //     databaseName,
+      //     containerName,
+      //     `SELECT d.${partitionKeyFieldName} FROM Docs d WHERE d.id = @id`,
+      //     [
+      //       { name: "@id", value: id },
+      //     ],
+      //     {
+      //       crossPartitionQuery: true,
+      //     },
+      //   );
 
-        if (docs.length === 0) {
-          return { code: DocStoreDeleteByIdResultCode.NOT_FOUND };
-        }
+      //   if (docs.length === 0) {
+      //     return { code: DocStoreDeleteByIdResultCode.NOT_FOUND };
+      //   }
 
-        const candidatePartitionKeyValue = docs[0][partitionKeyFieldName];
+      //   const candidatePartitionKeyValue = docs[0][partitionKeyFieldName];
 
-        if (
-          typeof candidatePartitionKeyValue !== "string" &&
-          typeof candidatePartitionKeyValue !== "number"
-        ) {
-          throw new Error(
-            `Partition key (${partitionKeyFieldName}) for document (${id}) in ${databaseName}/${containerName} was not a string or number.`,
-          );
-        }
+      //   if (
+      //     typeof candidatePartitionKeyValue !== "string" &&
+      //     typeof candidatePartitionKeyValue !== "number"
+      //   ) {
+      //     throw new Error(
+      //       `Partition key (${partitionKeyFieldName}) for document (${id}) in ${databaseName}/${containerName} was not a string or number.`,
+      //     );
+      //   }
 
-        partitionKeyValue = candidatePartitionKeyValue;
-      }
+      //   partitionKeyValue = candidatePartitionKeyValue;
+      // }
 
       const didDelete = await deleteDocument(
         this.cosmosKey,
         this.cosmosUrl,
         databaseName,
         containerName,
+        partition,
         id,
-        partitionKeyValue,
       );
 
       const resultCode = didDelete
@@ -469,6 +494,7 @@ export class CosmosDbDocStore implements
    * Determines if a document with the given id is in the datastore.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -477,6 +503,7 @@ export class CosmosDbDocStore implements
   async exists(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: CosmosDbDocStoreOptions,
     _props: DocStoreExistsProps,
@@ -495,24 +522,23 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const partitionKeyFieldName = await this
-        .getPartitionKeyFieldNameForCollection(
-          databaseName,
-          containerName,
-        );
+      // const partitionKeyFieldName = await this
+      //   .getPartitionKeyFieldNameForCollection(
+      //     databaseName,
+      //     containerName,
+      //   );
 
       const docs = await queryDocumentsGateway(
         this.cosmosKey,
         this.cosmosUrl,
         databaseName,
         containerName,
-        "SELECT VALUE COUNT(1) FROM Docs d WHERE d.id = @id",
+        "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
         [
+          { name: '@pkey', value: partition },
           { name: "@id", value: id },
         ],
-        {
-          crossPartitionQuery: partitionKeyFieldName !== "id",
-        },
+        {}
       );
 
       // Usually queryDocuments returns an array of documents, but using
@@ -536,6 +562,7 @@ export class CosmosDbDocStore implements
    * query will be used.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -544,6 +571,7 @@ export class CosmosDbDocStore implements
   async fetch(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: CosmosDbDocStoreOptions,
     _props: DocStoreFetchProps,
@@ -562,42 +590,42 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const partitionKeyFieldName = await this
-        .getPartitionKeyFieldNameForCollection(
-          databaseName,
-          containerName,
-        );
+      // const partitionKeyFieldName = await this
+      //   .getPartitionKeyFieldNameForCollection(
+      //     databaseName,
+      //     containerName,
+      //   );
 
       let rawDoc: DocRecord | null = null;
 
-      if (partitionKeyFieldName === "id") {
+      // if (partitionKeyFieldName === "id") {
         rawDoc = await getDocument(
           this.cosmosKey,
           this.cosmosUrl,
           databaseName,
           containerName,
-          id,
+          partition,
           id,
         );
-      } else {
-        const rawDocs = await queryDocumentsGateway(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          `SELECT * FROM Docs d where d.id = @id`,
-          [
-            { name: "@id", value: id },
-          ],
-          {
-            crossPartitionQuery: true,
-          },
-        );
+      // } else {
+      //   const rawDocs = await queryDocumentsGateway(
+      //     this.cosmosKey,
+      //     this.cosmosUrl,
+      //     databaseName,
+      //     containerName,
+      //     `SELECT * FROM Docs d where d.id = @id`,
+      //     [
+      //       { name: "@id", value: id },
+      //     ],
+      //     {
+      //       crossPartitionQuery: true,
+      //     },
+      //   );
 
-        if (rawDocs.length === 1) {
-          rawDoc = rawDocs[0];
-        }
-      }
+      //   if (rawDocs.length === 1) {
+      //     rawDoc = rawDocs[0];
+      //   }
+      // }
 
       let doc = null;
 
@@ -620,7 +648,8 @@ export class CosmosDbDocStore implements
    * Execute a query against the document store.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
-   * @param query A query to execute.
+   * @param query A query to execute that should include a clause for =
+   * a specific partition.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
    * @param _props Properties that define how to carry out this action.
@@ -631,50 +660,46 @@ export class CosmosDbDocStore implements
     query: CosmosDbDocStoreQuery,
     options: CosmosDbDocStoreOptions,
     _props: DocStoreQueryProps,
-  ): Promise<DocStoreQueryResult<CosmosDbDocStoreQueryResult>> {
+  ): Promise<DocStoreQueryResult> {
     try {
-      if (query.sqlQuery) {
-        const databaseName = this.getDatabaseNameFunc(
-          docTypeName,
-          docTypePluralName,
-          options,
-        );
+      const databaseName = this.getDatabaseNameFunc(
+        docTypeName,
+        docTypePluralName,
+        options,
+      );
 
-        const containerName = this.getContainerNameFunc(
+      const containerName = this.getContainerNameFunc(
+        databaseName,
+        docTypeName,
+        docTypePluralName,
+        options,
+      );
+
+      const docs = query.transform
+        ? await queryDocumentsDirect(
+          this.cosmosKey,
+          this.cosmosUrl,
           databaseName,
-          docTypeName,
-          docTypePluralName,
-          options,
+          containerName,
+          query.sqlStatement,
+          query.sqlParameters,
+          {
+            transform: query.transform,
+          },
+        )
+        : await queryDocumentsGateway(
+          this.cosmosKey,
+          this.cosmosUrl,
+          databaseName,
+          containerName,
+          query.sqlStatement,
+          query.sqlParameters,
+          {
+            crossPartitionQuery: query.crossPartitionQuery,
+          },
         );
 
-        const docs = query.transform
-          ? await queryDocumentsDirect(
-            this.cosmosKey,
-            this.cosmosUrl,
-            databaseName,
-            containerName,
-            query.sqlQuery,
-            [],
-            {
-              transform: query.transform,
-            },
-          )
-          : await queryDocumentsGateway(
-            this.cosmosKey,
-            this.cosmosUrl,
-            databaseName,
-            containerName,
-            query.sqlQuery,
-            [],
-            {
-              crossPartitionQuery: query.crossPartitionQuery,
-            },
-          );
-
-        return { data: { docs } };
-      } else {
-        return { data: {} };
-      }
+      return { data: docs };
     } catch (err) {
       // istanbul ignore next
       throw new UnexpectedDocStoreError(
@@ -688,6 +713,7 @@ export class CosmosDbDocStore implements
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -696,6 +722,7 @@ export class CosmosDbDocStore implements
   async selectAll(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     options: CosmosDbDocStoreOptions,
     _props: DocStoreSelectProps,
@@ -724,10 +751,10 @@ export class CosmosDbDocStore implements
         databaseName,
         containerName,
         queryCmd,
-        [],
-        {
-          crossPartitionQuery: true,
-        },
+        [
+          { name: '@pkey', value: partition }
+        ],
+        {},
       );
 
       return { docs: this.buildResultDocs(docs, fieldNames) };
@@ -744,6 +771,7 @@ export class CosmosDbDocStore implements
    * Select documents of a specified type that also match a filter.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
@@ -754,6 +782,7 @@ export class CosmosDbDocStore implements
   async selectByFilter(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     filter: CosmosDbDocStoreFilter,
     options: CosmosDbDocStoreOptions,
@@ -780,29 +809,17 @@ export class CosmosDbDocStore implements
         filter.limit,
       );
 
-      const docs = Array.isArray(filter.orderByFields) || filter.limit
-        ? await queryDocumentsDirect(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          queryCmd,
-          [],
-          {
-            transform: (docs) => this.transformSelectByFilterDocs(docs, filter),
-          },
-        )
-        : await queryDocumentsGateway(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          queryCmd,
-          [],
-          {
-            crossPartitionQuery: true,
-          },
-        );
+      const docs = await queryDocumentsGateway(
+        this.cosmosKey,
+        this.cosmosUrl,
+        databaseName,
+        containerName,
+        queryCmd,
+        [
+          { name: '@pkey', value: partition }
+        ],
+        {},
+      );
 
       return { docs: this.buildResultDocs(docs, fieldNames) };
     } catch (err) {
@@ -818,6 +835,7 @@ export class CosmosDbDocStore implements
    * Select documents of a specified type that also have one of the given ids.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
    * @param options A set of options supplied with the original request
@@ -827,6 +845,7 @@ export class CosmosDbDocStore implements
   async selectByIds(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     ids: string[],
     options: CosmosDbDocStoreOptions,
@@ -859,10 +878,10 @@ export class CosmosDbDocStore implements
         databaseName,
         containerName,
         queryCmd,
-        [],
-        {
-          crossPartitionQuery: true,
-        },
+        [
+          { name: '@pkey', value: partition }
+        ],
+        {},
       );
 
       return { docs: this.buildResultDocs(docs, fieldNames) };
@@ -879,6 +898,7 @@ export class CosmosDbDocStore implements
    * Store a single document in the store, overwriting an existing if necessary.
    * @param docTypeName The name of a doc type.
    * @param docTypePluralName The plural name of a doc type.
+   * @param partition The name of a partition where documents are stored.
    * @param doc The document to store.
    * @param options A set of options supplied with the original request
    * and options defined on the document type.
@@ -887,6 +907,7 @@ export class CosmosDbDocStore implements
   async upsert(
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     doc: DocRecord,
     options: CosmosDbDocStoreOptions,
     props: DocStoreUpsertProps,
@@ -912,14 +933,14 @@ export class CosmosDbDocStore implements
         options,
       );
 
-      const partitionKeyValue = this.getPartitionKeyValueFunc(
-        databaseName,
-        containerName,
-        docTypeName,
-        docTypePluralName,
-        doc,
-        options,
-      );
+      // const partitionKeyValue = this.getPartitionKeyValueFunc(
+      //   databaseName,
+      //   containerName,
+      //   docTypeName,
+      //   docTypePluralName,
+      //   doc,
+      //   options,
+      // );
 
       if (props.reqVersion) {
         const didReplace = await replaceDocument(
@@ -927,8 +948,8 @@ export class CosmosDbDocStore implements
           this.cosmosUrl,
           databaseName,
           containerName,
+          partition,
           cleanDoc,
-          partitionKeyValue,
           {
             ifMatch: props.reqVersion,
           },
@@ -945,8 +966,8 @@ export class CosmosDbDocStore implements
           this.cosmosUrl,
           databaseName,
           containerName,
+          partition,
           cleanDoc,
-          partitionKeyValue,
           {
             upsertDocument: true,
           },

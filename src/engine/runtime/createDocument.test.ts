@@ -1,11 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertThrows, spy } from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiCtorParamsValidationFailedError,
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
-  SengiValidateDocFailedError,
+  SengiDocValidationFailedError,
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -36,6 +36,7 @@ Deno.test("Creating a document with a constructor should call exists and then up
     spyExists.calledWithExactly(
       "car",
       "cars",
+      "_central",
       "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       { custom: "prop" },
       {},
@@ -62,6 +63,7 @@ Deno.test("Creating a document with a constructor should call exists and then up
     spyUpsert.calledWithExactly(
       "car",
       "cars",
+      "_central",
       resultDoc,
       { custom: "prop" },
       {},
@@ -78,103 +80,64 @@ Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFrom
     getIdFromUser: null,
   });
 
-  const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.createDocument({
+  assertEquals(await sengi.createDocument({
     ...defaultRequestProps,
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     constructorName: "regTesla",
     constructorParams: "HG12 3AB",
-  })).resolves.toEqual({ isNew: true });
+  }), { isNew: true });
 
-  const resultDoc = {
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    docType: "car",
-    docOpIds: [],
-    docCreatedByUserId: "<unknown>",
-    docCreatedMillisecondsSinceEpoch: expect.any(Number),
-    docLastUpdatedByUserId: "<unknown>",
-    docLastUpdatedMillisecondsSinceEpoch: expect.any(Number),
-
-    // fields
-    manufacturer: "tesla",
-    model: "T",
-    registration: "HG12 3AB",
-  };
-
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty(["mock", "calls", "0"], [
-    "car",
-    "cars",
-    resultDoc,
-    { custom: "prop" },
-    {},
-  ]);
+  assertEquals(spyUpsert.callCount, 1);
 });
 
 Deno.test("Creating a document with a constructor should cause the onPreSaveDoc and onSavedDoc events to be invoked.", async () => {
-  const { sengi, sengiCtorOverrides } = createSengiWithMockStore({
+  const onPreSaveDoc = spy((..._args: unknown[]) => {});
+  const onSavedDoc = spy((..._args: unknown[]) => {});
+  
+  const { sengi, carDocType } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
-    onPreSaveDoc: jest.fn(),
-    onSavedDoc: jest.fn(),
+    onPreSaveDoc,
+    onSavedDoc,
   });
 
-  const spyExists = spy(docStore, "exists");
-  const spyUpsert = spy(docStore, "upsert");
-
-  await expect(sengi.createDocument({
+  await sengi.createDocument({
     ...defaultRequestProps,
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     constructorName: "regTesla",
     constructorParams: "HG12 3AB",
-  })).resolves.toEqual({ isNew: true });
+  });
 
-  expect(sengiCtorOverrides.onPreSaveDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onPreSaveDoc.callCount, 1);
+  assert(onPreSaveDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({
-      manufacturer: "tesla",
-      model: "T",
-      registration: "HG12 3AB",
-    }),
+    docType: carDocType,
+    doc: match.object,
     isNew: true,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onSavedDoc.callCount, 1);
+  assert(onSavedDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({
-      manufacturer: "tesla",
-      model: "T",
-      registration: "HG12 3AB",
-    }),
+    docType: carDocType,
+    doc: match.object,
     isNew: true,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 });
 
 Deno.test("Creating a document with a constructor that already exists should not lead to a call to upsert.", async () => {
@@ -186,55 +149,51 @@ Deno.test("Creating a document with a constructor that already exists should not
   const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.createDocument({
+  assertEquals(await sengi.createDocument({
     ...defaultRequestProps,
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     constructorName: "regTesla",
     constructorParams: "HG12 3AB",
-  })).resolves.toEqual({ isNew: false });
+  }), { isNew: false });
 
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 0);
+  assertEquals(spyExists.callCount, 1);
+  assertEquals(spyUpsert.callCount, 0);
 });
 
 Deno.test("Fail to create a document using a constructor where the constructor params do not pass validation.", async () => {
-  const { docStore, sengi } = createSengiWithMockStore({
+  const { sengi } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
   });
 
-  const spyExists = spy(docStore, "exists");
-
-  await expect(sengi.createDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    constructorName: "regTesla",
-    constructorParams: 123, // should be a string
-  })).rejects.toThrow(asError(SengiCtorParamsValidationFailedError));
-
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
+  assertRejects(async () => {
+    await sengi.createDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      constructorName: "regTesla",
+      constructorParams: 123, // should be a string
+    })
+  }, SengiCtorParamsValidationFailedError);
 });
 
 Deno.test("Fail to create a document using a constructor where the resulting doc does not pass validation.", async () => {
-  const { docStore, sengi } = createSengiWithMockStore({
+  const { sengi } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
   });
 
-  const spyExists = spy(docStore, "exists");
-
-  await expect(sengi.createDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    constructorName: "regTesla",
-    constructorParams: "HZ12 3AB",
-  })).rejects.toThrow(asError(SengiValidateDocFailedError));
-
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
+  assertRejects(async () => {
+    await sengi.createDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      constructorName: "regTesla",
+      constructorParams: "HZ12 3AB",
+    })
+  }, SengiDocValidationFailedError)
 });
 
 Deno.test("Fail to create document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -243,16 +202,13 @@ Deno.test("Fail to create document if permissions insufficient.", async () => {
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiInsufficientPermissionsError);
-  }
+  }, SengiInsufficientPermissionsError);
 });
 
 Deno.test("Fail to create document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
@@ -261,8 +217,5 @@ Deno.test("Fail to create document if client api key is not recognised.", async 
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiUnrecognisedApiKeyError);
-  }
+  }, SengiUnrecognisedApiKeyError)
 });

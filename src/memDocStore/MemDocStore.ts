@@ -30,24 +30,18 @@ export type MemDocStoreOptions = Record<string, unknown>;
 export type MemDocStoreFilter = (d: DocRecord) => boolean;
 
 /**
- * Represents a query that can be executed by a memory document store.
+ * Represents a reducer query that can be executed by a memory document store.
  */
 export interface MemDocStoreQuery {
   /**
-   * True if the count of the documents should be found.
+   * A reducer function.
    */
-  count?: boolean;
-}
-
-/**
- * Represents the result of executing a query.
- */
-export interface MemDocStoreQueryResult {
+  reducer: (previousValue: unknown, d: DocRecord, index: number, array: DocRecord[]) => unknown;
+  
   /**
-   * If populated, will be set to the number of documents found
-   * in the document store.
+   * The initial value.
    */
-  count?: number;
+  initialValue: unknown;
 }
 
 /**
@@ -72,8 +66,7 @@ export class MemDocStore implements
   DocStore<
     MemDocStoreOptions,
     MemDocStoreFilter,
-    MemDocStoreQuery,
-    MemDocStoreQueryResult
+    MemDocStoreQuery
   > {
   /**
    * An array of documents.
@@ -84,20 +77,6 @@ export class MemDocStore implements
    * A function that creates a unique document version number.
    */
   generateDocVersionFunc: () => string;
-
-  /**
-   * Splices the given docs array so as to honour the limit argument.
-   * @param docs An array of documents.
-   * @param limit The maximum number of documents to return.
-   */
-  private spliceArrayForLimitAndOffset(
-    docs: DocRecord[],
-    limit?: number,
-  ): void {
-    if (limit && limit > 0) {
-      docs.splice(limit);
-    }
-  }
 
   /**
    * Return a new array of docs whereby each document
@@ -137,6 +116,7 @@ export class MemDocStore implements
    * Delete a single document from the store using it's id.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param id The id of a document.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
@@ -145,12 +125,13 @@ export class MemDocStore implements
   async deleteById(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     id: string,
     _options: MemDocStoreOptions,
     _props: DocStoreDeleteByIdProps,
   ): Promise<DocStoreDeleteByIdResult> {
     const index = this.docs.findIndex((d) =>
-      d.docType === docTypeName && d.id === id
+      d.docType === docTypeName && d.id === id && d.pkey === partition
     );
 
     if (index > -1) {
@@ -165,6 +146,7 @@ export class MemDocStore implements
    * Determines if a document with the given id is in the datastore.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param id The id of a document.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
@@ -173,13 +155,14 @@ export class MemDocStore implements
   async exists(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     id: string,
     _options: MemDocStoreOptions,
     _props: DocStoreExistsProps,
   ): Promise<DocStoreExistsResult> {
     return {
       found:
-        this.docs.findIndex((d) => d.docType === docTypeName && d.id === id) >
+        this.docs.findIndex((d) => d.docType === docTypeName && d.id === id && d.pkey === partition) >
           -1,
     };
   }
@@ -188,6 +171,7 @@ export class MemDocStore implements
    * Fetch a single document using it's id.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param id The id of a document.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
@@ -196,16 +180,18 @@ export class MemDocStore implements
   async fetch(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     id: string,
     _options: MemDocStoreOptions,
     _props: DocStoreFetchProps,
   ): Promise<DocStoreFetchResult> {
-    const doc = this.docs.find((d) => d.docType === docTypeName && d.id === id);
+    const doc = this.docs.find((d) => d.docType === docTypeName && d.id === id && d.pkey === partition);
     return { doc: doc ? JSON.parse(JSON.stringify(doc)) : null };
   }
 
   /**
-   * Executes a query against the document store.
+   * Executes a query against the document store which potentially
+   * operates across multiple partitions.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
    * @param query A query to execute.
@@ -219,17 +205,11 @@ export class MemDocStore implements
     query: MemDocStoreQuery,
     _options: MemDocStoreOptions,
     _props: DocStoreQueryProps,
-  ): Promise<DocStoreQueryResult<MemDocStoreQueryResult>> {
-    if (query.count) {
-      return {
-        data: {
-          count: this.docs.filter((d) => d.docType === docTypeName).length,
-        },
-      };
-    } else {
-      return {
-        data: {},
-      };
+  ): Promise<DocStoreQueryResult> {
+    const filteredDocs = this.docs.filter((d) => d.docType === docTypeName)
+
+    return {
+      data:  filteredDocs.reduce(query.reducer, query.initialValue)
     }
   }
 
@@ -237,6 +217,7 @@ export class MemDocStore implements
    * Selects all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param fieldNames An array of field names to include in the response.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
@@ -245,11 +226,12 @@ export class MemDocStore implements
   async selectAll(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     _options: MemDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
-    const matchedDocs = this.docs.filter((d) => d.docType === docTypeName);
+    const matchedDocs = this.docs.filter((d) => d.docType === docTypeName && d.pkey === partition);
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
 
@@ -257,6 +239,7 @@ export class MemDocStore implements
    * Select the documents of a specified type that also match a filter.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param fieldNames An array of field names to include in the response.
    * @param filter A filter.
    * @param _options A set of options supplied with the original request
@@ -266,13 +249,14 @@ export class MemDocStore implements
   async selectByFilter(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     filter: MemDocStoreFilter,
     _options: MemDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && filter(d)
+      d.docType === docTypeName && d.pkey === partition && filter(d)
     );
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
@@ -281,6 +265,7 @@ export class MemDocStore implements
    * Select documents of a specified type that also have one of the given ids.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
    * @param _options A set of options supplied with the original request
@@ -290,13 +275,14 @@ export class MemDocStore implements
   async selectByIds(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     ids: string[],
     _options: MemDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && ids.includes(d.id as string)
+      d.docType === docTypeName && d.pkey === partition && ids.includes(d.id as string)
     );
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
@@ -305,6 +291,7 @@ export class MemDocStore implements
    * Store a single document in the store, overwriting an existing if necessary.
    * @param docTypeName The name of a doc type.
    * @param _docTypePluralName The plural name of a doc type.
+   * @param partition The partition where the document is stored.
    * @param doc The document to store.
    * @param _options A set of options supplied with the original request
    * and options defined on the document type.
@@ -313,15 +300,17 @@ export class MemDocStore implements
   async upsert(
     docTypeName: string,
     _docTypePluralName: string,
+    partition: string,
     doc: DocRecord,
     _options: MemDocStoreOptions,
     props: DocStoreUpsertProps,
   ): Promise<DocStoreUpsertResult> {
     const docCopy = JSON.parse(JSON.stringify(doc));
     docCopy.docVersion = this.generateDocVersionFunc();
+    docCopy.pkey = partition
 
     const index = this.docs.findIndex((d) =>
-      d.docType === docTypeName && d.id === docCopy.id
+      d.docType === docTypeName && d.pkey === partition && d.id === docCopy.id
     );
 
     if (

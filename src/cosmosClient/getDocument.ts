@@ -9,8 +9,8 @@ export async function getDocument(
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
+  partition: string,
   documentId: string,
-  documentPartitionKeyValue: string | number,
 ): Promise<DocRecord | null> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -30,7 +30,7 @@ export async function getDocument(
           "content-type": "application/json",
           "x-ms-version": reqHeaders.xMsVersion,
           "x-ms-documentdb-partitionkey": formatPartitionKeyValue(
-            documentPartitionKeyValue,
+            partition,
           ),
         },
       },

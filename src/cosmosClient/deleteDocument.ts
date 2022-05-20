@@ -6,21 +6,14 @@ import { formatPartitionKeyValue } from "./formatPartitionKeyValue.ts";
 /**
  * Returns true if the document was deleted.  Returns false if the document
  * does not exist.  In all other cases an error is raised.
- * @param cryptoKey
- * @param cosmosUrl
- * @param databaseName
- * @param collectionName
- * @param documentId
- * @param documentPartitionKeyValue
- * @returns
  */
 export async function deleteDocument(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
+  partition: string,
   documentId: string,
-  documentPartitionKeyValue: string | number,
 ): Promise<boolean> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -41,7 +34,7 @@ export async function deleteDocument(
           "content-type": "application/json",
           "x-ms-version": reqHeaders.xMsVersion,
           "x-ms-documentdb-partitionkey": formatPartitionKeyValue(
-            documentPartitionKeyValue,
+            partition,
           ),
         },
       },

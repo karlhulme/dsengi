@@ -25,7 +25,6 @@ export interface DocType<
   User,
   Filter,
   Query,
-  QueryResult,
 > {
   /**
    * The name of the document type.
@@ -77,7 +76,7 @@ export interface DocType<
   /**
    * A record of queries that can be executed against a document collection.
    */
-  queries?: Record<string, DocTypeQuery<User, any, any, QueryResult, Query>>;
+  queries?: Record<string, DocTypeQuery<User, any, any, Query>>;
 
   /**
    * A function that can perform cleanup adjustments on a document, such as removing
@@ -171,26 +170,20 @@ export interface DocType<
 //   findMe: string
 // }
 
-// interface AwsQueryResult {
-//   answer: string
-// }
-
 // interface NewExampleParams {
 //   x: string
 //   y: boolean
 // }
 
-// const exampleDocType: DocType<Shape, AwsDocStoreOptions, User, AwsFilter, AwsQuery, AwsQueryResult> = {
+// const exampleDocType: DocType<Shape, AwsDocStoreOptions, User, AwsFilter, AwsQuery> = {
 //   name: 'example',
 //   pluralName: 'Examples',
 //   title: 'Example',
 //   pluralTitle: 'Examples',
 //   summary: 'This is the example.',
-//   jsonSchema: {},
 //   constructors: {
 //     newExample: {
 //       summary: 'Create a new example',
-//       parametersJsonSchema: {},
 //       implementation: props => {
 //         return ({
 //           area: props.parameters.x.length,
@@ -207,7 +200,7 @@ export interface DocType<
 //       return 'Area too large.'
 //     }
 //   },
-//   validate: props => {
+//   validateDoc: (props: any) => {
 //     if (typeof props.area === 'number' && props.area > 100) {
 //       return 'area is too large'
 //     }

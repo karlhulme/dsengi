@@ -1,12 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertThrowss, spy } from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiActionForbiddenByPolicyError,
   SengiDocValidationFailedError,
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
-  SengiValidateDocFailedError,
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -16,6 +15,7 @@ import {
 const createNewDocument = () => ({
   id: "06151119-065a-4691-a7c8-2d84ec746ba9",
   docType: "car",
+  docOpIds: [],
   manufacturer: "ford",
   model: "ka",
   registration: "HG12 3AB",
@@ -28,11 +28,11 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.replaceDocument({
+  assertEquals(await sengi.replaceDocument({
     ...defaultRequestProps,
     docTypeName: "car",
     doc: createNewDocument(),
-  })).resolves.toEqual({ isNew: false });
+  }), { isNew: false });
 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -47,108 +47,97 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
     registration: "HG12 3AB",
   };
 
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyUpsert.callCount, 1);
+
+  assert(spyUpsert.calledWith(
     "car",
     "cars",
+    "_central",
     resultDoc,
     { custom: "prop" },
     {},
-  ]);
+  ))
 });
 
 Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc delegates.", async () => {
-  const { sengi, sengiCtorOverrides } = createSengiWithMockStore({
+  const onPreSaveDoc = spy((..._args: unknown[]) => {});
+  const onSavedDoc = spy((..._args: unknown[]) => {});
+
+  const { sengi, carDocType } = createSengiWithMockStore({
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
   }, {
-    onPreSaveDoc: () => {},
-    onSavedDoc: () => {},
+    onPreSaveDoc,
+    onSavedDoc,
   });
 
-  const spyOnPreSaveDoc = spy(sengiCtorOverrides, "onPreSaveDoc");
-  const spyOnSavedDoc = spy(sengiCtorOverrides, "onSavedDoc");
-
-  await expect(sengi.replaceDocument({
+  assertEquals(await sengi.replaceDocument({
     ...defaultRequestProps,
     docTypeName: "car",
     doc: createNewDocument(),
-  })).resolves.toEqual({ isNew: false });
+  }), { isNew: false });
 
-  expect(sengiCtorOverrides.onPreSaveDoc).toHaveProperty(
-    "mock.calls.length",
-    1,
-  );
-  expect(sengiCtorOverrides.onPreSaveDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onPreSaveDoc.callCount, 1);
+
+  assert(onPreSaveDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({ model: "ka" }),
+    docType: carDocType,
+    doc: match.object,
     isNew: null,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty("mock.calls.length", 1);
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onSavedDoc.callCount, 1);
+
+  assert(onSavedDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({ model: "ka" }),
+    docType: carDocType,
+    doc: match.object,
     isNew: false,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 });
 
 Deno.test("Replacing a non-existent document should raise the onSavedDoc delegate.", async () => {
-  const { sengi, docStore, sengiCtorOverrides } = createSengiWithMockStore({
+  const onSavedDoc = spy((..._args: unknown[]) => {});
+
+  const { sengi, docStore, carDocType } = createSengiWithMockStore({
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
-    onSavedDoc: () => {},
+    onSavedDoc,
   });
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.replaceDocument({
+  assertEquals(await sengi.replaceDocument({
     ...defaultRequestProps,
     docTypeName: "car",
     doc: createNewDocument(),
-  })).resolves.toEqual({ isNew: true });
+  }), { isNew: true });
 
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty("mock.calls.length", 1);
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onSavedDoc.callCount, 1);
+
+  assert(onSavedDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({ model: "ka" }),
+    docType: carDocType,
+    doc: match.object,
     isNew: true,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -163,20 +152,22 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
     registration: "HG12 3AB",
   };
 
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyUpsert.callCount, 1);
+
+  assert(spyUpsert.calledWith(
     "car",
     "cars",
+    "_central",
     resultDoc,
     { custom: "prop" },
     {},
-  ]);
+  ));
 });
 
 Deno.test("Fail to replace a document if it does not conform to the doc type schema.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {
@@ -184,16 +175,13 @@ Deno.test("Fail to replace a document if it does not conform to the doc type sch
         model: 123, // rather than a string
       },
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiDocValidationFailedError);
-  }
+  }, SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to replace a document if it fails custom validation.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {
@@ -202,39 +190,33 @@ Deno.test("Fail to replace a document if it fails custom validation.", async () 
       },
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiValidateDocFailedError);
-  }
+  }, SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to replace a document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
       doc: createNewDocument(),
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiInsufficientPermissionsError);
-  }
+  }, SengiInsufficientPermissionsError)
 });
 
 Deno.test("Fail to replace a document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
       doc: createNewDocument(),
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiUnrecognisedApiKeyError);
-  }
+  }, SengiUnrecognisedApiKeyError);
 });
 
 Deno.test("Fail to replace a document if disallowed by doc type policy.", async () => {
@@ -246,7 +228,7 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
     carDocType.policy.canReplaceDocuments = false;
   }
 
-  try {
+  assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {
@@ -259,7 +241,5 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
       },
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiActionForbiddenByPolicyError);
-  }
+  }, SengiActionForbiddenByPolicyError);
 });

@@ -15,13 +15,14 @@ import { DocStoreUpsertResult } from "./DocStoreUpsertResult.ts";
 /**
  * Defines the functions that must be implemented by a document store.
  */
-export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
+export interface DocStore<DocStoreOptions, Filter, Query> {
   /**
    * Delete a document using a document id.
    */
   deleteById: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: DocStoreOptions,
     props: DocStoreDeleteByIdProps,
@@ -33,6 +34,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   exists: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: DocStoreOptions,
     props: DocStoreExistsProps,
@@ -44,6 +46,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   fetch: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     id: string,
     options: DocStoreOptions,
     props: DocStoreFetchProps,
@@ -58,7 +61,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
     query: Query,
     options: DocStoreOptions,
     props: DocStoreQueryProps,
-  ) => Promise<DocStoreQueryResult<QueryResult>>;
+  ) => Promise<DocStoreQueryResult>;
 
   /**
    * Select all the documents of one document type from a collection.
@@ -66,6 +69,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   selectAll: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     options: DocStoreOptions,
     props: DocStoreSelectProps,
@@ -78,6 +82,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   selectByFilter: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     filter: Filter,
     options: DocStoreOptions,
@@ -90,6 +95,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   selectByIds: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     fieldNames: string[],
     ids: string[],
     options: DocStoreOptions,
@@ -102,6 +108,7 @@ export interface DocStore<DocStoreOptions, Filter, Query, QueryResult> {
   upsert: (
     docTypeName: string,
     docTypePluralName: string,
+    partition: string,
     doc: DocRecord,
     options: DocStoreOptions,
     props: DocStoreUpsertProps,

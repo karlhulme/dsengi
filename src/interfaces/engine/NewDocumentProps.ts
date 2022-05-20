@@ -16,6 +16,11 @@ export interface NewDocumentProps<RequestProps, DocStoreOptions> {
   docTypeName: string;
 
   /**
+   * The name of a document partition.
+   */
+  partition: string;
+
+  /**
    * The id to be assigned to the new document.
    */
   id: string;

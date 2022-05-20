@@ -14,6 +14,11 @@ export interface SelectDocumentsByFilterProps<RequestProps, DocStoreOptions> {
   docTypeName: string;
 
   /**
+   * The name of a document partition.
+   */
+  partition: string;
+
+  /**
    * An array of fields to be returned with the query.
    */
   fieldNames: string[];

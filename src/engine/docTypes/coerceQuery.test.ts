@@ -14,18 +14,13 @@ interface ExampleDoc extends DocBase {
   propA: string;
 }
 
-interface ExampleResult {
-  queryResultA: string;
-}
-
 function createDocType() {
   const docType: DocType<
     ExampleDoc,
     unknown,
     unknown,
     unknown,
-    unknown,
-    ExampleResult
+    unknown
   > = {
     name: "test",
     pluralName: "tests",
@@ -40,15 +35,15 @@ function createDocType() {
           }
         },
         coerce: (queryResult) => {
-          if (queryResult.queryResultA === "break") {
+          if (queryResult === "break") {
             throw new Error("break");
           }
 
-          if (queryResult.queryResultA === "invalid") {
+          if (queryResult === "invalid") {
             return { queryResponseA: "invalid" };
           }
 
-          if (queryResult.queryResultA === "error") {
+          if (queryResult === "error") {
             return { queryResponseA: -1 };
           }
 
@@ -63,7 +58,7 @@ function createDocType() {
 
 Deno.test("Coerce query result into response.", () => {
   assertEquals(
-    coerceQuery(createDocType(), "count", { queryResultA: "good" }),
+    coerceQuery(createDocType(), "count", "good"),
     { queryResponseA: 123 },
   );
 });
@@ -71,7 +66,7 @@ Deno.test("Coerce query result into response.", () => {
 Deno.test("Reject coercion of query result for an unrecognised name.", () => {
   assertThrows(
     () =>
-      coerceQuery(createDocType(), "unrecognised", { queryResultA: "good" }),
+      coerceQuery(createDocType(), "unrecognised", "good"),
     SengiUnrecognisedQueryNameError,
   );
 });
@@ -80,14 +75,14 @@ Deno.test("Reject coercion of query result if no queries defined.", () => {
   const docType = createDocType();
   delete docType.queries;
   assertThrows(
-    () => coerceQuery(docType, "unrecognised", { queryResultA: "good" }),
+    () => coerceQuery(docType, "unrecognised", "good"),
     SengiUnrecognisedQueryNameError,
   );
 });
 
 Deno.test("Reject coercion of query result if query coercion raises errors.", () => {
   assertThrows(
-    () => coerceQuery(createDocType(), "count", { queryResultA: "break" }),
+    () => coerceQuery(createDocType(), "count", "break"),
     SengiQueryCoerceFailedError,
     "break",
   );
@@ -95,7 +90,7 @@ Deno.test("Reject coercion of query result if query coercion raises errors.", ()
 
 Deno.test("Reject coercion of query result if returned value does not pass validation.", () => {
   assertThrows(
-    () => coerceQuery(createDocType(), "count", { queryResultA: "invalid" }),
+    () => coerceQuery(createDocType(), "count", "invalid"),
     SengiQueryResponseValidationFailedError,
     "validate-invalid",
   );
@@ -103,7 +98,7 @@ Deno.test("Reject coercion of query result if returned value does not pass valid
 
 Deno.test("Reject coercion of query result if returned value causes validation to raise an error.", () => {
   assertThrows(
-    () => coerceQuery(createDocType(), "count", { queryResultA: "error" }),
+    () => coerceQuery(createDocType(), "count", "error"),
     SengiQueryValidateResponseFailedError,
     "validate-err",
   );

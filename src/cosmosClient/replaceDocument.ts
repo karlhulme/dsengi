@@ -12,21 +12,14 @@ interface ReplaceDocumentOptions {
  * Returns true if the document was successfully replaced.  Returns false
  * of the specified version is not found and the document is not replaced.
  * In all other cases an error is raised.
- * @param cryptoKey
- * @param cosmosUrl
- * @param databaseName
- * @param collectionName
- * @param document
- * @param options
- * @returns
  */
 export async function replaceDocument(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
+  partition: string,
   document: DocRecord,
-  documentPartitionKeyValue: string | number,
   options: ReplaceDocumentOptions,
 ): Promise<boolean> {
   const reqHeaders = await generateCosmosReqHeaders({
@@ -44,6 +37,10 @@ export async function replaceDocument(
       optionalHeaders["If-Match"] = options.ifMatch;
     }
 
+    if (document.pkey !== partition) {
+      document.pkey = partition
+    }
+
     const response = await fetch(
       `${cosmosUrl}/dbs/${databaseName}/colls/${collectionName}/docs/${document.id}`,
       {
@@ -54,7 +51,7 @@ export async function replaceDocument(
           "content-type": "application/json",
           "x-ms-version": reqHeaders.xMsVersion,
           "x-ms-documentdb-partitionkey": formatPartitionKeyValue(
-            documentPartitionKeyValue,
+            partition,
           ),
           ...optionalHeaders,
         },

@@ -9,7 +9,7 @@ import {
 } from "../../interfaces/index.ts";
 import { SafeDocStore } from "./SafeDocStore.ts";
 
-function createTestDocStore(): DocStore<unknown, unknown, unknown, unknown> {
+function createTestDocStore(): DocStore<unknown, unknown, unknown> {
   return {
     deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.DELETED }),
     exists: async () => ({ found: true }),
@@ -28,7 +28,7 @@ type DocStoreAmendFunc = (docStore: Record<string, unknown>) => void;
 
 function createBespokeDocStore(
   amendFunc: DocStoreAmendFunc,
-): DocStore<unknown, unknown, unknown, unknown> {
+): DocStore<unknown, unknown, unknown> {
   const docStore = createTestDocStore();
   amendFunc(docStore as unknown as Record<string, unknown>);
   return docStore;
@@ -38,22 +38,22 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   const docStore = createTestDocStore();
   const safeDocStore = new SafeDocStore(docStore);
 
-  assertEquals(await safeDocStore.deleteById("", "", "", {}, {}), {
+  assertEquals(await safeDocStore.deleteById("", "", "", "", {}, {}), {
     code: DocStoreDeleteByIdResultCode.DELETED,
   });
-  assertEquals(await safeDocStore.exists("", "", "", {}, {}), { found: true });
-  assertEquals(await safeDocStore.fetch("", "", "", {}, {}), {
+  assertEquals(await safeDocStore.exists("", "", "", "", {}, {}), { found: true });
+  assertEquals(await safeDocStore.fetch("", "", "", "", {}, {}), {
     doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
   });
   assertEquals(await safeDocStore.query("", "", "", {}, {}), { data: null });
-  assertEquals(await safeDocStore.selectAll("", "", [], {}, {}), { docs: [] });
-  assertEquals(await safeDocStore.selectByFilter("", "", [], {}, {}, {}), {
+  assertEquals(await safeDocStore.selectAll("", "", "", [], {}, {}), { docs: [] });
+  assertEquals(await safeDocStore.selectByFilter("", "", "", [], {}, {}, {}), {
     docs: [],
   });
-  assertEquals(await safeDocStore.selectByIds("", "", [], [], {}, {}), {
+  assertEquals(await safeDocStore.selectByIds("", "", "", [], [], {}, {}), {
     docs: [],
   });
-  assertEquals(await safeDocStore.upsert("", "", {}, {}, {}), {
+  assertEquals(await safeDocStore.upsert("", "", "", {}, {}, {}), {
     code: DocStoreUpsertResultCode.CREATED,
   });
 });
@@ -124,15 +124,15 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
   const safeDocStore = new SafeDocStore(docStore);
 
   assertRejects(
-    () => safeDocStore.deleteById("", "", "", {}, {}),
+    () => safeDocStore.deleteById("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.exists("", "", "", {}, {}),
+    () => safeDocStore.exists("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.fetch("", "", "", {}, {}),
+    () => safeDocStore.fetch("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
@@ -140,19 +140,19 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.selectAll("", "", [], {}, {}),
+    () => safeDocStore.selectAll("", "", "", [], {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.selectByFilter("", "", [], {}, {}, {}),
+    () => safeDocStore.selectByFilter("", "", "", [], {}, {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.selectByIds("", "", [], [], {}, {}),
+    () => safeDocStore.selectByIds("", "", "", [], [], {}, {}),
     UnexpectedDocStoreError,
   );
   assertRejects(
-    () => safeDocStore.upsert("", "", {}, {}, {}),
+    () => safeDocStore.upsert("", "", "", {}, {}, {}),
     UnexpectedDocStoreError,
   );
 });

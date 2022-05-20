@@ -40,8 +40,7 @@ export function createCarDocType(): DocType<
   TestDocStoreOptions,
   AuthUser,
   string,
-  string,
-  number
+  string
 > {
   return {
     name: "car",
@@ -81,8 +80,10 @@ export function createCarDocType(): DocType<
     },
     constructors: {
       regTesla: {
-        parametersJsonSchema: {
-          type: "string",
+        validateParameters: (params) => {
+          if (typeof params !== 'string') {
+            return 'Argument params must be a string.' 
+          }
         },
         implementation: (props) => ({
           manufacturer: "tesla",
@@ -103,8 +104,10 @@ export function createCarDocType(): DocType<
     },
     operations: {
       upgradeModel: {
-        parametersJsonSchema: {
-          type: "number",
+        validateParameters: (params) => {
+          if (typeof params !== 'number') {
+            return 'Argument params must be a number.'
+          }
         },
         implementation: (props) => {
           props.doc.model = props.doc.model + props.parameters;
@@ -161,7 +164,7 @@ function createNoneClient(): Client {
 
 export function createMockStore(
   docStoreOverrides?: Record<string, unknown>,
-): DocStore<TestDocStoreOptions, string, string, number> {
+): DocStore<TestDocStoreOptions, string, string> {
   return Object.assign({
     deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.NOT_FOUND }),
     exists: async () => ({ found: false }),
@@ -186,25 +189,22 @@ interface SengiTestObjects {
     TestDocStoreOptions,
     AuthUser,
     string,
-    string,
-    number
+    string
   >;
   sengiCtorProps: SengiConstructorProps<
     TestRequestProps,
     TestDocStoreOptions,
     AuthUser,
     string,
-    string,
-    number
+    string
   >;
-  docStore: DocStore<TestDocStoreOptions, string, string, number>;
+  docStore: DocStore<TestDocStoreOptions, string, string>;
   carDocType: DocType<
     Car,
     TestDocStoreOptions,
     AuthUser,
     string,
-    string,
-    number
+    string
   >;
   adminClient: Client;
 }
@@ -240,8 +240,7 @@ export const createSengiWithMockStore = (
     TestDocStoreOptions,
     AuthUser,
     string,
-    string,
-    number
+    string
   >;
 
   const sengi = new Sengi<
@@ -249,8 +248,7 @@ export const createSengiWithMockStore = (
     TestDocStoreOptions,
     AuthUser,
     string,
-    string,
-    number
+    string
   >(sengiCtorProps);
 
   return {
@@ -264,6 +262,7 @@ export const createSengiWithMockStore = (
 
 export const defaultRequestProps = {
   docTypeName: "car",
+  partition: "_central",
   apiKey: "adminKey",
   reqProps: { foo: "bar" },
   docStoreOptions: { custom: "prop" },

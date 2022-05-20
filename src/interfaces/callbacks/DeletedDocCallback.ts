@@ -10,8 +10,7 @@ export interface DeletedDocCallbackProps<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > {
   /**
    * The name of the client that invoked the operation.
@@ -26,7 +25,7 @@ export interface DeletedDocCallbackProps<
   /**
    * The document type associated with the deleted document.
    */
-  docType: DocType<Doc, DocStoreOptions, User, Filter, Query, QueryResult>;
+  docType: DocType<Doc, DocStoreOptions, User, Filter, Query>;
 
   /**
    * Any properties passed along with the request.
@@ -53,8 +52,7 @@ export type DeletedDocCallback<
   DocStoreOptions,
   User,
   Filter,
-  Query,
-  QueryResult,
+  Query
 > = (
   props: DeletedDocCallbackProps<
     RequestProps,
@@ -62,7 +60,6 @@ export type DeletedDocCallback<
     DocStoreOptions,
     User,
     Filter,
-    Query,
-    QueryResult
+    Query
   >,
 ) => Promise<void>;

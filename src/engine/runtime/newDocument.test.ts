@@ -1,9 +1,10 @@
-import { assert, assertEquals, assertThrows, spy } from "../../../deps.ts";
+// deno-lint-ignore-file require-await
+import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
-  SengiDocTypeValidateFunctionError,
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
+  SengiDocValidationFailedError
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -22,24 +23,25 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exist");
+  const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.newDocument({
+  assertEquals(await sengi.newDocument({
     ...defaultRequestProps,
     docTypeName: "car",
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     doc: newCar,
-  })).resolves.toEqual({ isNew: true });
+  }), { isNew: true });
 
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.exists).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyExists.callCount, 1);
+  assert(spyExists.calledWith(
     "car",
     "cars",
+    "_central",
     "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     { custom: "prop" },
     {},
-  ]);
+  ));
 
   const resultDoc = {
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
@@ -56,80 +58,63 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     registration: "HG12 3AB",
   };
 
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyUpsert.callCount, 1);
+  assert(spyUpsert.calledWith(
     "car",
     "cars",
+    "_central",
     resultDoc,
     { custom: "prop" },
     {},
-  ]);
+  ));
 });
 
 Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc events to be invoked.", async () => {
-  const { sengi, sengiCtorOverrides } = createSengiWithMockStore({
+  const onPreSaveDoc = spy((..._args: unknown[]) => {});
+  const onSavedDoc = spy((..._args: unknown[]) => {});
+
+  const { sengi, carDocType } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
-    onPreSaveDoc: () => {},
-    onSavedDoc: () => {},
+    onPreSaveDoc,
+    onSavedDoc,
   });
 
-  const spyExists = spy(docStore, "exist");
-  const spyUpsert = spy(docStore, "upsert");
-  const spyOnPreSaveDoc = spy(sengiCtorOverrides, "onPreSaveDoc");
-  const spyOnSavedDoc = spy(sengiCtorOverrides, "onSavedDoc");
-
-  await expect(sengi.newDocument({
+  assertEquals(await sengi.newDocument({
     ...defaultRequestProps,
     docTypeName: "car",
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     doc: newCar,
-  })).resolves.toEqual({ isNew: true });
+  }), { isNew: true });
 
-  expect(sengiCtorOverrides.onPreSaveDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onPreSaveDoc.callCount, 1);
+  assert(onPreSaveDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({
-      manufacturer: "ford",
-      model: "ka",
-      registration: "HG12 3AB",
-    }),
+    docType: carDocType,
+    doc: match.object,
     isNew: true,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }));
 
-  expect(sengiCtorOverrides.onSavedDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onSavedDoc.callCount, 1);
+  assert(onSavedDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
-    doc: expect.objectContaining({
-      manufacturer: "ford",
-      model: "ka",
-      registration: "HG12 3AB",
-    }),
+    docType: carDocType,
+    doc: match.object,
     isNew: true,
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }));
 });
 
 Deno.test("Adding a new document that already exists should not lead to a call to upsert.", async () => {
@@ -138,63 +123,55 @@ Deno.test("Adding a new document that already exists should not lead to a call t
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exist");
+  const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  await expect(sengi.newDocument({
+  assertEquals(await sengi.newDocument({
     ...defaultRequestProps,
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     doc: newCar,
-  })).resolves.toEqual({ isNew: false });
+  }), { isNew: false });
 
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.upsert).toHaveProperty("mock.calls.length", 0);
+  assertEquals(spyExists.callCount, 1);
+  assertEquals(spyUpsert.callCount, 0);
 });
 
 Deno.test("Fail to add a new document that does not pass validation.", async () => {
-  const { docStore, sengi } = createSengiWithMockStore({
+  const { sengi } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
   });
 
-  const spyExists = spy(docStore, "exist");
-
-  await expect(sengi.newDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    doc: { ...newCar, registration: "HZ12 3AB" },
-  })).rejects.toThrow(asError(SengiDocTypeValidateFunctionError));
-
-  expect(docStore.exists).toHaveProperty("mock.calls.length", 1);
+  assertRejects(async () => {
+    await sengi.newDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      doc: { ...newCar, registration: "HZ12 3AB" },
+    })
+  }, SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to add a new document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiInsufficientPermissionsError);
-  }
+  }, SengiInsufficientPermissionsError);
 });
 
 Deno.test("Fail to add a new document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiUnrecognisedApiKeyError);
-  }
+  }, SengiUnrecognisedApiKeyError);
 });

@@ -52,6 +52,7 @@ Deno.test("Select by document ids.", async () => {
     spySelectByIds.calledWith(
       "car",
       "cars",
+      "_central",
       ["id", "model"],
       ["06151119-065a-4691-a7c8-2d84ec746ba9"],
       { custom: "prop" },

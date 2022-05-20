@@ -28,8 +28,7 @@ function createDocType() {
     unknown,
     unknown,
     unknown,
-    ExampleQuery,
-    unknown
+    ExampleQuery
   > = {
     name: "test",
     pluralName: "tests",
@@ -42,7 +41,7 @@ function createDocType() {
             throw new Error("validate-err");
           }
         },
-        parse: (props) => {
+        parse: (props: any) => {
           if (props.parameters.queryPropA === "fail") {
             throw new Error("fail");
           }
@@ -59,7 +58,6 @@ function createDocType() {
         unknown,
         unknown,
         ExampleQueryParams,
-        unknown,
         ExampleQuery
       >,
     },

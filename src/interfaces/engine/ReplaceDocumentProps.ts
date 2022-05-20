@@ -15,6 +15,11 @@ export interface ReplaceDocumentProps<RequestProps, DocStoreOptions> {
   docTypeName: string;
 
   /**
+   * The name of a document partition.
+   */
+  partition: string;
+
+  /**
    * A new document to be used in place of any existing document.
    */
   doc: DocRecord;

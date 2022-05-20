@@ -1,4 +1,5 @@
-import { assertEquals, assertThrows, spy } from "../../../deps.ts";
+// deno-lint-ignore-file require-await
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreDeleteByIdResultCode,
   SengiActionForbiddenByPolicyError,
@@ -24,31 +25,40 @@ Deno.test("Delete document by id should call delete on doc store.", async () => 
   const spyFetch = spy(docStore, "fetch");
   const spyDeleteById = spy(docStore, "deleteById");
 
-  await expect(sengi.deleteDocument({
+  assertEquals(await sengi.deleteDocument({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-  })).resolves.toEqual({ isDeleted: true });
+  }), { isDeleted: true })
 
-  expect(docStore.fetch).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.fetch).toHaveProperty(["mock", "calls", "0"], [
-    "car",
-    "cars",
-    "06151119-065a-4691-a7c8-2d84ec746ba9",
-    { custom: "prop" },
-    {},
-  ]);
-  expect(docStore.deleteById).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.deleteById).toHaveProperty(["mock", "calls", "0"], [
-    "car",
-    "cars",
-    "06151119-065a-4691-a7c8-2d84ec746ba9",
-    { custom: "prop" },
-    {},
-  ]);
+  assertEquals(spyFetch.callCount, 1);
+  assert(
+    spyFetch.calledWith(
+      "car",
+      "cars",
+      "_central",
+      "06151119-065a-4691-a7c8-2d84ec746ba9",
+      { custom: "prop" },
+      {},
+      ),
+  );
+
+  assertEquals(spyDeleteById.callCount, 1);
+  assert(
+    spyDeleteById.calledWith(
+      "car",
+      "cars",
+      "_central",
+      "06151119-065a-4691-a7c8-2d84ec746ba9",
+      { custom: "prop" },
+      {},
+    )
+  );
 });
 
 Deno.test("Delete document by id should raise callbacks.", async () => {
-  const { sengi, sengiCtorOverrides } = createSengiWithMockStore({
+  const onDeletedDoc = spy((..._args: unknown[]) => {});
+
+  const { sengi, carDocType } = createSengiWithMockStore({
     fetch: async () => ({
       doc: {
         id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -57,33 +67,26 @@ Deno.test("Delete document by id should raise callbacks.", async () => {
     }),
     deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.DELETED }),
   }, {
-    onDeletedDoc: jest.fn(),
+    onDeletedDoc,
   });
 
-  const spyFetch = spy(docStore, "fetch");
-  const spyDeleteById = spy(docStore, "deleteById");
-
-  await expect(sengi.deleteDocument({
+  assertEquals(await sengi.deleteDocument({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-  })).resolves.toEqual({ isDeleted: true });
+  }), { isDeleted: true });
 
-  expect(sengiCtorOverrides.onDeletedDoc).toHaveProperty([
-    "mock",
-    "calls",
-    "0",
-    "0",
-  ], {
+  assertEquals(onDeletedDoc.callCount, 1)
+  assert(onDeletedDoc.calledWith({
     clientName: "admin",
     docStoreOptions: { custom: "prop" },
     reqProps: { foo: "bar" },
-    docType: expect.objectContaining({ name: "car" }),
+    docType: carDocType,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     user: {
       userId: "user-0001",
       username: "testUser",
     },
-  });
+  }))
 });
 
 Deno.test("Deleting a non-existing document is not an error but the lack of deletion is reported.", async () => {
@@ -97,20 +100,22 @@ Deno.test("Deleting a non-existing document is not an error but the lack of dele
   const spyFetch = spy(docStore, "fetch");
   const spyDeleteById = spy(docStore, "deleteById");
 
-  await expect(sengi.deleteDocument({
+  assertEquals(await sengi.deleteDocument({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-  })).resolves.toEqual({ isDeleted: false });
+  }), { isDeleted: false });
 
-  expect(docStore.fetch).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.fetch).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
     "car",
     "cars",
+    "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
-    {},
-  ]);
-  expect(docStore.deleteById).toHaveProperty("mock.calls.length", 0);
+    {}
+  ))
+
+  assertEquals(spyDeleteById.callCount, 0);
 });
 
 Deno.test("Deleting a non-existing document is not an error but the lack of deletion is reported, even if the document is deleted between retrieval and instruction.", async () => {
@@ -127,58 +132,55 @@ Deno.test("Deleting a non-existing document is not an error but the lack of dele
   const spyFetch = spy(docStore, "fetch");
   const spyDeleteById = spy(docStore, "deleteById");
 
-  await expect(sengi.deleteDocument({
+  assertEquals(await sengi.deleteDocument({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-  })).resolves.toEqual({ isDeleted: false });
+  }), { isDeleted: false });
 
-  expect(docStore.fetch).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.fetch).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
     "car",
     "cars",
+    "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
     {},
-  ]);
+  ))
 
-  expect(docStore.deleteById).toHaveProperty("mock.calls.length", 1);
-  expect(docStore.deleteById).toHaveProperty(["mock", "calls", "0"], [
+  assertEquals(spyDeleteById.callCount, 1);
+  assert(spyDeleteById.calledWith(
     "car",
     "cars",
+    "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
     {},
-  ]);
+  ))
 });
 
 Deno.test("Fail to delete document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     });
-    throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiInsufficientPermissionsError);
-  }
+  }, SengiInsufficientPermissionsError)
 });
 
 Deno.test("Fail to delete document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  try {
+  assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiUnrecognisedApiKeyError);
-  }
+  }, SengiUnrecognisedApiKeyError)
 });
 
 Deno.test("Fail to delete document if disallowed by policy.", async () => {
@@ -188,13 +190,11 @@ Deno.test("Fail to delete document if disallowed by policy.", async () => {
     carDocType.policy.canDeleteDocuments = false;
   }
 
-  try {
+  assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     });
     throw new Error("fail");
-  } catch (err) {
-    expect(err).toBeInstanceOf(SengiActionForbiddenByPolicyError);
-  }
+  }, SengiActionForbiddenByPolicyError)
 });
