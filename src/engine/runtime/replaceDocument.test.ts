@@ -1,5 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  match,
+  spy,
+} from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiActionForbiddenByPolicyError,
@@ -28,11 +34,14 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
 
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.replaceDocument({
-    ...defaultRequestProps,
-    docTypeName: "car",
-    doc: createNewDocument(),
-  }), { isNew: false });
+  assertEquals(
+    await sengi.replaceDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      doc: createNewDocument(),
+    }),
+    { isNew: false },
+  );
 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -56,7 +65,7 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
     resultDoc,
     { custom: "prop" },
     {},
-  ))
+  ));
 });
 
 Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc delegates.", async () => {
@@ -70,11 +79,14 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
     onSavedDoc,
   });
 
-  assertEquals(await sengi.replaceDocument({
-    ...defaultRequestProps,
-    docTypeName: "car",
-    doc: createNewDocument(),
-  }), { isNew: false });
+  assertEquals(
+    await sengi.replaceDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      doc: createNewDocument(),
+    }),
+    { isNew: false },
+  );
 
   assertEquals(onPreSaveDoc.callCount, 1);
 
@@ -89,7 +101,7 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 
   assertEquals(onSavedDoc.callCount, 1);
 
@@ -104,7 +116,7 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 });
 
 Deno.test("Replacing a non-existent document should raise the onSavedDoc delegate.", async () => {
@@ -118,11 +130,14 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
 
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.replaceDocument({
-    ...defaultRequestProps,
-    docTypeName: "car",
-    doc: createNewDocument(),
-  }), { isNew: true });
+  assertEquals(
+    await sengi.replaceDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      doc: createNewDocument(),
+    }),
+    { isNew: true },
+  );
 
   assertEquals(onSavedDoc.callCount, 1);
 
@@ -137,7 +152,7 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -203,7 +218,7 @@ Deno.test("Fail to replace a document if permissions insufficient.", async () =>
       doc: createNewDocument(),
     });
     throw new Error("fail");
-  }, SengiInsufficientPermissionsError)
+  }, SengiInsufficientPermissionsError);
 });
 
 Deno.test("Fail to replace a document if client api key is not recognised.", async () => {

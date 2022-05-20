@@ -10,7 +10,7 @@ export interface SavedDocCallbackProps<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > {
   /**
    * The name of the client that invoked the operation.
@@ -57,7 +57,7 @@ export type SavedDocCallback<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > = (
   props: SavedDocCallbackProps<
     RequestProps,

@@ -110,7 +110,9 @@ Deno.test("Select all documents of a type in a collection with an onSelectDocs d
 
   assertEquals(spySelectAll.callCount, 1);
   assert(
-    spySelectAll.calledWith("car", "cars", "_central", ["id"], { custom: "prop" }, {
+    spySelectAll.calledWith("car", "cars", "_central", ["id"], {
+      custom: "prop",
+    }, {
       limit: undefined,
     }),
   );

@@ -38,7 +38,7 @@ export async function replaceDocument(
     }
 
     if (document.pkey !== partition) {
-      document.pkey = partition
+      document.pkey = partition;
     }
 
     const response = await fetch(

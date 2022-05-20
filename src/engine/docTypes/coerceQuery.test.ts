@@ -65,8 +65,7 @@ Deno.test("Coerce query result into response.", () => {
 
 Deno.test("Reject coercion of query result for an unrecognised name.", () => {
   assertThrows(
-    () =>
-      coerceQuery(createDocType(), "unrecognised", "good"),
+    () => coerceQuery(createDocType(), "unrecognised", "good"),
     SengiUnrecognisedQueryNameError,
   );
 });

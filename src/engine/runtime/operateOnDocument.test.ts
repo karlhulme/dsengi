@@ -1,5 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  match,
+  spy,
+} from "../../../deps.ts";
 import {
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
@@ -42,13 +48,16 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.operateOnDocument({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-    operationName: "upgradeModel",
-    operationParams: 2,
-  }), { isUpdated: true });
+  assertEquals(
+    await sengi.operateOnDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
+      operationName: "upgradeModel",
+      operationParams: 2,
+    }),
+    { isUpdated: true },
+  );
 
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
@@ -58,7 +67,7 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
     {},
-  ))
+  ));
 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -97,13 +106,16 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
     onSavedDoc,
   });
 
-  assertEquals(await sengi.operateOnDocument({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-    operationName: "upgradeModel",
-    operationParams: 2,
-  }), { isUpdated: true });
+  assertEquals(
+    await sengi.operateOnDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
+      operationName: "upgradeModel",
+      operationParams: 2,
+    }),
+    { isUpdated: true },
+  );
 
   assertEquals(onPreSaveDoc.callCount, 1);
   assert(onPreSaveDoc.calledWith({
@@ -117,7 +129,7 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 
   assertEquals(onSavedDoc.callCount, 1);
   assert(onSavedDoc.calledWith({
@@ -131,7 +143,7 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 });
 
 Deno.test("Operating on a document with a recognised operation id should only call fetch on doc store.", async () => {
@@ -140,13 +152,16 @@ Deno.test("Operating on a document with a recognised operation id should only ca
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.operateOnDocument({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
-    operationName: "upgradeModel",
-    operationParams: 2,
-  }), { isUpdated: false });
+  assertEquals(
+    await sengi.operateOnDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
+      operationName: "upgradeModel",
+      operationParams: 2,
+    }),
+    { isUpdated: false },
+  );
 
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
@@ -156,7 +171,7 @@ Deno.test("Operating on a document with a recognised operation id should only ca
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
     {},
-  ))
+  ));
 
   assertEquals(spyUpsert.callCount, 0);
 });
@@ -167,14 +182,17 @@ Deno.test("Operating on a document using a required version should cause require
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.operateOnDocument({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-    operationName: "upgradeModel",
-    operationParams: 2,
-    reqVersion: "aaaa",
-  }), { isUpdated: true });
+  assertEquals(
+    await sengi.operateOnDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
+      operationName: "upgradeModel",
+      operationParams: 2,
+      reqVersion: "aaaa",
+    }),
+    { isUpdated: true },
+  );
 
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
@@ -184,7 +202,7 @@ Deno.test("Operating on a document using a required version should cause require
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
     {},
-  ))
+  ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
@@ -194,7 +212,7 @@ Deno.test("Operating on a document using a required version should cause require
     match.object,
     { custom: "prop" },
     { reqVersion: "aaaa" },
-  ))
+  ));
 });
 
 Deno.test("Fail to operate on document when required version is not available.", async () => {
@@ -210,8 +228,8 @@ Deno.test("Fail to operate on document when required version is not available.",
       operationName: "upgradeModel",
       operationParams: 2,
       reqVersion: "bbbb", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then versionNotAvailable error is raised
-    })
-  }, SengiRequiredVersionNotAvailableError)
+    });
+  }, SengiRequiredVersionNotAvailableError);
 });
 
 Deno.test("Fail to operate on document if it changes between fetch and upsert.", async () => {
@@ -227,7 +245,7 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
       operationName: "upgradeModel",
       operationParams: 2,
       // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is NOT specified then conflictOnSave error is raised
-    })
+    });
   }, SengiConflictOnSaveError);
 });
 

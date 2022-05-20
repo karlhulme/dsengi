@@ -1,11 +1,17 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  match,
+  spy,
+} from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiCtorParamsValidationFailedError,
+  SengiDocValidationFailedError,
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
-  SengiDocValidationFailedError,
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -82,12 +88,15 @@ Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFrom
 
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.createDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    constructorName: "regTesla",
-    constructorParams: "HG12 3AB",
-  }), { isNew: true });
+  assertEquals(
+    await sengi.createDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      constructorName: "regTesla",
+      constructorParams: "HG12 3AB",
+    }),
+    { isNew: true },
+  );
 
   assertEquals(spyUpsert.callCount, 1);
 });
@@ -95,7 +104,7 @@ Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFrom
 Deno.test("Creating a document with a constructor should cause the onPreSaveDoc and onSavedDoc events to be invoked.", async () => {
   const onPreSaveDoc = spy((..._args: unknown[]) => {});
   const onSavedDoc = spy((..._args: unknown[]) => {});
-  
+
   const { sengi, carDocType } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
@@ -123,7 +132,7 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 
   assertEquals(onSavedDoc.callCount, 1);
   assert(onSavedDoc.calledWith({
@@ -137,7 +146,7 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
       userId: "user-0001",
       username: "testUser",
     },
-  }))
+  }));
 });
 
 Deno.test("Creating a document with a constructor that already exists should not lead to a call to upsert.", async () => {
@@ -149,12 +158,15 @@ Deno.test("Creating a document with a constructor that already exists should not
   const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.createDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    constructorName: "regTesla",
-    constructorParams: "HG12 3AB",
-  }), { isNew: false });
+  assertEquals(
+    await sengi.createDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      constructorName: "regTesla",
+      constructorParams: "HG12 3AB",
+    }),
+    { isNew: false },
+  );
 
   assertEquals(spyExists.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
@@ -171,7 +183,7 @@ Deno.test("Fail to create a document using a constructor where the constructor p
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: 123, // should be a string
-    })
+    });
   }, SengiCtorParamsValidationFailedError);
 });
 
@@ -186,8 +198,8 @@ Deno.test("Fail to create a document using a constructor where the resulting doc
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HZ12 3AB",
-    })
-  }, SengiDocValidationFailedError)
+    });
+  }, SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to create document if permissions insufficient.", async () => {
@@ -217,5 +229,5 @@ Deno.test("Fail to create document if client api key is not recognised.", async 
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
     });
-  }, SengiUnrecognisedApiKeyError)
+  }, SengiUnrecognisedApiKeyError);
 });

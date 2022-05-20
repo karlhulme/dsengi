@@ -81,7 +81,7 @@ export interface CosmosDbDocStoreQueryParameter {
    * be prefixed with an @ symbol.
    */
   name: string;
-  
+
   /**
    * The value to use where the parameter appears in the sqlStatement.
    */
@@ -535,10 +535,10 @@ export class CosmosDbDocStore implements
         containerName,
         "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
         [
-          { name: '@pkey', value: partition },
+          { name: "@pkey", value: partition },
           { name: "@id", value: id },
         ],
-        {}
+        {},
       );
 
       // Usually queryDocuments returns an array of documents, but using
@@ -599,14 +599,14 @@ export class CosmosDbDocStore implements
       let rawDoc: DocRecord | null = null;
 
       // if (partitionKeyFieldName === "id") {
-        rawDoc = await getDocument(
-          this.cosmosKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          partition,
-          id,
-        );
+      rawDoc = await getDocument(
+        this.cosmosKey,
+        this.cosmosUrl,
+        databaseName,
+        containerName,
+        partition,
+        id,
+      );
       // } else {
       //   const rawDocs = await queryDocumentsGateway(
       //     this.cosmosKey,
@@ -752,7 +752,7 @@ export class CosmosDbDocStore implements
         containerName,
         queryCmd,
         [
-          { name: '@pkey', value: partition }
+          { name: "@pkey", value: partition },
         ],
         {},
       );
@@ -816,7 +816,7 @@ export class CosmosDbDocStore implements
         containerName,
         queryCmd,
         [
-          { name: '@pkey', value: partition }
+          { name: "@pkey", value: partition },
         ],
         {},
       );
@@ -879,7 +879,7 @@ export class CosmosDbDocStore implements
         containerName,
         queryCmd,
         [
-          { name: '@pkey', value: partition }
+          { name: "@pkey", value: partition },
         ],
         {},
       );

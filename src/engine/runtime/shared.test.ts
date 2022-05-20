@@ -81,8 +81,8 @@ export function createCarDocType(): DocType<
     constructors: {
       regTesla: {
         validateParameters: (params) => {
-          if (typeof params !== 'string') {
-            return 'Argument params must be a string.' 
+          if (typeof params !== "string") {
+            return "Argument params must be a string.";
           }
         },
         implementation: (props) => ({
@@ -105,8 +105,8 @@ export function createCarDocType(): DocType<
     operations: {
       upgradeModel: {
         validateParameters: (params) => {
-          if (typeof params !== 'number') {
-            return 'Argument params must be a number.'
+          if (typeof params !== "number") {
+            return "Argument params must be a number.";
           }
         },
         implementation: (props) => {

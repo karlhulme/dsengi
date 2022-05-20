@@ -41,12 +41,16 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   assertEquals(await safeDocStore.deleteById("", "", "", "", {}, {}), {
     code: DocStoreDeleteByIdResultCode.DELETED,
   });
-  assertEquals(await safeDocStore.exists("", "", "", "", {}, {}), { found: true });
+  assertEquals(await safeDocStore.exists("", "", "", "", {}, {}), {
+    found: true,
+  });
   assertEquals(await safeDocStore.fetch("", "", "", "", {}, {}), {
     doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
   });
   assertEquals(await safeDocStore.query("", "", "", {}, {}), { data: null });
-  assertEquals(await safeDocStore.selectAll("", "", "", [], {}, {}), { docs: [] });
+  assertEquals(await safeDocStore.selectAll("", "", "", [], {}, {}), {
+    docs: [],
+  });
   assertEquals(await safeDocStore.selectByFilter("", "", "", [], {}, {}, {}), {
     docs: [],
   });

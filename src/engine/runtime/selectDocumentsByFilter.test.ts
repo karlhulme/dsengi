@@ -1,5 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertExists, assertRejects, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertExists,
+  assertRejects,
+  spy,
+} from "../../../deps.ts";
 import {
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
@@ -24,24 +30,27 @@ Deno.test("Select by document filter with support for paging.", async () => {
 
   const spySelectByFilter = spy(docStore, "selectByFilter");
 
-  assertEquals(await sengi.selectDocumentsByFilter({
-    ...defaultRequestProps,
-    fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
-    filterName: "byModel",
-    filterParams: "ka",
-    limit: 1,
-  }), {
-    docs: [
-      {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-        manufacturer: "ford",
-        model: "ka",
-        registration: "HG12 3AB",
-      },
-    ],
-  });
+  assertEquals(
+    await sengi.selectDocumentsByFilter({
+      ...defaultRequestProps,
+      fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
+      filterName: "byModel",
+      filterParams: "ka",
+      limit: 1,
+    }),
+    {
+      docs: [
+        {
+          id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+          manufacturer: "ford",
+          model: "ka",
+          registration: "HG12 3AB",
+        },
+      ],
+    },
+  );
 
-  assertEquals(spySelectByFilter.callCount, 1)
+  assertEquals(spySelectByFilter.callCount, 1);
   assert(spySelectByFilter.calledWith(
     "car",
     "cars",
@@ -54,7 +63,7 @@ Deno.test("Select by document filter with support for paging.", async () => {
 });
 
 Deno.test("Select by document filter with onPreSelectDocs delegate and without paging.", async () => {
-  const onPreSelectDocs = spy((..._args: unknown[]) => {})
+  const onPreSelectDocs = spy((..._args: unknown[]) => {});
 
   const { carDocType, sengi, docStore } = createSengiWithMockStore({
     selectByFilter: async () => ({
@@ -66,19 +75,21 @@ Deno.test("Select by document filter with onPreSelectDocs delegate and without p
       }],
     }),
   }, {
-    onPreSelectDocs
+    onPreSelectDocs,
   });
 
-  const spySelectByFilter = spy(docStore, 'selectByFilter')
+  const spySelectByFilter = spy(docStore, "selectByFilter");
 
-  assertExists(await sengi.selectDocumentsByFilter({
-    ...defaultRequestProps,
-    fieldNames: ["id", "model"],
-    filterName: "byModel",
-    filterParams: "ka",
-  }))
+  assertExists(
+    await sengi.selectDocumentsByFilter({
+      ...defaultRequestProps,
+      fieldNames: ["id", "model"],
+      filterName: "byModel",
+      filterParams: "ka",
+    }),
+  );
 
-  assertEquals(spySelectByFilter.callCount, 1)
+  assertEquals(spySelectByFilter.callCount, 1);
   assert(spySelectByFilter.calledWith(
     "car",
     "cars",
@@ -106,7 +117,8 @@ Deno.test("Select by document filter with onPreSelectDocs delegate and without p
 Deno.test("Fail to select by document filter if filter name not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(() => sengi.selectDocumentsByFilter({
+  assertRejects(() =>
+    sengi.selectDocumentsByFilter({
       ...defaultRequestProps,
       fieldNames: ["id"],
       filterName: "byInvalid",
@@ -117,7 +129,8 @@ Deno.test("Fail to select by document filter if filter name not recognised.", as
 Deno.test("Fail to select by document filter if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(() => sengi.selectDocumentsByFilter({
+  assertRejects(() =>
+    sengi.selectDocumentsByFilter({
       ...defaultRequestProps,
       apiKey: "noneKey",
       fieldNames: ["id"],
@@ -129,7 +142,8 @@ Deno.test("Fail to select by document filter if permissions insufficient.", asyn
 Deno.test("Fail to select by document filter if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(() => sengi.selectDocumentsByFilter({
+  assertRejects(() =>
+    sengi.selectDocumentsByFilter({
       ...defaultRequestProps,
       apiKey: "unknown",
       fieldNames: ["id"],

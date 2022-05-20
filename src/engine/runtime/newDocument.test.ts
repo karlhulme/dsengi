@@ -1,10 +1,16 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, match, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertRejects,
+  match,
+  spy,
+} from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
+  SengiDocValidationFailedError,
   SengiInsufficientPermissionsError,
   SengiUnrecognisedApiKeyError,
-  SengiDocValidationFailedError
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -26,12 +32,15 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
   const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.newDocument({
-    ...defaultRequestProps,
-    docTypeName: "car",
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    doc: newCar,
-  }), { isNew: true });
+  assertEquals(
+    await sengi.newDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      doc: newCar,
+    }),
+    { isNew: true },
+  );
 
   assertEquals(spyExists.callCount, 1);
   assert(spyExists.calledWith(
@@ -81,12 +90,15 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
     onSavedDoc,
   });
 
-  assertEquals(await sengi.newDocument({
-    ...defaultRequestProps,
-    docTypeName: "car",
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    doc: newCar,
-  }), { isNew: true });
+  assertEquals(
+    await sengi.newDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      doc: newCar,
+    }),
+    { isNew: true },
+  );
 
   assertEquals(onPreSaveDoc.callCount, 1);
   assert(onPreSaveDoc.calledWith({
@@ -126,11 +138,14 @@ Deno.test("Adding a new document that already exists should not lead to a call t
   const spyExists = spy(docStore, "exists");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(await sengi.newDocument({
-    ...defaultRequestProps,
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    doc: newCar,
-  }), { isNew: false });
+  assertEquals(
+    await sengi.newDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      doc: newCar,
+    }),
+    { isNew: false },
+  );
 
   assertEquals(spyExists.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
@@ -146,7 +161,7 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
       ...defaultRequestProps,
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: { ...newCar, registration: "HZ12 3AB" },
-    })
+    });
   }, SengiDocValidationFailedError);
 });
 

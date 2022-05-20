@@ -6,7 +6,7 @@ export async function createCollection(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
-  collectionName: string
+  collectionName: string,
 ) {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,

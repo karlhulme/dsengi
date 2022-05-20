@@ -37,7 +37,7 @@ export async function createDocument(
     }
 
     if (document.pkey !== partition) {
-      document.pkey = partition
+      document.pkey = partition;
     }
 
     const response = await fetch(

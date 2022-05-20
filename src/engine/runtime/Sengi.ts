@@ -80,7 +80,7 @@ export interface SengiConstructorProps<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > {
   /**
    * The clients that have access to the sengi engine.
@@ -179,7 +179,7 @@ export class Sengi<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > {
   private docTypes: DocType<
     any,
@@ -573,7 +573,7 @@ export class Sengi<
       props.partition,
       props.id,
       combinedDocStoreOptions,
-      {  },
+      {},
     );
 
     const doc = ensureDocWasFound(docType.name, props.id, fetchResult.doc);

@@ -6,8 +6,8 @@ The basis of a data layer based on a series of schemas and mutations.
 
 In process of migrating from the NodeJS version.
 
-Engine work: Finish fixing up the tests in /src/engine/runtime 
- (switching from Jest to Deno/Sinon).
+Engine work: Finish fixing up the tests in /src/engine/runtime (switching from
+Jest to Deno/Sinon).
 
 Finally we need a REST layer that is based around Oak rather than Express. Here,
 we need to generate the `service.ts` file that we use to generate REST/OpenAPI

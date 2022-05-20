@@ -10,7 +10,7 @@ export interface DeletedDocCallbackProps<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > {
   /**
    * The name of the client that invoked the operation.
@@ -52,7 +52,7 @@ export type DeletedDocCallback<
   DocStoreOptions,
   User,
   Filter,
-  Query
+  Query,
 > = (
   props: DeletedDocCallbackProps<
     RequestProps,

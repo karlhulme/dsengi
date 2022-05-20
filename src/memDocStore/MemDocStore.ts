@@ -36,8 +36,13 @@ export interface MemDocStoreQuery {
   /**
    * A reducer function.
    */
-  reducer: (previousValue: unknown, d: DocRecord, index: number, array: DocRecord[]) => unknown;
-  
+  reducer: (
+    previousValue: unknown,
+    d: DocRecord,
+    index: number,
+    array: DocRecord[],
+  ) => unknown;
+
   /**
    * The initial value.
    */
@@ -162,7 +167,9 @@ export class MemDocStore implements
   ): Promise<DocStoreExistsResult> {
     return {
       found:
-        this.docs.findIndex((d) => d.docType === docTypeName && d.id === id && d.pkey === partition) >
+        this.docs.findIndex((d) =>
+          d.docType === docTypeName && d.id === id && d.pkey === partition
+        ) >
           -1,
     };
   }
@@ -185,7 +192,9 @@ export class MemDocStore implements
     _options: MemDocStoreOptions,
     _props: DocStoreFetchProps,
   ): Promise<DocStoreFetchResult> {
-    const doc = this.docs.find((d) => d.docType === docTypeName && d.id === id && d.pkey === partition);
+    const doc = this.docs.find((d) =>
+      d.docType === docTypeName && d.id === id && d.pkey === partition
+    );
     return { doc: doc ? JSON.parse(JSON.stringify(doc)) : null };
   }
 
@@ -206,11 +215,11 @@ export class MemDocStore implements
     _options: MemDocStoreOptions,
     _props: DocStoreQueryProps,
   ): Promise<DocStoreQueryResult> {
-    const filteredDocs = this.docs.filter((d) => d.docType === docTypeName)
+    const filteredDocs = this.docs.filter((d) => d.docType === docTypeName);
 
     return {
-      data:  filteredDocs.reduce(query.reducer, query.initialValue)
-    }
+      data: filteredDocs.reduce(query.reducer, query.initialValue),
+    };
   }
 
   /**
@@ -231,7 +240,9 @@ export class MemDocStore implements
     _options: MemDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
-    const matchedDocs = this.docs.filter((d) => d.docType === docTypeName && d.pkey === partition);
+    const matchedDocs = this.docs.filter((d) =>
+      d.docType === docTypeName && d.pkey === partition
+    );
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
 
@@ -282,7 +293,8 @@ export class MemDocStore implements
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && d.pkey === partition && ids.includes(d.id as string)
+      d.docType === docTypeName && d.pkey === partition &&
+      ids.includes(d.id as string)
     );
     return this.buildSelectResult(matchedDocs, fieldNames);
   }
@@ -307,7 +319,7 @@ export class MemDocStore implements
   ): Promise<DocStoreUpsertResult> {
     const docCopy = JSON.parse(JSON.stringify(doc));
     docCopy.docVersion = this.generateDocVersionFunc();
-    docCopy.pkey = partition
+    docCopy.pkey = partition;
 
     const index = this.docs.findIndex((d) =>
       d.docType === docTypeName && d.pkey === partition && d.id === docCopy.id
