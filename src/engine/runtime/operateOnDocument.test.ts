@@ -48,27 +48,6 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.operateOnDocument({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
-      operationParams: 2,
-    }),
-    { isUpdated: true },
-  );
-
-  assertEquals(spyFetch.callCount, 1);
-  assert(spyFetch.calledWith(
-    "car",
-    "cars",
-    "_central",
-    "06151119-065a-4691-a7c8-2d84ec746ba9",
-    { custom: "prop" },
-    {},
-  ));
-
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
@@ -85,6 +64,33 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
     model: "ka2",
     registration: "HG12 3AB",
   };
+
+  assertEquals(
+    await sengi.operateOnDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
+      operationName: "upgradeModel",
+      operationParams: 2,
+      fieldNames: ["id"],
+    }),
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
+  );
+
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
+    "car",
+    "cars",
+    "_central",
+    "06151119-065a-4691-a7c8-2d84ec746ba9",
+    { custom: "prop" },
+    {},
+  ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
@@ -113,8 +119,14 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
     }),
-    { isUpdated: true },
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(onPreSaveDoc.callCount, 1);
@@ -159,8 +171,14 @@ Deno.test("Operating on a document with a recognised operation id should only ca
       operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
     }),
-    { isUpdated: false },
+    {
+      isUpdated: false,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(spyFetch.callCount, 1);
@@ -190,8 +208,14 @@ Deno.test("Operating on a document using a required version should cause require
       operationName: "upgradeModel",
       operationParams: 2,
       reqVersion: "aaaa",
+      fieldNames: ["id"],
     }),
-    { isUpdated: true },
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(spyFetch.callCount, 1);
@@ -228,6 +252,7 @@ Deno.test("Fail to operate on document when required version is not available.",
       operationName: "upgradeModel",
       operationParams: 2,
       reqVersion: "bbbb", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then versionNotAvailable error is raised
+      fieldNames: ["id"],
     });
   }, SengiRequiredVersionNotAvailableError);
 });
@@ -244,6 +269,7 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
       // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is NOT specified then conflictOnSave error is raised
     });
   }, SengiConflictOnSaveError);
@@ -259,6 +285,7 @@ Deno.test("Fail to operate on document using an unknown operation.", async () =>
       operationId: "a2c9bec0-ab03-4ded-bce6-d8a91f71e1d4",
       operationName: "unknownOperation",
       operationParams: {},
+      fieldNames: ["id"],
     });
   }, SengiUnrecognisedOperationNameError);
 });
@@ -275,6 +302,7 @@ Deno.test("Fail to operate on document if it does not exist.", async () => {
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
     });
   }, SengiDocNotFoundError);
 });
@@ -290,6 +318,7 @@ Deno.test("Fail to invoke an operation if permissions insufficient.", async () =
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
     });
   }, SengiInsufficientPermissionsError);
 });
@@ -305,6 +334,7 @@ Deno.test("Fail to invoke an operation if client api key is not recognised.", as
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
       operationName: "upgradeModel",
       operationParams: 2,
+      fieldNames: ["id"],
     });
   }, SengiUnrecognisedApiKeyError);
 });

@@ -28,6 +28,7 @@ Deno.test("Log requests to the console.", () => {
         model: "ka",
         registration: "HG12 3AB",
       },
+      fieldNames: ["id"],
     });
 
     assertEquals(newFn.callCount, 1);

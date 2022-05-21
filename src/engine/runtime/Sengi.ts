@@ -67,6 +67,7 @@ import {
   isOpIdInDocument,
   parseFilter,
   parseQuery,
+  redactDoc,
   selectDocTypeFromArray,
 } from "../docTypes/index.ts";
 
@@ -328,13 +329,15 @@ export class Sengi<
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
     ensureCreatePermission(client, props.docTypeName);
+    ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     const combinedDocStoreOptions = {
       ...docType.docStoreOptions,
       ...props.docStoreOptions,
     };
-    const existsResult = await this.safeDocStore.exists(
+
+    const existingDocResult = await this.safeDocStore.fetch(
       docType.name,
       docType.pluralName,
       props.partition,
@@ -343,7 +346,12 @@ export class Sengi<
       {},
     );
 
-    if (!existsResult.found) {
+    if (existingDocResult.doc) {
+      return {
+        isNew: false,
+        doc: redactDoc(existingDocResult.doc, props.fieldNames),
+      };
+    } else {
       const doc = executeConstructor(
         docType,
         props.user,
@@ -396,9 +404,12 @@ export class Sengi<
         true,
         user,
       );
-    }
 
-    return { isNew: !existsResult.found };
+      return {
+        isNew: true,
+        doc: redactDoc(doc, props.fieldNames),
+      };
+    }
   }
 
   /**
@@ -478,6 +489,7 @@ export class Sengi<
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
     ensureCreatePermission(client, props.docTypeName);
+    ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
     ensureNewDocIdsMatch(props.id, props.doc.id as string);
 
@@ -486,7 +498,7 @@ export class Sengi<
       ...docType.docStoreOptions,
       ...props.docStoreOptions,
     };
-    const existsResult = await this.safeDocStore.exists(
+    const fetchResult = await this.safeDocStore.fetch(
       docType.name,
       docType.pluralName,
       props.partition,
@@ -495,7 +507,12 @@ export class Sengi<
       {},
     );
 
-    if (!existsResult.found) {
+    if (fetchResult.doc) {
+      return {
+        isNew: false,
+        doc: redactDoc(fetchResult.doc, props.fieldNames),
+      };
+    } else {
       const doc = props.doc;
 
       doc.id = props.id;
@@ -543,9 +560,12 @@ export class Sengi<
         true,
         user,
       );
-    }
 
-    return { isNew: !existsResult.found };
+      return {
+        isNew: true,
+        doc: redactDoc(doc, props.fieldNames),
+      };
+    }
   }
 
   /**
@@ -561,6 +581,7 @@ export class Sengi<
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
     ensureOperatePermission(client, props.docTypeName, props.operationName);
+    ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     const combinedDocStoreOptions = {
@@ -629,7 +650,10 @@ export class Sengi<
       );
     }
 
-    return { isUpdated: !opIdAlreadyExists };
+    return {
+      isUpdated: !opIdAlreadyExists,
+      doc: redactDoc(doc, props.fieldNames),
+    };
   }
 
   /**
@@ -643,6 +667,7 @@ export class Sengi<
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
     ensurePatchPermission(client, props.docTypeName);
+    ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     const combinedDocStoreOptions = {
@@ -711,7 +736,10 @@ export class Sengi<
       );
     }
 
-    return { isUpdated: !opIdAlreadyExists };
+    return {
+      isUpdated: !opIdAlreadyExists,
+      doc: redactDoc(doc, props.fieldNames),
+    };
   }
 
   /**
@@ -765,6 +793,7 @@ export class Sengi<
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
     ensureReplacePermission(client, props.docTypeName);
+    ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     ensureCanReplaceDocuments(docType);
@@ -815,7 +844,10 @@ export class Sengi<
       user,
     );
 
-    return { isNew };
+    return {
+      isNew,
+      doc: redactDoc(doc, props.fieldNames),
+    };
   }
 
   /**

@@ -15,20 +15,16 @@ export function hasPermission(
   permissionFunc: (r: ClientDocPermissionSet) => boolean,
 ): boolean {
   // check for a global permission
-  if (typeof client.docPermissions === "boolean") {
-    if (client.docPermissions === true) {
-      return true;
-    }
+  if (client.docPermissions === true) {
+    return true;
   }
 
   // check for a docType-wide permission
   if (
     typeof client.docPermissions === "object" &&
-    typeof client.docPermissions[docTypeName] === "boolean"
+    client.docPermissions[docTypeName] === true
   ) {
-    if (client.docPermissions[docTypeName] === true) {
-      return true;
-    }
+    return true;
   }
 
   // check for a docType specific permission

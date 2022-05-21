@@ -95,7 +95,7 @@ export function ensurePatchPermission(
 
 /**
  * Raises an error if the client does not have permission to execute
- * a query against a collectino of the given document types.
+ * a query against a collection of the given document types.
  * @param authenticatedClient The client associated with the request.
  * @param docTypeName The name of a doc type.
  * @param queryName The name of a doc type query.
@@ -115,7 +115,7 @@ export function ensureQueryPermission(
     throw new SengiInsufficientPermissionsError(
       authenticatedClient.name,
       docTypeName,
-      "select." + queryName,
+      "query." + queryName,
     );
   }
 }

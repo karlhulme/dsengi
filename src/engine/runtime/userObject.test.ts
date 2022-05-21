@@ -28,8 +28,9 @@ Deno.test("Supplying a valid user object is accepted.", async () => {
       docTypeName: "car",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     }),
-    { isNew: true },
+    { isNew: true, doc: { id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1" } },
   );
 });
 
@@ -43,5 +44,6 @@ Deno.test("Supplying a invalid user object causes an error.", () => {
       docTypeName: "car",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     }), SengiUserValidationFailedError);
 });

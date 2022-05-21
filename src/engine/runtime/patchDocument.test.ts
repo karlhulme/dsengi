@@ -50,28 +50,6 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.patchDocument({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-      patch: {
-        model: "fiesta",
-      },
-    }),
-    { isUpdated: true },
-  );
-
-  assertEquals(spyFetch.callCount, 1);
-  assert(spyFetch.calledWith(
-    "car",
-    "cars",
-    "_central",
-    "06151119-065a-4691-a7c8-2d84ec746ba9",
-    { custom: "prop" },
-    {},
-  ));
-
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
@@ -88,6 +66,34 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
     model: "fiesta",
     registration: "HG12 3AB",
   };
+
+  assertEquals(
+    await sengi.patchDocument({
+      ...defaultRequestProps,
+      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+      patch: {
+        model: "fiesta",
+      },
+      fieldNames: ["id"],
+    }),
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
+  );
+
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
+    "car",
+    "cars",
+    "_central",
+    "06151119-065a-4691-a7c8-2d84ec746ba9",
+    { custom: "prop" },
+    {},
+  ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
@@ -117,8 +123,14 @@ Deno.test("Patching a document should invoke the onPreSaveDoc and onUpdateDoc de
       patch: {
         model: "fiesta",
       },
+      fieldNames: ["id"],
     }),
-    { isUpdated: true },
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(onPreSaveDoc.callCount, 1);
@@ -166,8 +178,14 @@ Deno.test("Patching a document with a known operation id should only call fetch 
       patch: {
         model: "fiesta",
       },
+      fieldNames: ["id"],
     }),
-    { isUpdated: false },
+    {
+      isUpdated: false,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(spyFetch.callCount, 1);
@@ -198,8 +216,14 @@ Deno.test("Patching a document using a required version should cause the require
       patch: {
         model: "fiesta",
       },
+      fieldNames: ["id"],
     }),
-    { isUpdated: true },
+    {
+      isUpdated: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(spyFetch.callCount, 1);
@@ -239,6 +263,7 @@ Deno.test("Fail to patch document when required version is not available.", asyn
         model: "fiesta",
       },
       reqVersion: "aaaa", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then VersionNotAvailable error is raised
+      fieldNames: ["id"],
     });
   }, SengiRequiredVersionNotAvailableError);
 });
@@ -256,6 +281,7 @@ Deno.test("Fail to patch document if it changes between fetch and upsert.", asyn
       patch: {
         model: "fiesta",
       },
+      fieldNames: ["id"],
     }); // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is NOT specified then conflictOnSave error is raised
   }, SengiConflictOnSaveError);
 });
@@ -273,6 +299,7 @@ Deno.test("Reject a patch to a non-existent doc.", async () => {
       patch: {
         model: "fiesta",
       },
+      fieldNames: ["id"],
     });
   }, SengiDocNotFoundError);
 });
@@ -289,6 +316,7 @@ Deno.test("Reject a patch to any field that is marked as readonly.", async () =>
         patch: {
           manufacturer: "tesla",
         },
+        fieldNames: ["id"],
       });
     },
     SengiPatchValidationFailedError,
@@ -308,6 +336,7 @@ Deno.test("Reject a patch with a field value that is given an invalid type.", as
         patch: {
           model: 123,
         },
+        fieldNames: ["id"],
       });
     },
     SengiDocValidationFailedError,
@@ -327,6 +356,7 @@ Deno.test("Reject a patch that would change a system field.", async () => {
         patch: {
           id: "aaaaaaaa-065a-4691-a7c8-2d84ec746ba9",
         },
+        fieldNames: ["id"],
       });
     },
     SengiPatchValidationFailedError,
@@ -346,6 +376,7 @@ Deno.test("Reject a patch that produces a doc that fails the docType validate fu
         patch: {
           registration: "HZ12 3AB",
         },
+        fieldNames: ["id"],
       });
     },
     SengiDocValidationFailedError,
@@ -365,6 +396,7 @@ Deno.test("Fail to patch a document if permissions insufficient.", async () => {
       patch: {
         model: "ka",
       },
+      fieldNames: ["id"],
     });
   }, SengiInsufficientPermissionsError);
 });
@@ -381,6 +413,7 @@ Deno.test("Fail to patch a document if client api key is not recognised.", async
       patch: {
         model: "ka",
       },
+      fieldNames: ["id"],
     });
   }, SengiUnrecognisedApiKeyError);
 });
@@ -396,6 +429,7 @@ Deno.test("Fail to patch with a field that is protected by authorisation.", asyn
       patch: {
         engineCode: "a1231bb",
       },
+      fieldNames: ["id"],
     });
   }, SengiAuthorisationFailedError);
 });

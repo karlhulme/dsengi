@@ -38,4 +38,9 @@ export interface ReplaceDocumentProps<RequestProps, DocStoreOptions> {
    * The user that is making the request.
    */
   user: unknown;
+
+  /**
+   * An array of fields to be returned after the document is replaced.
+   */
+  fieldNames: string[];
 }

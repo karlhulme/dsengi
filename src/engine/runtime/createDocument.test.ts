@@ -20,34 +20,12 @@ import {
 
 Deno.test("Creating a document with a constructor should call exists and then upsert on doc store.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exists");
+  const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
-
-  assertEquals(
-    await sengi.createDocument({
-      ...defaultRequestProps,
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      constructorName: "regTesla",
-      constructorParams: "HG12 3AB",
-    }),
-    { isNew: true },
-  );
-
-  assertEquals(spyExists.callCount, 1);
-  assert(
-    spyExists.calledWithExactly(
-      "car",
-      "cars",
-      "_central",
-      "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      { custom: "prop" },
-      {},
-    ),
-  );
 
   const resultDoc = {
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
@@ -64,6 +42,32 @@ Deno.test("Creating a document with a constructor should call exists and then up
     registration: "HG12 3AB",
   };
 
+  assertEquals(
+    await sengi.createDocument({
+      ...defaultRequestProps,
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      constructorName: "regTesla",
+      constructorParams: "HG12 3AB",
+      fieldNames: ["id"],
+    }),
+    {
+      isNew: true,
+      doc: { id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1" },
+    },
+  );
+
+  assertEquals(spyFetch.callCount, 1);
+  assert(
+    spyFetch.calledWithExactly(
+      "car",
+      "cars",
+      "_central",
+      "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      { custom: "prop" },
+      {},
+    ),
+  );
+
   assertEquals(spyUpsert.callCount, 1);
   assert(
     spyUpsert.calledWithExactly(
@@ -79,7 +83,7 @@ Deno.test("Creating a document with a constructor should call exists and then up
 
 Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFromUser default implementations.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
     getMillisecondsSinceEpoch: null,
@@ -94,8 +98,9 @@ Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFrom
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
+      fieldNames: ["id"],
     }),
-    { isNew: true },
+    { isNew: true, doc: { id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1" } },
   );
 
   assertEquals(spyUpsert.callCount, 1);
@@ -106,7 +111,7 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
   const onSavedDoc = spy((..._args: unknown[]) => {});
 
   const { sengi, carDocType } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
     onPreSaveDoc,
@@ -118,6 +123,7 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     constructorName: "regTesla",
     constructorParams: "HG12 3AB",
+    fieldNames: ["id"],
   });
 
   assertEquals(onPreSaveDoc.callCount, 1);
@@ -151,11 +157,15 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
 
 Deno.test("Creating a document with a constructor that already exists should not lead to a call to upsert.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: true }),
+    fetch: async () => ({
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exists");
+  const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
   assertEquals(
@@ -164,17 +174,23 @@ Deno.test("Creating a document with a constructor that already exists should not
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
+      fieldNames: ["id"],
     }),
-    { isNew: false },
+    {
+      isNew: false,
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    },
   );
 
-  assertEquals(spyExists.callCount, 1);
+  assertEquals(spyFetch.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
 });
 
 Deno.test("Fail to create a document using a constructor where the constructor params do not pass validation.", async () => {
   const { sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
   });
 
   assertRejects(async () => {
@@ -183,13 +199,14 @@ Deno.test("Fail to create a document using a constructor where the constructor p
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: 123, // should be a string
+      fieldNames: ["id"],
     });
   }, SengiCtorParamsValidationFailedError);
 });
 
 Deno.test("Fail to create a document using a constructor where the resulting doc does not pass validation.", async () => {
   const { sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
   });
 
   assertRejects(async () => {
@@ -198,6 +215,7 @@ Deno.test("Fail to create a document using a constructor where the resulting doc
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HZ12 3AB",
+      fieldNames: ["id"],
     });
   }, SengiDocValidationFailedError);
 });
@@ -213,6 +231,7 @@ Deno.test("Fail to create document if permissions insufficient.", async () => {
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
+      fieldNames: ["id"],
     });
   }, SengiInsufficientPermissionsError);
 });
@@ -228,6 +247,7 @@ Deno.test("Fail to create document if client api key is not recognised.", async 
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       constructorName: "regTesla",
       constructorParams: "HG12 3AB",
+      fieldNames: ["id"],
     });
   }, SengiUnrecognisedApiKeyError);
 });

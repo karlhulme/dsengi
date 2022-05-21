@@ -25,32 +25,12 @@ const newCar = {
 
 Deno.test("Adding a new document should call exists and then upsert on doc store.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exists");
+  const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
-
-  assertEquals(
-    await sengi.newDocument({
-      ...defaultRequestProps,
-      docTypeName: "car",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      doc: newCar,
-    }),
-    { isNew: true },
-  );
-
-  assertEquals(spyExists.callCount, 1);
-  assert(spyExists.calledWith(
-    "car",
-    "cars",
-    "_central",
-    "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    { custom: "prop" },
-    {},
-  ));
 
   const resultDoc = {
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
@@ -66,6 +46,32 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     model: "ka",
     registration: "HG12 3AB",
   };
+
+  assertEquals(
+    await sengi.newDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      doc: newCar,
+      fieldNames: ["id"],
+    }),
+    {
+      isNew: true,
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    },
+  );
+
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
+    "car",
+    "cars",
+    "_central",
+    "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+    { custom: "prop" },
+    {},
+  ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
@@ -83,7 +89,7 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
   const onSavedDoc = spy((..._args: unknown[]) => {});
 
   const { sengi, carDocType } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
     onPreSaveDoc,
@@ -96,8 +102,14 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
       docTypeName: "car",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     }),
-    { isNew: true },
+    {
+      isNew: true,
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    },
   );
 
   assertEquals(onPreSaveDoc.callCount, 1);
@@ -131,11 +143,15 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
 
 Deno.test("Adding a new document that already exists should not lead to a call to upsert.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: true }),
+    fetch: async () => ({
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyExists = spy(docStore, "exists");
+  const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
   assertEquals(
@@ -143,17 +159,23 @@ Deno.test("Adding a new document that already exists should not lead to a call t
       ...defaultRequestProps,
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     }),
-    { isNew: false },
+    {
+      isNew: false,
+      doc: {
+        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      },
+    },
   );
 
-  assertEquals(spyExists.callCount, 1);
+  assertEquals(spyFetch.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
 });
 
 Deno.test("Fail to add a new document that does not pass validation.", async () => {
   const { sengi } = createSengiWithMockStore({
-    exists: async () => ({ found: false }),
+    fetch: async () => ({ doc: null }),
   });
 
   assertRejects(async () => {
@@ -161,6 +183,7 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
       ...defaultRequestProps,
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: { ...newCar, registration: "HZ12 3AB" },
+      fieldNames: ["id"],
     });
   }, SengiDocValidationFailedError);
 });
@@ -174,6 +197,7 @@ Deno.test("Fail to add a new document if permissions insufficient.", async () =>
       apiKey: "noneKey",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     });
   }, SengiInsufficientPermissionsError);
 });
@@ -187,6 +211,7 @@ Deno.test("Fail to add a new document if client api key is not recognised.", asy
       apiKey: "unknown",
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
+      fieldNames: ["id"],
     });
   }, SengiUnrecognisedApiKeyError);
 });

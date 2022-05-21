@@ -34,15 +34,6 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
 
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.replaceDocument({
-      ...defaultRequestProps,
-      docTypeName: "car",
-      doc: createNewDocument(),
-    }),
-    { isNew: false },
-  );
-
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
@@ -55,6 +46,21 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
     model: "ka",
     registration: "HG12 3AB",
   };
+
+  assertEquals(
+    await sengi.replaceDocument({
+      ...defaultRequestProps,
+      docTypeName: "car",
+      doc: createNewDocument(),
+      fieldNames: ["id"],
+    }),
+    {
+      isNew: false,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
+  );
 
   assertEquals(spyUpsert.callCount, 1);
 
@@ -84,8 +90,14 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
       ...defaultRequestProps,
       docTypeName: "car",
       doc: createNewDocument(),
+      fieldNames: ["id"],
     }),
-    { isNew: false },
+    {
+      isNew: false,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(onPreSaveDoc.callCount, 1);
@@ -135,8 +147,14 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
       ...defaultRequestProps,
       docTypeName: "car",
       doc: createNewDocument(),
+      fieldNames: ["id"],
     }),
-    { isNew: true },
+    {
+      isNew: true,
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      },
+    },
   );
 
   assertEquals(onSavedDoc.callCount, 1);
@@ -189,6 +207,7 @@ Deno.test("Fail to replace a document if it does not conform to the doc type sch
         ...createNewDocument(),
         model: 123, // rather than a string
       },
+      fieldNames: ["id"],
     });
   }, SengiDocValidationFailedError);
 });
@@ -203,6 +222,7 @@ Deno.test("Fail to replace a document if it fails custom validation.", async () 
         ...createNewDocument(),
         registration: "HZ12 3AB", // registration must begin HG
       },
+      fieldNames: ["id"],
     });
     throw new Error("fail");
   }, SengiDocValidationFailedError);
@@ -216,6 +236,7 @@ Deno.test("Fail to replace a document if permissions insufficient.", async () =>
       ...defaultRequestProps,
       apiKey: "noneKey",
       doc: createNewDocument(),
+      fieldNames: ["id"],
     });
     throw new Error("fail");
   }, SengiInsufficientPermissionsError);
@@ -229,6 +250,7 @@ Deno.test("Fail to replace a document if client api key is not recognised.", asy
       ...defaultRequestProps,
       apiKey: "unknown",
       doc: createNewDocument(),
+      fieldNames: ["id"],
     });
     throw new Error("fail");
   }, SengiUnrecognisedApiKeyError);
@@ -254,6 +276,7 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
         model: "Accord",
         registration: "HG67 8HJ",
       },
+      fieldNames: ["id"],
     });
     throw new Error("fail");
   }, SengiActionForbiddenByPolicyError);

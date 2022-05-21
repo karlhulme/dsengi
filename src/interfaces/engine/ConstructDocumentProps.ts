@@ -46,4 +46,9 @@ export interface ConstructDocumentProps<RequestProps, DocStoreOptions> {
    * The user that is making the request.
    */
   user: unknown;
+
+  /**
+   * An array of fields to be returned after the document is constructed.
+   */
+  fieldNames: string[];
 }
