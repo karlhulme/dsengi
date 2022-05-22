@@ -10,7 +10,9 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
-import { CentralPartition, CosmosDbDocStore } from "./CosmosDbDocStore.ts";
+import { CosmosDbDocStore } from "./CosmosDbDocStore.ts";
+
+const TestPartition = "testPartition";
 
 const TEST_COSMOS_URL = Deno.env.get("SENGI_COSMOS_URL") || "";
 const TEST_COSMOS_KEY = Deno.env.get("SENGI_COSMOS_KEY") || "";
@@ -40,7 +42,7 @@ function createCosmosDbDocStore(): CosmosDbDocStore {
 
 async function initDb(): Promise<void> {
   const MAX_ITEMS_TO_DELETE = 10;
-  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY)
+  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY);
 
   // empty trees container
 
@@ -68,7 +70,7 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "trees",
-      CentralPartition,
+      TestPartition,
       treeDoc.id as string,
     );
   }
@@ -139,7 +141,7 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "trees",
-      CentralPartition,
+      TestPartition,
       tree,
       {},
     );
@@ -202,7 +204,7 @@ async function initDb(): Promise<void> {
 async function readContainer(
   containerName: string,
 ): Promise<Record<string, unknown>[]> {
-  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY)
+  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY);
 
   const docs = await queryDocumentsGateway(
     cryptoKey,
@@ -225,7 +227,7 @@ Deno.test("A document can be deleted.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.deleteById("tree", "trees", CentralPartition, "03", {}, {}),
+    await docStore.deleteById("tree", "trees", TestPartition, "03", {}, {}),
     {
       code: DocStoreDeleteByIdResultCode.DELETED,
     },
@@ -241,7 +243,7 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.deleteById("tree", "trees", CentralPartition, "200", {}, {}),
+    await docStore.deleteById("tree", "trees", TestPartition, "200", {}, {}),
     {
       code: DocStoreDeleteByIdResultCode.NOT_FOUND,
     },
@@ -278,7 +280,7 @@ Deno.test("A document can be found to exist.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.exists("tree", "trees", CentralPartition, "02", {}, {}),
+    await docStore.exists("tree", "trees", TestPartition, "02", {}, {}),
     {
       found: true,
     },
@@ -291,7 +293,7 @@ Deno.test("A non-existent document is not found.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.exists("tree", "trees", CentralPartition, "202", {}, {}),
+    await docStore.exists("tree", "trees", TestPartition, "202", {}, {}),
     {
       found: false,
     },
@@ -306,7 +308,7 @@ Deno.test("A document can be fetched.", async () => {
   const fetchResult = await docStore.fetch(
     "tree",
     "trees",
-    CentralPartition,
+    TestPartition,
     "02",
     {},
     {},
@@ -329,7 +331,7 @@ Deno.test("A non-existent document cannot be fetched.", async () => {
   const fetchResult = await docStore.fetch(
     "tree",
     "trees",
-    CentralPartition,
+    TestPartition,
     "202",
     {},
     {},
@@ -414,7 +416,7 @@ Deno.test("All documents of a type can be selected from a single partition.", as
   const result = await docStore.selectAll(
     "tree",
     "trees",
-    CentralPartition,
+    TestPartition,
     ["id"],
     {},
     {},
@@ -515,7 +517,7 @@ Deno.test("Select documents using ids.", async () => {
   const result = await docStore.selectByIds(
     "tree",
     "trees",
-    CentralPartition,
+    TestPartition,
     ["id", "name"],
     ["02", "03"],
     {},
@@ -538,7 +540,7 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   const result = await docStore.selectByIds(
     "tree",
     "trees",
-    CentralPartition,
+    TestPartition,
     ["name"],
     ["02", "03", "03", "02"],
     {},
@@ -565,7 +567,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", CentralPartition, doc, {}, {}),
+    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {}),
     {
       code: DocStoreUpsertResultCode.CREATED,
     },
@@ -598,7 +600,7 @@ Deno.test("Update an existing document.", async () => {
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", CentralPartition, doc, {}, {}),
+    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {}),
     {
       code: DocStoreUpsertResultCode.REPLACED,
     },
@@ -635,7 +637,7 @@ Deno.test("Update an existing document with a required version.", async () => {
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", CentralPartition, doc, {}, {
+    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {
       reqVersion,
     }),
     { code: DocStoreUpsertResultCode.REPLACED },
@@ -668,7 +670,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", CentralPartition, doc, {}, {
+    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {
       reqVersion: "bbbb",
     }),
     { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE },

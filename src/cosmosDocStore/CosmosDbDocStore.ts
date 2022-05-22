@@ -33,13 +33,7 @@ import {
  * If more documents are required, then use the selectByFilter functionality
  * to retrieve the data in batches.
  */
-const MAX_DOCS_TO_SELECT = 200
-
-/**
- * The central partition where documents are placed that do not
- * have a dedicated partition.
- */
-export const CentralPartition = "_central";
+const MAX_DOCS_TO_SELECT = 200;
 
 /**
  * Represents the options that can be passed to the cosmosdb store.
@@ -199,8 +193,8 @@ export class CosmosDbDocStore implements
   > {
   collectionsPartitionKeyCache: Record<string, string> = {};
   cosmosUrl: string;
-  cosmosKey: string
-  cryptoKey: CryptoKey|null;
+  cosmosKey: string;
+  cryptoKey: CryptoKey | null;
   getDatabaseNameFunc: (
     docTypeName: string,
     docTypePluralName: string,
@@ -271,7 +265,9 @@ export class CosmosDbDocStore implements
       : [];
 
     // Determine the top/limit.
-    const top = limit && limit < MAX_DOCS_TO_SELECT ? limit : MAX_DOCS_TO_SELECT
+    const top = limit && limit < MAX_DOCS_TO_SELECT
+      ? limit
+      : MAX_DOCS_TO_SELECT;
 
     // Determine the select and from clauses.
     let sql = `
@@ -345,9 +341,9 @@ export class CosmosDbDocStore implements
    * Ensures the cosmos key has been converted to a crypto key
    * that can be passed to the Cosmos store.
    */
-  private async ensureCryptoKey () {
+  private async ensureCryptoKey() {
     if (this.cryptoKey === null) {
-      this.cryptoKey = await convertCosmosKeyToCryptoKey(this.cosmosKey)
+      this.cryptoKey = await convertCosmosKeyToCryptoKey(this.cosmosKey);
     }
   }
 
@@ -492,7 +488,7 @@ export class CosmosDbDocStore implements
       //   partitionKeyValue = candidatePartitionKeyValue;
       // }
 
-      await this.ensureCryptoKey()
+      await this.ensureCryptoKey();
 
       const didDelete = await deleteDocument(
         this.cryptoKey as CryptoKey,
