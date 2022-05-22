@@ -56,8 +56,8 @@ export const DocSystemFieldNames = [
   "docLastUpdatedByUserId",
 
   /**
-   * 'docLastUpdatedByMillisecondsSinceEpoch' stores the number of milliseconds since
+   * 'docLastUpdatedMillisecondsSinceEpoch' stores the number of milliseconds since
    * the unix epoch when the document was last updated.
    */
-  "docLastUpdatedByMillisecondsSinceEpoch",
+  "docLastUpdatedMillisecondsSinceEpoch",
 ];
