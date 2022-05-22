@@ -13,9 +13,7 @@ import {
 import { CentralPartition, CosmosDbDocStore } from "./CosmosDbDocStore.ts";
 
 const TEST_COSMOS_URL = Deno.env.get("SENGI_COSMOS_URL") || "";
-const TEST_COSMOS_KEY = await convertCosmosKeyToCryptoKey(
-  Deno.env.get("SENGI_COSMOS_KEY") || "",
-);
+const TEST_COSMOS_KEY = Deno.env.get("SENGI_COSMOS_KEY") || "";
 
 function createCosmosDbDocStore(): CosmosDbDocStore {
   return new CosmosDbDocStore({
@@ -42,11 +40,12 @@ function createCosmosDbDocStore(): CosmosDbDocStore {
 
 async function initDb(): Promise<void> {
   const MAX_ITEMS_TO_DELETE = 10;
+  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY)
 
   // empty trees container
 
   const treeDocs = await queryDocumentsGateway(
-    TEST_COSMOS_KEY,
+    cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
     "trees",
@@ -65,7 +64,7 @@ async function initDb(): Promise<void> {
 
   for (const treeDoc of treeDocs) {
     await deleteDocument(
-      TEST_COSMOS_KEY,
+      cryptoKey,
       TEST_COSMOS_URL,
       "sengi",
       "trees",
@@ -77,7 +76,7 @@ async function initDb(): Promise<void> {
   // empty treePacks container
 
   const treePackDocs = await queryDocumentsGateway(
-    TEST_COSMOS_KEY,
+    cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
     "treePacks",
@@ -96,7 +95,7 @@ async function initDb(): Promise<void> {
 
   for (const treePackDoc of treePackDocs) {
     await deleteDocument(
-      TEST_COSMOS_KEY,
+      cryptoKey,
       TEST_COSMOS_URL,
       "sengi",
       "treePacks",
@@ -136,7 +135,7 @@ async function initDb(): Promise<void> {
 
   for (const tree of trees) {
     await createDocument(
-      TEST_COSMOS_KEY,
+      cryptoKey,
       TEST_COSMOS_URL,
       "sengi",
       "trees",
@@ -189,7 +188,7 @@ async function initDb(): Promise<void> {
 
   for (const treePack of treePacks) {
     await createDocument(
-      TEST_COSMOS_KEY,
+      cryptoKey,
       TEST_COSMOS_URL,
       "sengi",
       "treePacks",
@@ -203,8 +202,10 @@ async function initDb(): Promise<void> {
 async function readContainer(
   containerName: string,
 ): Promise<Record<string, unknown>[]> {
+  const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY)
+
   const docs = await queryDocumentsGateway(
-    TEST_COSMOS_KEY,
+    cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
     containerName,

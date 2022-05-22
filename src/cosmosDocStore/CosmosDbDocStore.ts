@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  convertCosmosKeyToCryptoKey,
   createDocument,
   deleteDocument,
   getDocument,
@@ -143,10 +144,10 @@ interface CosmosDbDocStoreConstructorProps {
 
   /**
    * The key that grants read and write access.
-   * Use the convertCosmosKeyToCryptoKey method to convert the string version
-   * to a CryptoKey.
+   * This string key will be converted to a CryptoKey instance the first
+   * time the store needs to communicate with Cosmos.
    */
-  cosmosKey: CryptoKey;
+  cosmosKey: string;
 
   /**
    * A function that names the database that contains documents identified by the given docTypeName or docTypePluralName.
@@ -191,7 +192,8 @@ export class CosmosDbDocStore implements
   > {
   collectionsPartitionKeyCache: Record<string, string> = {};
   cosmosUrl: string;
-  cosmosKey: CryptoKey;
+  cosmosKey: string
+  cryptoKey: CryptoKey|null;
   getDatabaseNameFunc: (
     docTypeName: string,
     docTypePluralName: string,
@@ -328,6 +330,16 @@ export class CosmosDbDocStore implements
   }
 
   /**
+   * Ensures the cosmos key has been converted to a crypto key
+   * that can be passed to the Cosmos store.
+   */
+  private async ensureCryptoKey () {
+    if (this.cryptoKey === null) {
+      this.cryptoKey = await convertCosmosKeyToCryptoKey(this.cosmosKey)
+    }
+  }
+
+  /**
    * Returns a subset of the given array such that the filter parameters
    * have been honoured.  This additional transform is necessary if the original
    * filter operation was executed by multiple containers.
@@ -387,6 +399,7 @@ export class CosmosDbDocStore implements
   constructor(props: CosmosDbDocStoreConstructorProps) {
     this.cosmosUrl = props.cosmosUrl;
     this.cosmosKey = props.cosmosKey;
+    this.cryptoKey = null;
     this.getDatabaseNameFunc = props.getDatabaseNameFunc;
     this.getContainerNameFunc = props.getContainerNameFunc;
     // this.getPartitionKeyValueFunc = props.getPartitionKeyValueFunc;
@@ -467,8 +480,10 @@ export class CosmosDbDocStore implements
       //   partitionKeyValue = candidatePartitionKeyValue;
       // }
 
+      await this.ensureCryptoKey()
+
       const didDelete = await deleteDocument(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -528,8 +543,10 @@ export class CosmosDbDocStore implements
       //     containerName,
       //   );
 
+      await this.ensureCryptoKey();
+
       const docs = await queryDocumentsGateway(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -590,6 +607,8 @@ export class CosmosDbDocStore implements
         options,
       );
 
+      await this.ensureCryptoKey();
+
       // const partitionKeyFieldName = await this
       //   .getPartitionKeyFieldNameForCollection(
       //     databaseName,
@@ -600,7 +619,7 @@ export class CosmosDbDocStore implements
 
       // if (partitionKeyFieldName === "id") {
       rawDoc = await getDocument(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -675,9 +694,11 @@ export class CosmosDbDocStore implements
         options,
       );
 
+      await this.ensureCryptoKey();
+
       const docs = query.transform
         ? await queryDocumentsDirect(
-          this.cosmosKey,
+          this.cryptoKey as CryptoKey,
           this.cosmosUrl,
           databaseName,
           containerName,
@@ -688,7 +709,7 @@ export class CosmosDbDocStore implements
           },
         )
         : await queryDocumentsGateway(
-          this.cosmosKey,
+          this.cryptoKey as CryptoKey,
           this.cosmosUrl,
           databaseName,
           containerName,
@@ -745,8 +766,10 @@ export class CosmosDbDocStore implements
         fieldNames,
       );
 
+      await this.ensureCryptoKey();
+
       const docs = await queryDocumentsGateway(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -809,8 +832,10 @@ export class CosmosDbDocStore implements
         filter.limit,
       );
 
+      await this.ensureCryptoKey();
+
       const docs = await queryDocumentsGateway(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -872,8 +897,10 @@ export class CosmosDbDocStore implements
         whereClause,
       );
 
+      await this.ensureCryptoKey();
+
       const docs = await queryDocumentsGateway(
-        this.cosmosKey,
+        this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         databaseName,
         containerName,
@@ -942,9 +969,11 @@ export class CosmosDbDocStore implements
       //   options,
       // );
 
+      await this.ensureCryptoKey();
+
       if (props.reqVersion) {
         const didReplace = await replaceDocument(
-          this.cosmosKey,
+          this.cryptoKey as CryptoKey,
           this.cosmosUrl,
           databaseName,
           containerName,
@@ -962,7 +991,7 @@ export class CosmosDbDocStore implements
         return { code: resultCode };
       } else {
         const didCreate = await createDocument(
-          this.cosmosKey,
+          this.cryptoKey as CryptoKey,
           this.cosmosUrl,
           databaseName,
           containerName,
