@@ -29,6 +29,13 @@ import {
 } from "../interfaces/index.ts";
 
 /**
+ * The maximum number of documents that can be retrieved in a single select.
+ * If more documents are required, then use the selectByFilter functionality
+ * to retrieve the data in batches.
+ */
+const MAX_DOCS_TO_SELECT = 200
+
+/**
  * The central partition where documents are placed that do not
  * have a dedicated partition.
  */
@@ -249,6 +256,8 @@ export class CosmosDbDocStore implements
    * Returns a select query based on the given inputs.
    * @param fieldNames An array of field names.
    * @param whereClause A Cosmos WHERE clause.
+   * @param orderByFields An array of fields that will appear in the ORDER BY clause.
+   * @param limit The maximum number of documents to select.
    */
   private buildSelectCommand(
     fieldNames: string[],
@@ -256,27 +265,30 @@ export class CosmosDbDocStore implements
     orderByFields?: CosmosDbDocStoreFilterOrderByField[],
     limit?: number,
   ): string {
-    // additional fields
+    // Determine the additional fields.
     const extraFieldNames = Array.isArray(orderByFields)
       ? orderByFields.map((o) => o.fieldName)
       : [];
 
-    // the select and from clauses
+    // Determine the top/limit.
+    const top = limit && limit < MAX_DOCS_TO_SELECT ? limit : MAX_DOCS_TO_SELECT
+
+    // Determine the select and from clauses.
     let sql = `
-      SELECT ${limit ? `TOP ${limit}` : ""} d._etag ${
+      SELECT TOP ${top} d._etag ${
       extraFieldNames.concat(fieldNames).map((f) => `, d.${f}`).join("")
     }
       FROM Docs d
     `;
 
-    // the where clause
+    // Determine the where clause.
     if (typeof whereClause === "string") {
       sql += `  WHERE d.pkey = @pkey AND (${whereClause})`;
     } else {
       sql += `  WHERE d.pkey = @pkey`;
     }
 
-    // the order by clause
+    // Determine the order by clause.
     if (Array.isArray(orderByFields)) {
       const orderSnippets = orderByFields.map((f) =>
         `d.${f.fieldName} ${f.direction === "descending" ? "DESC" : "ASC"}`

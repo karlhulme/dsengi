@@ -34,17 +34,6 @@ export interface SelectDocumentsProps<RequestProps, DocStoreOptions> {
   docStoreOptions: DocStoreOptions;
 
   /**
-   * The maximum number of documents to return.
-   */
-  limit?: number;
-
-  /**
-   * The number of documents in the result set to skip
-   * before returning documents to the client.
-   */
-  offset?: number;
-
-  /**
    * The user that is making the request.
    */
   user: unknown;

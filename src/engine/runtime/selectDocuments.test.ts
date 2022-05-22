@@ -53,7 +53,6 @@ Deno.test("Select all documents of a type in a collection with support for pagin
     await sengi.selectDocuments({
       ...defaultRequestProps,
       fieldNames: ["id", "model"], // the test doc store 'selectAll' implementation above will not respect this
-      limit: 3,
     }),
     {
       docs: [
