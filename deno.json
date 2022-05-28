@@ -3,6 +3,6 @@
     "setup_cosmos": "deno run --allow-env --allow-net ./setup/cosmosSetup.ts",
     "teardown_cosmos": "deno run --allow-env --allow-net ./setup/cosmosTeardown.ts",
     "check": "deno fmt && deno lint && deno test --allow-env --allow-net --coverage=cov_profile && deno coverage cov_profile",
-    "test": "deno test --allow-env --allow-net"
+    "test": "deno test --allow-env --allow-net && deno fmt"
   }
 }

@@ -25,7 +25,6 @@ import {
   DocStoreUpsertProps,
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
-  UnexpectedDocStoreError,
 } from "../interfaces/index.ts";
 
 /**
@@ -431,86 +430,78 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreDeleteByIdProps,
   ): Promise<DocStoreDeleteByIdResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      // const partitionKeyFieldName = await this
-      //   .getPartitionKeyFieldNameForCollection(
-      //     databaseName,
-      //     containerName,
-      //   );
+    // const partitionKeyFieldName = await this
+    //   .getPartitionKeyFieldNameForCollection(
+    //     databaseName,
+    //     containerName,
+    //   );
 
-      // let partitionKeyValue: string | number = "";
+    // let partitionKeyValue: string | number = "";
 
-      // if (partitionKeyFieldName === "id") {
-      //   partitionKeyValue = id;
-      // } else {
-      //   const docs = await queryDocumentsGateway(
-      //     this.cosmosKey,
-      //     this.cosmosUrl,
-      //     databaseName,
-      //     containerName,
-      //     `SELECT d.${partitionKeyFieldName} FROM Docs d WHERE d.id = @id`,
-      //     [
-      //       { name: "@id", value: id },
-      //     ],
-      //     {
-      //       crossPartitionQuery: true,
-      //     },
-      //   );
+    // if (partitionKeyFieldName === "id") {
+    //   partitionKeyValue = id;
+    // } else {
+    //   const docs = await queryDocumentsGateway(
+    //     this.cosmosKey,
+    //     this.cosmosUrl,
+    //     databaseName,
+    //     containerName,
+    //     `SELECT d.${partitionKeyFieldName} FROM Docs d WHERE d.id = @id`,
+    //     [
+    //       { name: "@id", value: id },
+    //     ],
+    //     {
+    //       crossPartitionQuery: true,
+    //     },
+    //   );
 
-      //   if (docs.length === 0) {
-      //     return { code: DocStoreDeleteByIdResultCode.NOT_FOUND };
-      //   }
+    //   if (docs.length === 0) {
+    //     return { code: DocStoreDeleteByIdResultCode.NOT_FOUND };
+    //   }
 
-      //   const candidatePartitionKeyValue = docs[0][partitionKeyFieldName];
+    //   const candidatePartitionKeyValue = docs[0][partitionKeyFieldName];
 
-      //   if (
-      //     typeof candidatePartitionKeyValue !== "string" &&
-      //     typeof candidatePartitionKeyValue !== "number"
-      //   ) {
-      //     throw new Error(
-      //       `Partition key (${partitionKeyFieldName}) for document (${id}) in ${databaseName}/${containerName} was not a string or number.`,
-      //     );
-      //   }
+    //   if (
+    //     typeof candidatePartitionKeyValue !== "string" &&
+    //     typeof candidatePartitionKeyValue !== "number"
+    //   ) {
+    //     throw new Error(
+    //       `Partition key (${partitionKeyFieldName}) for document (${id}) in ${databaseName}/${containerName} was not a string or number.`,
+    //     );
+    //   }
 
-      //   partitionKeyValue = candidatePartitionKeyValue;
-      // }
+    //   partitionKeyValue = candidatePartitionKeyValue;
+    // }
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      const didDelete = await deleteDocument(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        partition,
-        id,
-      );
+    const didDelete = await deleteDocument(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      partition,
+      id,
+    );
 
-      const resultCode = didDelete
-        ? DocStoreDeleteByIdResultCode.DELETED
-        : DocStoreDeleteByIdResultCode.NOT_FOUND;
+    const resultCode = didDelete
+      ? DocStoreDeleteByIdResultCode.DELETED
+      : DocStoreDeleteByIdResultCode.NOT_FOUND;
 
-      return { code: resultCode };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'deleteById'.",
-        err as Error,
-      );
-    }
+    return { code: resultCode };
   }
 
   /**
@@ -531,53 +522,45 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreExistsProps,
   ): Promise<DocStoreExistsResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      // const partitionKeyFieldName = await this
-      //   .getPartitionKeyFieldNameForCollection(
-      //     databaseName,
-      //     containerName,
-      //   );
+    // const partitionKeyFieldName = await this
+    //   .getPartitionKeyFieldNameForCollection(
+    //     databaseName,
+    //     containerName,
+    //   );
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      const docs = await queryDocumentsGateway(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
-        [
-          { name: "@pkey", value: partition },
-          { name: "@id", value: id },
-        ],
-        {},
-      );
+    const docs = await queryDocumentsGateway(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
+      [
+        { name: "@pkey", value: partition },
+        { name: "@id", value: id },
+      ],
+      {},
+    );
 
-      // Usually queryDocuments returns an array of documents, but using
-      // the VALUE COUNT(1) syntax we get retrieve a scalar value.
-      const scalars = docs as unknown as number[];
+    // Usually queryDocuments returns an array of documents, but using
+    // the VALUE COUNT(1) syntax we get retrieve a scalar value.
+    const scalars = docs as unknown as number[];
 
-      return { found: scalars[0] === 1 };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'exists'.",
-        err as Error,
-      );
-    }
+    return { found: scalars[0] === 1 };
   }
 
   /**
@@ -601,74 +584,66 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreFetchProps,
   ): Promise<DocStoreFetchResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      // const partitionKeyFieldName = await this
-      //   .getPartitionKeyFieldNameForCollection(
-      //     databaseName,
-      //     containerName,
-      //   );
+    // const partitionKeyFieldName = await this
+    //   .getPartitionKeyFieldNameForCollection(
+    //     databaseName,
+    //     containerName,
+    //   );
 
-      let rawDoc: DocRecord | null = null;
+    let rawDoc: DocRecord | null = null;
 
-      // if (partitionKeyFieldName === "id") {
-      rawDoc = await getDocument(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        partition,
-        id,
-      );
-      // } else {
-      //   const rawDocs = await queryDocumentsGateway(
-      //     this.cosmosKey,
-      //     this.cosmosUrl,
-      //     databaseName,
-      //     containerName,
-      //     `SELECT * FROM Docs d where d.id = @id`,
-      //     [
-      //       { name: "@id", value: id },
-      //     ],
-      //     {
-      //       crossPartitionQuery: true,
-      //     },
-      //   );
+    // if (partitionKeyFieldName === "id") {
+    rawDoc = await getDocument(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      partition,
+      id,
+    );
+    // } else {
+    //   const rawDocs = await queryDocumentsGateway(
+    //     this.cosmosKey,
+    //     this.cosmosUrl,
+    //     databaseName,
+    //     containerName,
+    //     `SELECT * FROM Docs d where d.id = @id`,
+    //     [
+    //       { name: "@id", value: id },
+    //     ],
+    //     {
+    //       crossPartitionQuery: true,
+    //     },
+    //   );
 
-      //   if (rawDocs.length === 1) {
-      //     rawDoc = rawDocs[0];
-      //   }
-      // }
+    //   if (rawDocs.length === 1) {
+    //     rawDoc = rawDocs[0];
+    //   }
+    // }
 
-      let doc = null;
+    let doc = null;
 
-      if (rawDoc && rawDoc.docType === docTypeName) {
-        const { _rid, _ts, _self, _etag, _attachments, ...others } = rawDoc;
-        doc = { ...others, docVersion: _etag };
-      }
-
-      return { doc };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'fetch'.",
-        err as Error,
-      );
+    if (rawDoc && rawDoc.docType === docTypeName) {
+      const { _rid, _ts, _self, _etag, _attachments, ...others } = rawDoc;
+      doc = { ...others, docVersion: _etag };
     }
+
+    return { doc };
   }
 
   /**
@@ -688,54 +663,46 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreQueryProps,
   ): Promise<DocStoreQueryResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
+
+    await this.ensureCryptoKey();
+
+    const docs = query.transform
+      ? await queryDocumentsDirect(
+        this.cryptoKey as CryptoKey,
+        this.cosmosUrl,
         databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
+        containerName,
+        query.sqlStatement,
+        query.sqlParameters,
+        {
+          transform: query.transform,
+        },
+      )
+      : await queryDocumentsGateway(
+        this.cryptoKey as CryptoKey,
+        this.cosmosUrl,
+        databaseName,
+        containerName,
+        query.sqlStatement,
+        query.sqlParameters,
+        {
+          crossPartitionQuery: query.crossPartitionQuery,
+        },
       );
 
-      await this.ensureCryptoKey();
-
-      const docs = query.transform
-        ? await queryDocumentsDirect(
-          this.cryptoKey as CryptoKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          query.sqlStatement,
-          query.sqlParameters,
-          {
-            transform: query.transform,
-          },
-        )
-        : await queryDocumentsGateway(
-          this.cryptoKey as CryptoKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          query.sqlStatement,
-          query.sqlParameters,
-          {
-            crossPartitionQuery: query.crossPartitionQuery,
-          },
-        );
-
-      return { data: docs };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'query'.",
-        err as Error,
-      );
-    }
+    return { data: docs };
   }
 
   /**
@@ -756,46 +723,38 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const queryCmd = this.buildSelectCommand(
-        fieldNames,
-      );
+    const queryCmd = this.buildSelectCommand(
+      fieldNames,
+    );
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      const docs = await queryDocumentsGateway(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        queryCmd,
-        [
-          { name: "@pkey", value: partition },
-        ],
-        {},
-      );
+    const docs = await queryDocumentsGateway(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      queryCmd,
+      [
+        { name: "@pkey", value: partition },
+      ],
+      {},
+    );
 
-      return { docs: this.buildResultDocs(docs, fieldNames) };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'selectAll'.",
-        err as Error,
-      );
-    }
+    return { docs: this.buildResultDocs(docs, fieldNames) };
   }
 
   /**
@@ -819,49 +778,41 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const queryCmd = this.buildSelectCommand(
-        fieldNames,
-        filter.whereClause,
-        filter.orderByFields,
-        filter.limit,
-      );
+    const queryCmd = this.buildSelectCommand(
+      fieldNames,
+      filter.whereClause,
+      filter.orderByFields,
+      filter.limit,
+    );
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      const docs = await queryDocumentsGateway(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        queryCmd,
-        [
-          { name: "@pkey", value: partition },
-        ],
-        {},
-      );
+    const docs = await queryDocumentsGateway(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      queryCmd,
+      [
+        { name: "@pkey", value: partition },
+      ],
+      {},
+    );
 
-      return { docs: this.buildResultDocs(docs, fieldNames) };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'selectByFilter'.",
-        err as Error,
-      );
-    }
+    return { docs: this.buildResultDocs(docs, fieldNames) };
   }
 
   /**
@@ -884,49 +835,41 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     _props: DocStoreSelectProps,
   ): Promise<DocStoreSelectResult> {
-    try {
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
-        databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
+    const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
 
-      const queryCmd = this.buildSelectCommand(
-        fieldNames,
-        whereClause,
-      );
+    const queryCmd = this.buildSelectCommand(
+      fieldNames,
+      whereClause,
+    );
 
-      await this.ensureCryptoKey();
+    await this.ensureCryptoKey();
 
-      const docs = await queryDocumentsGateway(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        queryCmd,
-        [
-          { name: "@pkey", value: partition },
-        ],
-        {},
-      );
+    const docs = await queryDocumentsGateway(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      queryCmd,
+      [
+        { name: "@pkey", value: partition },
+      ],
+      {},
+    );
 
-      return { docs: this.buildResultDocs(docs, fieldNames) };
-    } catch (err) {
-      // istanbul ignore next
-      throw new UnexpectedDocStoreError(
-        "Cosmos database error processing 'selectByIds'.",
-        err as Error,
-      );
-    }
+    return { docs: this.buildResultDocs(docs, fieldNames) };
   }
 
   /**
@@ -947,85 +890,73 @@ export class CosmosDbDocStore implements
     options: CosmosDbDocStoreOptions,
     props: DocStoreUpsertProps,
   ): Promise<DocStoreUpsertResult> {
-    try {
-      const cleanDoc = this.createSubsetOfDocument(doc, [
-        "docVersion",
-        "_attachments",
-        "_etag",
-        "_ts",
-      ]);
+    const cleanDoc = this.createSubsetOfDocument(doc, [
+      "docVersion",
+      "_attachments",
+      "_etag",
+      "_ts",
+    ]);
 
-      const databaseName = this.getDatabaseNameFunc(
-        docTypeName,
-        docTypePluralName,
-        options,
-      );
+    const databaseName = this.getDatabaseNameFunc(
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
 
-      const containerName = this.getContainerNameFunc(
+    const containerName = this.getContainerNameFunc(
+      databaseName,
+      docTypeName,
+      docTypePluralName,
+      options,
+    );
+
+    // const partitionKeyValue = this.getPartitionKeyValueFunc(
+    //   databaseName,
+    //   containerName,
+    //   docTypeName,
+    //   docTypePluralName,
+    //   doc,
+    //   options,
+    // );
+
+    await this.ensureCryptoKey();
+
+    if (props.reqVersion) {
+      const didReplace = await replaceDocument(
+        this.cryptoKey as CryptoKey,
+        this.cosmosUrl,
         databaseName,
-        docTypeName,
-        docTypePluralName,
-        options,
+        containerName,
+        partition,
+        cleanDoc,
+        {
+          ifMatch: props.reqVersion,
+        },
       );
 
-      // const partitionKeyValue = this.getPartitionKeyValueFunc(
-      //   databaseName,
-      //   containerName,
-      //   docTypeName,
-      //   docTypePluralName,
-      //   doc,
-      //   options,
-      // );
+      const resultCode = didReplace
+        ? DocStoreUpsertResultCode.REPLACED
+        : DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE;
 
-      await this.ensureCryptoKey();
+      return { code: resultCode };
+    } else {
+      const didCreate = await createDocument(
+        this.cryptoKey as CryptoKey,
+        this.cosmosUrl,
+        databaseName,
+        containerName,
+        partition,
+        cleanDoc,
+        {
+          upsertDocument: true,
+        },
+      );
 
-      if (props.reqVersion) {
-        const didReplace = await replaceDocument(
-          this.cryptoKey as CryptoKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          partition,
-          cleanDoc,
-          {
-            ifMatch: props.reqVersion,
-          },
-        );
+      const resultCode = didCreate
+        ? DocStoreUpsertResultCode.CREATED
+        : DocStoreUpsertResultCode.REPLACED;
 
-        const resultCode = didReplace
-          ? DocStoreUpsertResultCode.REPLACED
-          : DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE;
-
-        return { code: resultCode };
-      } else {
-        const didCreate = await createDocument(
-          this.cryptoKey as CryptoKey,
-          this.cosmosUrl,
-          databaseName,
-          containerName,
-          partition,
-          cleanDoc,
-          {
-            upsertDocument: true,
-          },
-        );
-
-        const resultCode = didCreate
-          ? DocStoreUpsertResultCode.CREATED
-          : DocStoreUpsertResultCode.REPLACED;
-
-        return { code: resultCode };
-      }
-    } catch (err) {
-      // istanbul ignore next - cannot produce the else branch
-      if ((err as { code: number }).code === 412) {
-        return { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE };
-      } else {
-        throw new UnexpectedDocStoreError(
-          "Cosmos database error processing 'upsert'.",
-          err as Error,
-        );
-      }
+      return { code: resultCode };
     }
   }
 }
