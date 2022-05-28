@@ -3,7 +3,7 @@ import {
   convertCosmosKeyToCryptoKey,
   createDocument,
   deleteDocument,
-  queryDocumentsGateway,
+  queryDocumentsContainersDirect,
 } from "../cosmosClient/index.ts";
 import {
   DocRecord,
@@ -46,7 +46,7 @@ async function initDb(): Promise<void> {
 
   // empty trees container
 
-  const treeDocs = await queryDocumentsGateway(
+  const treeDocs = await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -54,7 +54,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartitionQuery: true,
+      transform: (docs) => docs,
     },
   );
 
@@ -70,14 +70,14 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "trees",
-      TestPartition,
+      treeDoc["pkey"] as string,
       treeDoc.id as string,
     );
   }
 
   // empty treePacks container
 
-  const treePackDocs = await queryDocumentsGateway(
+  const treePackDocs = await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -85,7 +85,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartitionQuery: true,
+      transform: (docs) => docs,
     },
   );
 
@@ -101,7 +101,7 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "treePacks",
-      treePackDoc.environment as string,
+      treePackDoc["pkey"] as string,
       treePackDoc.id as string,
     );
   }
@@ -206,7 +206,7 @@ async function readContainer(
 ): Promise<Record<string, unknown>[]> {
   const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY);
 
-  const docs = await queryDocumentsGateway(
+  const docs = await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -214,14 +214,14 @@ async function readContainer(
     "SELECT * FROM Docs d",
     [],
     {
-      crossPartitionQuery: true,
+      transform: (docs) => docs,
     },
   );
 
   return docs;
 }
 
-Deno.test("A document can be deleted.", async () => {
+Deno.test("A document can be deleted from a central partition.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();
@@ -237,23 +237,7 @@ Deno.test("A document can be deleted.", async () => {
   assertEquals(docs.length, 2);
 });
 
-Deno.test("A non-existent document can be deleted without error.", async () => {
-  await initDb();
-
-  const docStore = createCosmosDbDocStore();
-
-  assertEquals(
-    await docStore.deleteById("tree", "trees", TestPartition, "200", {}, {}),
-    {
-      code: DocStoreDeleteByIdResultCode.NOT_FOUND,
-    },
-  );
-
-  const docs = await readContainer("trees");
-  assertEquals(docs.length, 3);
-});
-
-Deno.test("A document can be deleted from a container where the partition key value must be queried.", async () => {
+Deno.test("A document can be deleted from a non-central partition.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();
@@ -271,6 +255,22 @@ Deno.test("A document can be deleted from a container where the partition key va
   );
 
   const docs = await readContainer("treePacks");
+  assertEquals(docs.length, 3);
+});
+
+Deno.test("A non-existent document can be deleted without error.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  assertEquals(
+    await docStore.deleteById("tree", "trees", TestPartition, "200", {}, {}),
+    {
+      code: DocStoreDeleteByIdResultCode.NOT_FOUND,
+    },
+  );
+
+  const docs = await readContainer("trees");
   assertEquals(docs.length, 3);
 });
 
@@ -392,7 +392,7 @@ Deno.test("A sql query can be executed.", async () => {
     {
       sqlStatement: "SELECT * FROM Docs d WHERE d.id = @id",
       sqlParameters: [{ name: "@id", value: "01" }],
-      crossPartitionQuery: true,
+      transform: (docs) => docs,
     },
     {},
     {},

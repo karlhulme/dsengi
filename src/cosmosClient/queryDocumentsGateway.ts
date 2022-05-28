@@ -2,16 +2,7 @@ import { DocRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
-
-interface QueryDocumentsGatewayOptions {
-  /**
-   * True if the query should be executed across multiple
-   * partitions and the results then combined.
-   * This value should be set to true if the query is based
-   * on anything other than a single partition key.
-   */
-  crossPartitionQuery?: boolean;
-}
+import { formatPartitionKeyValue } from "./formatPartitionKeyValue.ts";
 
 interface CosmosQueryParameter {
   /**
@@ -30,9 +21,9 @@ export async function queryDocumentsGateway(
   cosmosUrl: string,
   databaseName: string,
   collectionName: string,
+  partition: string,
   query: string,
   parameters: CosmosQueryParameter[],
-  options: QueryDocumentsGatewayOptions,
 ): Promise<DocRecord[]> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -53,10 +44,6 @@ export async function queryDocumentsGateway(
       optionalHeaders["x-ms-continuation"] = continuationToken;
     }
 
-    if (options.crossPartitionQuery) {
-      optionalHeaders["x-ms-documentdb-query-enablecrosspartition"] = "True";
-    }
-
     await cosmosRetryable(async () => {
       const response = await fetch(
         `${cosmosUrl}/dbs/${databaseName}/colls/${collectionName}/docs`,
@@ -67,6 +54,9 @@ export async function queryDocumentsGateway(
             "x-ms-date": reqHeaders.xMsDateHeader,
             "content-type": "application/query+json",
             "x-ms-version": reqHeaders.xMsVersion,
+            "x-ms-documentdb-partitionkey": formatPartitionKeyValue(
+              partition,
+            ),
             ...optionalHeaders,
           },
           body: JSON.stringify({
@@ -80,7 +70,7 @@ export async function queryDocumentsGateway(
 
       if (!response.ok) {
         const errMsg =
-          `Unable to query collection ${databaseName}/${collectionName} with query ${query} and parameters ${
+          `Unable to query collection (gateway) ${databaseName}/${collectionName} with query ${query} and parameters ${
             JSON.stringify(parameters)
           }.\n${await response.text()}`;
 

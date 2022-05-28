@@ -4,7 +4,7 @@ import {
   createDocument,
   deleteDocument,
   getDocument,
-  queryDocumentsDirect,
+  queryDocumentsContainersDirect,
   queryDocumentsGateway,
   replaceDocument,
 } from "../cosmosClient/index.ts";
@@ -105,22 +105,13 @@ export interface CosmosDbDocStoreQuery {
   sqlParameters: CosmosDbDocStoreQueryParameter[];
 
   /**
-   * True if the query does not include a filter for a specific partition.
-   * If a transform is specified, then the query will be
-   * executed cross-partition automatically, and this value has no effect.
+   * Queries are executed across all partitions.  The gateway cannot determine
+   * aggregate values () across multiple partitions and will fail.  So instead,
+   * all queries are executed against the individual physical containers via
+   * the pk-range that each one supports.  This transform function then determines
+   * which of the complete result set should be returned to the client.
    */
-  crossPartitionQuery?: boolean;
-
-  /**
-   * If the query includes SUM, AVG, COUNT, OFFSET, LIMIT or ORDER BY and
-   * does not filter to a specific partition then the gateway cannot process
-   * the query and we need to execute the query on each of the containers individually.
-   * As a result, we may retrieve more results than the client would like.
-   * By providing this function, cosmos will be queried first for the applicable
-   * pk-ranges and then queried again for the results from each container
-   * and finally this function is used to combine the results.
-   */
-  transform?: (docs: DocRecord[]) => DocRecord[];
+  transform: (docs: DocRecord[]) => DocRecord[];
 }
 
 /**
@@ -548,12 +539,12 @@ export class CosmosDbDocStore implements
       this.cosmosUrl,
       databaseName,
       containerName,
+      partition,
       "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
       [
         { name: "@pkey", value: partition },
         { name: "@id", value: id },
       ],
-      {},
     );
 
     // Usually queryDocuments returns an array of documents, but using
@@ -678,29 +669,17 @@ export class CosmosDbDocStore implements
 
     await this.ensureCryptoKey();
 
-    const docs = query.transform
-      ? await queryDocumentsDirect(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        query.sqlStatement,
-        query.sqlParameters,
-        {
-          transform: query.transform,
-        },
-      )
-      : await queryDocumentsGateway(
-        this.cryptoKey as CryptoKey,
-        this.cosmosUrl,
-        databaseName,
-        containerName,
-        query.sqlStatement,
-        query.sqlParameters,
-        {
-          crossPartitionQuery: query.crossPartitionQuery,
-        },
-      );
+    const docs = await queryDocumentsContainersDirect(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      databaseName,
+      containerName,
+      query.sqlStatement,
+      query.sqlParameters,
+      {
+        transform: query.transform,
+      },
+    );
 
     return { data: docs };
   }
@@ -747,11 +726,11 @@ export class CosmosDbDocStore implements
       this.cosmosUrl,
       databaseName,
       containerName,
+      partition,
       queryCmd,
       [
         { name: "@pkey", value: partition },
       ],
-      {},
     );
 
     return { docs: this.buildResultDocs(docs, fieldNames) };
@@ -805,11 +784,11 @@ export class CosmosDbDocStore implements
       this.cosmosUrl,
       databaseName,
       containerName,
+      partition,
       queryCmd,
       [
         { name: "@pkey", value: partition },
       ],
-      {},
     );
 
     return { docs: this.buildResultDocs(docs, fieldNames) };
@@ -862,11 +841,11 @@ export class CosmosDbDocStore implements
       this.cosmosUrl,
       databaseName,
       containerName,
+      partition,
       queryCmd,
       [
         { name: "@pkey", value: partition },
       ],
-      {},
     );
 
     return { docs: this.buildResultDocs(docs, fieldNames) };

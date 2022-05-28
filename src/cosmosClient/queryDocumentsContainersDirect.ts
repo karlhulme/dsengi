@@ -30,7 +30,7 @@ interface CosmosQueryParameter {
   value: unknown;
 }
 
-export async function queryDocumentsDirect(
+export async function queryDocumentsContainersDirect(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
@@ -188,7 +188,7 @@ async function getDocumentsForPkRange(
 
       if (!response.ok) {
         const errMsg =
-          `Unable to query collection ${databaseName}/${collectionName}/${pkRange} with query ${query} and parameters ${
+          `Unable to query collection (container-direct-mode) ${databaseName}/${collectionName}/${pkRange} with query ${query} and parameters ${
             JSON.stringify(parameters)
           }.\n${await response.text()}`;
 

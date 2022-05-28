@@ -10,6 +10,6 @@ export * from "./generateCosmosReqHeaders.ts";
 export * from "./getCollection.ts";
 export * from "./listCollections.ts";
 export * from "./listDatabases.ts";
-export * from "./queryDocumentsDirect.ts";
+export * from "./queryDocumentsContainersDirect.ts";
 export * from "./queryDocumentsGateway.ts";
 export * from "./replaceDocument.ts";
