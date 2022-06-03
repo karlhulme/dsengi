@@ -44,11 +44,6 @@ export interface SelectDocumentsByFilterProps<RequestProps, DocStoreOptions> {
   docStoreOptions: DocStoreOptions;
 
   /**
-   * The maximum number of documents to return.
-   */
-  limit?: number;
-
-  /**
    * The user that is making the request.
    */
   user: unknown;

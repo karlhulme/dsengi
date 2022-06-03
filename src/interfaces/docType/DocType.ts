@@ -97,12 +97,6 @@ export interface DocType<
   readOnlyFieldNames?: string[];
 
   /**
-   * A function that returns an error message if the given user does not contain valid field values.
-   * This function may alter the user to make it validate, such as removing unrecognised fields.
-   */
-  validateUser?: (user: unknown) => string | void;
-
-  /**
    * The policy of the document type that governs which high level actions
    * can be invoked by clients.
    */

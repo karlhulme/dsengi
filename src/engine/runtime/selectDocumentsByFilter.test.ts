@@ -16,7 +16,7 @@ import {
   defaultRequestProps,
 } from "./shared.test.ts";
 
-Deno.test("Select by document filter with support for paging.", async () => {
+Deno.test("Select by document filter.", async () => {
   const { sengi, docStore } = createSengiWithMockStore({
     selectByFilter: async () => ({
       docs: [{
@@ -36,7 +36,6 @@ Deno.test("Select by document filter with support for paging.", async () => {
       fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
       filterName: "byModel",
       filterParams: "ka",
-      limit: 1,
     }),
     {
       docs: [
@@ -58,11 +57,11 @@ Deno.test("Select by document filter with support for paging.", async () => {
     ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },
-    { limit: 1 },
+    {},
   ));
 });
 
-Deno.test("Select by document filter with onPreSelectDocs delegate and without paging.", async () => {
+Deno.test("Select by document filter with onPreSelectDocs delegate.", async () => {
   const onPreSelectDocs = spy((..._args: unknown[]) => {});
 
   const { carDocType, sengi, docStore } = createSengiWithMockStore({
@@ -97,7 +96,7 @@ Deno.test("Select by document filter with onPreSelectDocs delegate and without p
     ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },
-    { limit: undefined },
+    {},
   ));
 
   assertEquals(onPreSelectDocs.callCount, 1);

@@ -891,9 +891,7 @@ export class Sengi<
       props.fieldNames,
       filter,
       combinedDocStoreOptions,
-      {
-        limit: props.limit,
-      },
+      {},
     );
 
     for (const doc of queryResult.docs) {

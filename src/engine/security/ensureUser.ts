@@ -5,9 +5,8 @@ import {
 
 /**
  * Ensures the user object conforms to the given schema.
- * @param ajv A json validator.
- * @param userSchema A schema for the user object.
- * @param user: A user object.
+ * @param user A user object.
+ * @param validateUser A function that can validate a user.
  */
 export function ensureUser<User>(
   user: unknown,
