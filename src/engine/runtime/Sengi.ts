@@ -532,7 +532,6 @@ export class Sengi<
 
       executePreSave(docType, doc, user);
       executeValidateDoc(docType, doc);
-      console.log(JSON.stringify(doc, null, 2));
       ensureDoc(docType, doc);
 
       await this.invokePreSaveDocCallback(
