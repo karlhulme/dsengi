@@ -218,7 +218,7 @@ export class CosmosDbDocStore implements
       ? orderByFields.map((o) => o.fieldName)
       : [];
     const finalFieldNames = [...new Set(fieldNames.concat(orderByFieldNames))]
-      .filter(f => f);
+      .filter((f) => f);
 
     // Determine the top/limit.
     const top = limit && limit < MAX_DOCS_TO_SELECT
