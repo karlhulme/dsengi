@@ -208,11 +208,17 @@ export class CosmosDbDocStore implements
     orderByFields?: CosmosDbDocStoreFilterOrderByField[],
     limit?: number,
   ): string {
-    // Determine the field names.
+    // Determine the field names by combining orderBy fields
+    // with the ones originally requested.  Then use sets
+    // to knock out any duplicates and finally use filter
+    // to remove any empty strings.  Field names not found
+    // on the resource will not produce any output and this
+    // is not an error condition.
     const orderByFieldNames = Array.isArray(orderByFields)
       ? orderByFields.map((o) => o.fieldName)
       : [];
-    const finalFieldNames = [...new Set(fieldNames.concat(orderByFieldNames))];
+    const finalFieldNames = [...new Set(fieldNames.concat(orderByFieldNames))]
+      .filter(f => f);
 
     // Determine the top/limit.
     const top = limit && limit < MAX_DOCS_TO_SELECT
