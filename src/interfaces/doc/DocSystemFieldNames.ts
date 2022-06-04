@@ -28,7 +28,7 @@ export const DocSystemFieldNames = [
   "docVersion",
 
   /**
-   * 'docOpsIds' stores an array of operation ids that is used to prevent
+   * 'docOpIds' stores an array of operation ids that is used to prevent
    * the same operation from being applied multiple times.  You can specify
    * as part of the policy of a document type how many document operation ids
    * to store.
