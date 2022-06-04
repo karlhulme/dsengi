@@ -51,8 +51,8 @@ Deno.test("Error in onSavedDoc callback should be wrapped.", () => {
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
         doc: {
+          id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",
@@ -77,8 +77,8 @@ Deno.test("Error in onPreSaveDoc callback should be wrapped.", () => {
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
         doc: {
+          id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",
@@ -119,8 +119,8 @@ Deno.test("Error in getMillisecondsSinceEpoch callback should be wrapped.", () =
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
         doc: {
+          id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",
@@ -143,8 +143,8 @@ Deno.test("Error in getIdFromUser callback should be wrapped.", () => {
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
         doc: {
+          id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",

@@ -10,6 +10,7 @@ import {
 } from "./shared.test.ts";
 
 const newCar = {
+  id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
   manufacturer: "ford",
   model: "ka",
   registration: "HG12 3AB",
@@ -26,7 +27,6 @@ Deno.test("Supplying a valid user object is accepted.", async () => {
       ...defaultRequestProps,
       user: { userId: "testUser", username: "valid-string" },
       docTypeName: "car",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     }),
@@ -42,7 +42,6 @@ Deno.test("Supplying a invalid user object causes an error.", () => {
       ...defaultRequestProps,
       user: { userId: 123, username: "invalid: not-a-string" },
       docTypeName: "car",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     }), SengiUserValidationFailedError);

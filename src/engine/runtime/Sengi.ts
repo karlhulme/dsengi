@@ -53,12 +53,12 @@ import {
   ensureCanFetchWholeCollection,
   ensureCanReplaceDocuments,
   ensureDoc,
+  ensureDocId,
   ensureDocTypeCreateRequestAuthorised,
   ensureDocTypeDeleteRequestAuthorised,
   ensureDocTypePatchRequestAuthorised,
   ensureDocTypeReadRequestAuthorised,
   ensureDocWasFound,
-  ensureNewDocIdsMatch,
   executeConstructor,
   executeOperation,
   executePatch,
@@ -488,10 +488,9 @@ export class Sengi<
     this.logRequest(`NEW ${props.docTypeName}`);
     const user = ensureUser<User>(props.user, this.validateUser);
     const client = ensureClient(props.apiKey, this.clients);
+    ensureDocId(props.doc);
     ensureCreatePermission(client, props.docTypeName);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
-
-    ensureNewDocIdsMatch(props.id, props.doc.id as string);
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     const combinedDocStoreOptions = {
@@ -502,7 +501,7 @@ export class Sengi<
       docType.name,
       docType.pluralName,
       props.partition,
-      props.id,
+      props.doc.id as string,
       combinedDocStoreOptions,
       {},
     );
@@ -515,7 +514,6 @@ export class Sengi<
     } else {
       const doc = props.doc;
 
-      doc.id = props.id;
       doc.docType = docType.name;
       doc.docOpIds = [];
       applyCommonFieldValuesToDoc(

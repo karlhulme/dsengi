@@ -115,15 +115,13 @@ export class SengiUnrecognisedApiKeyError extends SengiRequestError {
   }
 }
 
-export class SengiNewDocIdMismatch extends SengiRequestError {
-  constructor(readonly docId?: string, readonly requestId?: string) {
+export class SengiDocIdMissing extends SengiRequestError {
+  constructor() {
     super(
-      `The id property of the new document '${docId}' was supplied but does not match the id of the request '${requestId}'.`,
+      `A new document was supplied without an id property.`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
-    this.docId = docId;
-    this.requestId = requestId;
   }
 }
 

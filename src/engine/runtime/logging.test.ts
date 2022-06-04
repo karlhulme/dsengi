@@ -22,8 +22,8 @@ Deno.test("Log requests to the console.", () => {
 
     sengi.newDocument({
       ...defaultRequestProps,
-      id: "d7fe060b-1111-2222-3333-ab1838078473",
       doc: {
+        id: "d7fe060b-1111-2222-3333-ab1838078473",
         manufacturer: "ford",
         model: "ka",
         registration: "HG12 3AB",

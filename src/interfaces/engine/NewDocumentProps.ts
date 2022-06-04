@@ -21,12 +21,7 @@ export interface NewDocumentProps<RequestProps, DocStoreOptions> {
   partition: string;
 
   /**
-   * The id to be assigned to the new document.
-   */
-  id: string;
-
-  /**
-   * The new document.
+   * The new document, which must have an id property.
    */
   doc: DocRecord;
 

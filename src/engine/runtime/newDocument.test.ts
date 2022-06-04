@@ -18,6 +18,7 @@ import {
 } from "./shared.test.ts";
 
 const newCar = {
+  id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
   manufacturer: "ford",
   model: "ka",
   registration: "HG12 3AB",
@@ -51,7 +52,6 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     await sengi.newDocument({
       ...defaultRequestProps,
       docTypeName: "car",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     }),
@@ -100,7 +100,6 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
     await sengi.newDocument({
       ...defaultRequestProps,
       docTypeName: "car",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     }),
@@ -157,7 +156,6 @@ Deno.test("Adding a new document that already exists should not lead to a call t
   assertEquals(
     await sengi.newDocument({
       ...defaultRequestProps,
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     }),
@@ -181,7 +179,6 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
   assertRejects(async () => {
     await sengi.newDocument({
       ...defaultRequestProps,
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: { ...newCar, registration: "HZ12 3AB" },
       fieldNames: ["id"],
     });
@@ -195,7 +192,6 @@ Deno.test("Fail to add a new document if permissions insufficient.", async () =>
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     });
@@ -209,7 +205,6 @@ Deno.test("Fail to add a new document if client api key is not recognised.", asy
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       doc: newCar,
       fieldNames: ["id"],
     });
