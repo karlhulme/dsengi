@@ -12,6 +12,13 @@ export function applyCommonFieldValuesToDoc(
   millisecondsSinceEpoch: number,
   userId: string,
 ): void {
+  // Most mutations call appendDocOpId which will ensure that the doc
+  // has an array of docOpIds, but the replaceDocument operation will not
+  // so we include the safety check here.
+  if (!Array.isArray(doc.docOpIds)) {
+    doc.docOpIds = [];
+  }
+
   if (!doc.docCreatedMillisecondsSinceEpoch) {
     doc.docCreatedMillisecondsSinceEpoch = millisecondsSinceEpoch;
   }

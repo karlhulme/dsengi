@@ -26,11 +26,12 @@ export function ensureDoc(docType: AnyDocType, doc: DocRecord): void {
     );
   }
 
-  // appendDocOpId repairs docOpIds so this check should only fail if validateDoc or preSave corrupts this field.
+  // appendDocOpId and applyCommonFieldValuesToDoc both repair docOpIds so this check
+  // should only fail if validateDoc or preSave corrupts this field.
   if (!Array.isArray(doc.docOpIds)) {
     throw new SengiDocValidationFailedError(
       docType.name,
-      `Document must have docOpIds property of type array..`,
+      `Document must have docOpIds property of type array.`,
     );
   }
 
