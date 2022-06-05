@@ -10,6 +10,12 @@ export interface DocTypeConstructor<Doc, User, Parameters> {
   summary?: string;
 
   /**
+   * If populated, this constructor has been deprecated, and this property describes
+   * the reason and/or the constructor to use instead.
+   */
+  deprecation?: string;
+
+  /**
    * A function that returns an error message if the given parameters are not valid.
    * This function may alter the parameters to make them validate, such as removing unrecognised fields.
    */
