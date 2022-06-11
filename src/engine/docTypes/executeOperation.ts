@@ -52,7 +52,7 @@ export function executeOperation(
   }
 
   ensureDocTypeOperationRequestAuthorised(docType, operationName, operation, {
-    originalDoc: doc,
+    doc,
     user,
     parameters: operationParams,
   });

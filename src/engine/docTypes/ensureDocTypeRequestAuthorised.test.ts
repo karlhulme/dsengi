@@ -48,9 +48,9 @@ function createDocType() {
     operations: {
       testOperation: {
         authorise: (props) => {
-          if (props.originalDoc.propA === "private") {
+          if (props.doc.propA === "private") {
             return "OpDenied";
-          } else if (props.originalDoc.propA === "error") {
+          } else if (props.doc.propA === "error") {
             throw new Error("auth-err");
           }
         },
@@ -137,7 +137,7 @@ Deno.test("Silent return if auth method is not defined.", () => {
       unknown,
       unknown
     >,
-    { user: {}, parameters: {}, originalDoc: {} },
+    { user: {}, parameters: {}, doc: {} },
   );
 });
 
@@ -180,7 +180,7 @@ Deno.test("Silent return if auth method returns void.", () => {
       unknown,
       unknown
     >,
-    { user: {}, parameters: {}, originalDoc: {} },
+    { user: {}, parameters: {}, doc: {} },
   );
 });
 
@@ -248,7 +248,7 @@ Deno.test("Raise error if auth method returns a string.", () => {
           unknown,
           unknown
         >,
-        { user: {}, parameters: {}, originalDoc: { propA: "private" } },
+        { user: {}, parameters: {}, doc: { propA: "private" } },
       ),
     SengiAuthorisationFailedError,
   );
@@ -318,7 +318,7 @@ Deno.test("Raise error if auth method raises an error.", () => {
           unknown,
           unknown
         >,
-        { user: {}, parameters: {}, originalDoc: { propA: "error" } },
+        { user: {}, parameters: {}, doc: { propA: "error" } },
       ),
     SengiOperationAuthoriseFunctionFailedError,
   );

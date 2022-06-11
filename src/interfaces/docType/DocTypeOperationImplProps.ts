@@ -3,7 +3,7 @@
  */
 export interface DocTypeOperationImplProps<Doc, User, Parameters> {
   /**
-   * The document that is the subject of the authorisation request.
+   * The document that is to be operated on.
    */
   doc: Doc;
 
