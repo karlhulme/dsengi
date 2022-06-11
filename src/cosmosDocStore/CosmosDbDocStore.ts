@@ -63,7 +63,8 @@ export interface CosmosDbDocStoreFilter {
    * The WHERE clause of a cosmos SQL statement, that completes the phrase
    * SELECT d.* FROM docs d WHERE <filter>.  Note that any referenced
    * field names should also be prefixed with "d.".  You can use parameters
-   * by prefixing with an @ symbol.
+   * by prefixing with an @ symbol.  The actual field selection list will reflect
+   * the requested fields.
    */
   whereClause?: string;
 
@@ -105,14 +106,14 @@ export interface CosmosDbDocStoreFilterOrderByField {
  */
 export interface CosmosDbDocStoreQuery {
   /**
-   * If populated, executes the given SQL directly against the collection.
+   * A complete query statement such as SELECT * FROM Docs d WHERE d.region = @region.
    */
-  sqlStatement: string;
+  queryStatement: string;
 
   /**
-   * An array of parameters to be substituted into the given sqlStatement.
+   * An array of parameters to be substituted into the given query statement.
    */
-  sqlParameters: CosmosDbDocStoreQueryParameter[];
+  parameters: CosmosDbDocStoreQueryParameter[];
 
   /**
    * Queries are executed across all partitions.  The gateway cannot determine
@@ -511,8 +512,8 @@ export class CosmosDbDocStore implements
       this.cosmosUrl,
       databaseName,
       containerName,
-      query.sqlStatement,
-      query.sqlParameters,
+      query.queryStatement,
+      query.parameters,
       {
         transform: query.transform,
       },

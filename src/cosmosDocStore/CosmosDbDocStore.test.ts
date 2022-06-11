@@ -390,8 +390,8 @@ Deno.test("A sql query can be executed.", async () => {
     "tree",
     "trees",
     {
-      sqlStatement: "SELECT * FROM Docs d WHERE d.id = @id",
-      sqlParameters: [{ name: "@id", value: "01" }],
+      queryStatement: "SELECT * FROM Docs d WHERE d.id = @id",
+      parameters: [{ name: "@id", value: "01" }],
       transform: (docs) => docs,
     },
     {},
