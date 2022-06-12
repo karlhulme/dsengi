@@ -226,19 +226,18 @@ export class CosmosDbDocStore implements
       ? limit
       : MAX_DOCS_TO_SELECT;
 
-    // Determine the select and from clauses.
+    // Determine the select, from and initial where clauses.
     let sql = `
       SELECT TOP ${top} d._etag ${
       finalFieldNames.map((f) => `, d.${f}`).join("")
     }
       FROM Docs d
+      WHERE d.partitionKey = @partitionKey
     `;
 
-    // Determine the where clause.
+    // Determine the additional where clause if required.
     if (typeof whereClause === "string") {
-      sql += `  WHERE d.pkey = @pkey AND (${whereClause})`;
-    } else {
-      sql += `  WHERE d.pkey = @pkey`;
+      sql += ` AND (${whereClause})`;
     }
 
     // Determine the order by clause.
@@ -404,9 +403,9 @@ export class CosmosDbDocStore implements
       databaseName,
       containerName,
       partition,
-      "SELECT VALUE COUNT(1) FROM Docs d WHERE d.pkey = @pkey AND d.id = @id",
+      "SELECT VALUE COUNT(1) FROM Docs d WHERE d.partitionKey = @partitionKey AND d.id = @id",
       [
-        { name: "@pkey", value: partition },
+        { name: "@partitionKey", value: partition },
         { name: "@id", value: id },
       ],
     );
@@ -567,7 +566,7 @@ export class CosmosDbDocStore implements
       partition,
       queryCmd,
       [
-        { name: "@pkey", value: partition },
+        { name: "@partitionKey", value: partition },
       ],
     );
 
@@ -625,7 +624,7 @@ export class CosmosDbDocStore implements
       partition,
       queryCmd,
       [
-        { name: "@pkey", value: partition },
+        { name: "@partitionKey", value: partition },
         ...(filter.parameters || []),
       ],
     );
@@ -683,7 +682,7 @@ export class CosmosDbDocStore implements
       partition,
       queryCmd,
       [
-        { name: "@pkey", value: partition },
+        { name: "@partitionKey", value: partition },
       ],
     );
 

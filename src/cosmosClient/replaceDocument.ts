@@ -37,8 +37,8 @@ export async function replaceDocument(
       optionalHeaders["If-Match"] = options.ifMatch;
     }
 
-    if (document.pkey !== partition) {
-      document.pkey = partition;
+    if (document.partitionKey !== partition) {
+      document.partitionKey = partition;
     }
 
     const response = await fetch(

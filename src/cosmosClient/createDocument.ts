@@ -36,8 +36,8 @@ export async function createDocument(
       optionalHeaders["x-ms-documentdb-is-upsert"] = "True";
     }
 
-    if (document.pkey !== partition) {
-      document.pkey = partition;
+    if (document.partitionKey !== partition) {
+      document.partitionKey = partition;
     }
 
     const response = await fetch(

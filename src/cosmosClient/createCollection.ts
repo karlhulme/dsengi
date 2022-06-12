@@ -28,7 +28,7 @@ export async function createCollection(
         id: collectionName,
         partitionKey: {
           paths: [
-            "/pkey",
+            "/partitionKey",
           ],
           kind: "Hash",
           Version: 2,

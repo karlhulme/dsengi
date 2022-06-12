@@ -70,7 +70,7 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "trees",
-      treeDoc["pkey"] as string,
+      treeDoc["partitionKey"] as string,
       treeDoc.id as string,
     );
   }
@@ -101,7 +101,7 @@ async function initDb(): Promise<void> {
       TEST_COSMOS_URL,
       "sengi",
       "treePacks",
-      treePackDoc["pkey"] as string,
+      treePackDoc["partitionKey"] as string,
       treePackDoc.id as string,
     );
   }

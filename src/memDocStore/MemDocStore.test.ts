@@ -14,7 +14,7 @@ function createDocs(): DocRecord[] {
       fruit: "apple",
       docVersion: "aaa1",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
     {
       id: "002",
@@ -22,7 +22,7 @@ function createDocs(): DocRecord[] {
       fruit: "banana",
       docVersion: "aaa2",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
     {
       id: "003",
@@ -30,7 +30,7 @@ function createDocs(): DocRecord[] {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
     {
       id: "101",
@@ -38,7 +38,7 @@ function createDocs(): DocRecord[] {
       vehicle: "car",
       docVersion: "a101",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
     {
       id: "102",
@@ -46,7 +46,7 @@ function createDocs(): DocRecord[] {
       vehicle: "cargoBoat",
       docVersion: "a102",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
     {
       id: "103",
@@ -54,7 +54,7 @@ function createDocs(): DocRecord[] {
       vehicle: "plane",
       docVersion: "a103",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
   ];
 }
@@ -148,7 +148,7 @@ Deno.test("A document can be fetched.", async () => {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
-      pkey: "_central",
+      partitionKey: "_central",
     },
   });
 });
@@ -304,7 +304,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     fruit: "kiwi",
     docVersion: "xxxx",
     docOpIds: [],
-    pkey: "_central",
+    partitionKey: "_central",
   });
 });
 
@@ -341,7 +341,7 @@ Deno.test("Update an existing document.", async () => {
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
-    pkey: "_central",
+    partitionKey: "_central",
   });
 });
 
@@ -378,7 +378,7 @@ Deno.test("Update an existing document with a required version.", async () => {
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
-    pkey: "_central",
+    partitionKey: "_central",
   });
 });
 
@@ -409,6 +409,6 @@ Deno.test("Fail to update an existing document if the required version is unavai
     vehicle: "cargoBoat",
     docVersion: "a102",
     docOpIds: [],
-    pkey: "_central",
+    partitionKey: "_central",
   });
 });
