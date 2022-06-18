@@ -127,35 +127,35 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
 
   const safeDocStore = new SafeDocStore(docStore);
 
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.deleteById("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.exists("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.fetch("", "", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.query("", "", "", {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.selectAll("", "", "", [], {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.selectByFilter("", "", "", [], {}, {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.selectByIds("", "", "", [], [], {}, {}),
     UnexpectedDocStoreError,
   );
-  assertRejects(
+  await assertRejects(
     () => safeDocStore.upsert("", "", "", {}, {}, {}),
     UnexpectedDocStoreError,
   );

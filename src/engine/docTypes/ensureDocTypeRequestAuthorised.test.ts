@@ -27,7 +27,6 @@ function createDocType() {
     ExampleDoc,
     unknown,
     unknown,
-    unknown,
     unknown
   > = {
     name: "test",
@@ -101,19 +100,22 @@ Deno.test("Silent return if auth method is not defined.", () => {
   delete docType.authoriseRead;
 
   ensureDocTypeCreateRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     newDoc: {},
     requestType: "create",
   });
-  ensureDocTypeDeleteRequestAuthorised(docType, { user: {}, doc: {} });
+  ensureDocTypeDeleteRequestAuthorised(docType, {
+    user: { id: "test-0001", claims: [] },
+    doc: {},
+  });
   ensureDocTypePatchRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     fieldNames: [],
     originalDoc: {},
     patch: {},
   });
   ensureDocTypeReadRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     fieldNames: [],
     doc: {},
     requestType: "selectByFilter",
@@ -124,39 +126,40 @@ Deno.test("Silent return if auth method is not defined.", () => {
     docType.queries?.testQuery as DocTypeQuery<
       unknown,
       unknown,
-      unknown,
       unknown
     >,
-    { user: {}, parameters: {} },
+    { user: { id: "test-0001", claims: [] }, parameters: {} },
   );
   ensureDocTypeOperationRequestAuthorised(
     docType,
     "testOperation",
     docType.operations?.testOperation as DocTypeOperation<
       unknown,
-      unknown,
       unknown
     >,
-    { user: {}, parameters: {}, doc: {} },
+    { user: { id: "test-0001", claims: [] }, parameters: {}, doc: {} },
   );
 });
 
 Deno.test("Silent return if auth method returns void.", () => {
   const docType = createDocType();
   ensureDocTypeCreateRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     newDoc: {},
     requestType: "create",
   });
-  ensureDocTypeDeleteRequestAuthorised(docType, { user: {}, doc: {} });
+  ensureDocTypeDeleteRequestAuthorised(docType, {
+    user: { id: "test-0001", claims: [] },
+    doc: {},
+  });
   ensureDocTypePatchRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     fieldNames: [],
     originalDoc: {},
     patch: {},
   });
   ensureDocTypeReadRequestAuthorised(docType, {
-    user: {},
+    user: { id: "test-0001", claims: [] },
     fieldNames: [],
     doc: {},
     requestType: "selectByFilter",
@@ -167,20 +170,18 @@ Deno.test("Silent return if auth method returns void.", () => {
     docType.queries?.testQuery as DocTypeQuery<
       unknown,
       unknown,
-      unknown,
       unknown
     >,
-    { user: {}, parameters: {} },
+    { user: { id: "test-0001", claims: [] }, parameters: {} },
   );
   ensureDocTypeOperationRequestAuthorised(
     docType,
     "testOperation",
     docType.operations?.testOperation as DocTypeOperation<
       unknown,
-      unknown,
       unknown
     >,
-    { user: {}, parameters: {}, doc: {} },
+    { user: { id: "test-0001", claims: [] }, parameters: {}, doc: {} },
   );
 });
 
@@ -189,7 +190,7 @@ Deno.test("Raise error if auth method returns a string.", () => {
   assertThrows(
     () =>
       ensureDocTypeCreateRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         newDoc: { propA: "private" },
         requestType: "create",
       }),
@@ -198,7 +199,7 @@ Deno.test("Raise error if auth method returns a string.", () => {
   assertThrows(
     () =>
       ensureDocTypeDeleteRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         doc: { propA: "private" },
       }),
     SengiAuthorisationFailedError,
@@ -206,7 +207,7 @@ Deno.test("Raise error if auth method returns a string.", () => {
   assertThrows(
     () =>
       ensureDocTypePatchRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         fieldNames: [],
         originalDoc: { propA: "private" },
         patch: {},
@@ -216,7 +217,7 @@ Deno.test("Raise error if auth method returns a string.", () => {
   assertThrows(
     () =>
       ensureDocTypeReadRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         fieldNames: ["private"],
         doc: {},
         requestType: "selectByFilter",
@@ -231,10 +232,12 @@ Deno.test("Raise error if auth method returns a string.", () => {
         docType.queries?.testQuery as DocTypeQuery<
           unknown,
           unknown,
-          unknown,
           unknown
         >,
-        { user: {}, parameters: { foo: "private" } },
+        {
+          user: { id: "test-0001", claims: [] },
+          parameters: { foo: "private" },
+        },
       ),
     SengiAuthorisationFailedError,
   );
@@ -245,10 +248,13 @@ Deno.test("Raise error if auth method returns a string.", () => {
         "testOperation",
         docType.operations?.testOperation as DocTypeOperation<
           unknown,
-          unknown,
           unknown
         >,
-        { user: {}, parameters: {}, doc: { propA: "private" } },
+        {
+          user: { id: "test-0001", claims: [] },
+          parameters: {},
+          doc: { propA: "private" },
+        },
       ),
     SengiAuthorisationFailedError,
   );
@@ -259,7 +265,7 @@ Deno.test("Raise error if auth method raises an error.", () => {
   assertThrows(
     () =>
       ensureDocTypeCreateRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         newDoc: { propA: "error" },
         requestType: "create",
       }),
@@ -268,7 +274,7 @@ Deno.test("Raise error if auth method raises an error.", () => {
   assertThrows(
     () =>
       ensureDocTypeDeleteRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         doc: { propA: "error" },
       }),
     SengiAuthoriseFunctionFailedError,
@@ -276,7 +282,7 @@ Deno.test("Raise error if auth method raises an error.", () => {
   assertThrows(
     () =>
       ensureDocTypePatchRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         fieldNames: [],
         originalDoc: { propA: "error" },
         patch: {},
@@ -286,7 +292,7 @@ Deno.test("Raise error if auth method raises an error.", () => {
   assertThrows(
     () =>
       ensureDocTypeReadRequestAuthorised(docType, {
-        user: {},
+        user: { id: "test-0001", claims: [] },
         fieldNames: ["error"],
         doc: {},
         requestType: "selectByFilter",
@@ -301,10 +307,9 @@ Deno.test("Raise error if auth method raises an error.", () => {
         docType.queries?.testQuery as DocTypeQuery<
           unknown,
           unknown,
-          unknown,
           unknown
         >,
-        { user: {}, parameters: { foo: "error" } },
+        { user: { id: "test-0001", claims: [] }, parameters: { foo: "error" } },
       ),
     SengiQueryAuthoriseFunctionFailedError,
   );
@@ -315,10 +320,13 @@ Deno.test("Raise error if auth method raises an error.", () => {
         "testOperation",
         docType.operations?.testOperation as DocTypeOperation<
           unknown,
-          unknown,
           unknown
         >,
-        { user: {}, parameters: {}, doc: { propA: "error" } },
+        {
+          user: { id: "test-0001", claims: [] },
+          parameters: {},
+          doc: { propA: "error" },
+        },
       ),
     SengiOperationAuthoriseFunctionFailedError,
   );

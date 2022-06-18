@@ -1,9 +1,11 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a filter parse function.
  */
-export interface DocTypeFilterParseProps<User, Parameters> {
+export interface DocTypeFilterParseProps<Parameters> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

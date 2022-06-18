@@ -19,7 +19,6 @@ function createDocType() {
     ExampleDoc,
     unknown,
     unknown,
-    unknown,
     unknown
   > = {
     name: "test",

@@ -305,10 +305,21 @@ export class SengiValidateDocFailedError extends SengiEngineError {
   }
 }
 
-export class SengiValiateUserFunctionError extends SengiEngineError {
+export class SengiValidateUserIdFunctionError extends SengiEngineError {
   constructor(readonly innerErr: Error) {
     super(
-      `The validateUser function raised an error.\n${innerErr.toString()}`,
+      `The validateUserId function raised an error.\n${innerErr.toString()}`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.innerErr = innerErr;
+  }
+}
+
+export class SengiValidateUserClaimsFunctionError extends SengiEngineError {
+  constructor(readonly innerErr: Error) {
+    super(
+      `The validateUserClaims function raised an error.\n${innerErr.toString()}`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;

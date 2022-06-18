@@ -122,8 +122,8 @@ Deno.test("Select all documents of a type in a collection with an onSelectDocs d
     docType: carDocType,
     fieldNames: ["id"],
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -131,7 +131,7 @@ Deno.test("Select all documents of a type in a collection with an onSelectDocs d
 Deno.test("Fail to select all documents of type if permissions insufficient.", async () => {
   const { sengi } = createSengiForTests();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.selectDocuments({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -142,7 +142,7 @@ Deno.test("Fail to select all documents of type if permissions insufficient.", a
 Deno.test("Fail to select all documents of type if client api key is not recognised.", async () => {
   const { sengi } = createSengiForTests();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.selectDocuments({
       ...defaultRequestProps,
       apiKey: "unknown",
@@ -159,7 +159,7 @@ Deno.test("Fail to select all documents of a type in collection if fetchWholeCol
 
   carDocType.policy.canFetchWholeCollection = false;
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.selectDocuments({
       ...defaultRequestProps,
       fieldNames: ["id"],

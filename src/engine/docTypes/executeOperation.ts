@@ -5,6 +5,7 @@ import {
   SengiOperationParamsValidationFailedError,
   SengiOperationValidateParametersFailedError,
   SengiUnrecognisedOperationNameError,
+  User,
 } from "../../interfaces/index.ts";
 import { ensureDocTypeOperationRequestAuthorised } from "./ensureDocTypeRequestAuthorised.ts";
 
@@ -18,7 +19,7 @@ import { ensureDocTypeOperationRequestAuthorised } from "./ensureDocTypeRequestA
  */
 export function executeOperation(
   docType: AnyDocType,
-  user: unknown,
+  user: User,
   operationName: string,
   operationParams: unknown,
   doc: DocRecord,

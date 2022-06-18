@@ -1,5 +1,5 @@
 import { DocBase } from "../doc/index.ts";
-import { DocType } from "../docType/index.ts";
+import { DocType, User } from "../docType/index.ts";
 
 /**
  * Defines the properties passed to the pre save doc callback.
@@ -8,7 +8,6 @@ export interface PreSaveDocCallbackProps<
   RequestProps,
   Doc extends DocBase,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > {
@@ -25,7 +24,7 @@ export interface PreSaveDocCallbackProps<
   /**
    * The document type associated with the document to be saved.
    */
-  docType: DocType<Doc, DocStoreOptions, User, Filter, Query>;
+  docType: DocType<Doc, DocStoreOptions, Filter, Query>;
 
   /**
    * Any properties passed along with the request.
@@ -43,7 +42,7 @@ export interface PreSaveDocCallbackProps<
   isNew: boolean | null;
 
   /**
-   * The user that triggered the callback.
+   * The user that is making the request.
    */
   user: User;
 }
@@ -55,7 +54,6 @@ export type PreSaveDocCallback<
   RequestProps,
   Doc extends DocBase,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > = (
@@ -63,7 +61,6 @@ export type PreSaveDocCallback<
     RequestProps,
     Doc,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >,

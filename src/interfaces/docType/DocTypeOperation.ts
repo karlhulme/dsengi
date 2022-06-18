@@ -4,7 +4,7 @@ import { DocTypeOperationImplProps } from "./DocTypeOperationImplProps.ts";
 /**
  * Represents an operation that can be applied to a document.
  */
-export interface DocTypeOperation<Doc, User, Parameters> {
+export interface DocTypeOperation<Doc, Parameters> {
   /**
    * A description of the operation.
    */
@@ -26,7 +26,7 @@ export interface DocTypeOperation<Doc, User, Parameters> {
    * A function that updates a document based on the given operation parameters.
    */
   implementation: (
-    props: DocTypeOperationImplProps<Doc, User, Parameters>,
+    props: DocTypeOperationImplProps<Doc, Parameters>,
   ) => void;
 
   /**
@@ -36,6 +36,6 @@ export interface DocTypeOperation<Doc, User, Parameters> {
    * the document to be amended and/or the operation parameters.
    */
   authorise?: (
-    props: DocTypeOperationAuthProps<Doc, User, Parameters>,
+    props: DocTypeOperationAuthProps<Doc, Parameters>,
   ) => string | undefined;
 }

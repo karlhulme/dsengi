@@ -43,9 +43,14 @@ export interface ConstructDocumentProps<RequestProps, DocStoreOptions> {
   docStoreOptions: DocStoreOptions;
 
   /**
-   * The user that is making the request.
+   * The id of the user that is making the request.
    */
-  user: unknown;
+  userId: string;
+
+  /**
+   * An array of the claims that are held by the user.
+   */
+  userClaims: string[];
 
   /**
    * An array of fields to be returned after the document is constructed.

@@ -5,6 +5,7 @@ import {
   SengiFilterParseFailedError,
   SengiFilterValidateParametersFailedError,
   SengiUnrecognisedFilterNameError,
+  User,
 } from "../../interfaces/index.ts";
 
 /**
@@ -17,7 +18,7 @@ import {
  */
 export function parseFilter(
   docType: AnyDocType,
-  user: unknown,
+  user: User,
   filterName: string,
   filterParams: unknown,
 ): any {

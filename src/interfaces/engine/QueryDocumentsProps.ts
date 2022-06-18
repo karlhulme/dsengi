@@ -34,7 +34,12 @@ export interface QueryDocumentsProps<RequestProps, DocStoreOptions> {
   docStoreOptions: DocStoreOptions;
 
   /**
-   * The user that is making the request.
+   * The id of the user that is making the request.
    */
-  user: unknown;
+  userId: string;
+
+  /**
+   * An array of the claims that are held by the user.
+   */
+  userClaims: string[];
 }

@@ -32,6 +32,7 @@ import {
   SelectDocumentsProps,
   SelectDocumentsResult,
   SengiCallbackError,
+  User,
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
 import {
@@ -79,7 +80,6 @@ export const ID_FOR_UNKNOWN_USER = "<unknown>";
 export interface SengiConstructorProps<
   RequestProps,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > {
@@ -96,7 +96,7 @@ export interface SengiConstructorProps<
   /**
    * The document types that are managed by the sengi engine.
    */
-  docTypes?: DocType<any, DocStoreOptions, User, Filter, Query>[];
+  docTypes?: DocType<any, DocStoreOptions, Filter, Query>[];
 
   /**
    * A function that returns the number of milliseconds since the unix epoch.
@@ -104,20 +104,21 @@ export interface SengiConstructorProps<
   getMillisecondsSinceEpoch?: () => number;
 
   /**
-   * A function that extracts the id from a user object.
-   */
-  getIdFromUser?: (user: User) => string;
-
-  /**
    * True if the actions of the sengi engine should be logged to the console.
    */
   log?: boolean;
 
   /**
-   * A function that validates a user object.
-   * This function may also amend the given user object to make it valid.
+   * A function that validates a user id.  The given userId
+   * should be a string.
    */
-  validateUser?: (user: unknown) => string | void;
+  validateUserId?: (userId: string) => string | void;
+
+  /**
+   * A function that validates an array of user claims. The
+   * given userClaims should be an array of strings.
+   */
+  validateUserClaims?: (userClaims: string[]) => string | void;
 
   /**
    * A callback function that is invoked whenever a document is saved
@@ -127,7 +128,6 @@ export interface SengiConstructorProps<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -139,7 +139,6 @@ export interface SengiConstructorProps<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -152,7 +151,6 @@ export interface SengiConstructorProps<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -165,7 +163,6 @@ export interface SengiConstructorProps<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -178,14 +175,12 @@ export interface SengiConstructorProps<
 export class Sengi<
   RequestProps,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > {
   private docTypes: DocType<
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >[];
@@ -198,15 +193,14 @@ export class Sengi<
   private apiKeysLoadedFromEnv: number;
   private apiKeysNotFoundInEnv: number;
   private log: boolean;
-  private validateUser?: (user: unknown) => string | void;
+  private validateUserId?: (userId: string) => string | void;
+  private validateUserClaims?: (userClaims: string[]) => string | void;
   private getMillisecondsSinceEpoch?: () => number;
-  private getIdFromUser?: (user: User) => string;
 
   private onSavedDoc?: SavedDocCallback<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -214,7 +208,6 @@ export class Sengi<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -222,7 +215,6 @@ export class Sengi<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -230,7 +222,6 @@ export class Sengi<
     RequestProps,
     any,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >;
@@ -243,7 +234,6 @@ export class Sengi<
     props: SengiConstructorProps<
       RequestProps,
       DocStoreOptions,
-      User,
       Filter,
       Query
     >,
@@ -253,9 +243,9 @@ export class Sengi<
     this.apiKeysLoadedFromEnv = 0;
     this.apiKeysNotFoundInEnv = 0;
     this.log = Boolean(props.log);
-    this.validateUser = props.validateUser;
+    this.validateUserId = props.validateUserId;
+    this.validateUserClaims = props.validateUserClaims;
     this.getMillisecondsSinceEpoch = props.getMillisecondsSinceEpoch;
-    this.getIdFromUser = props.getIdFromUser;
 
     if (!props.docStore) {
       throw new Error("Must supply a docStore.");
@@ -326,7 +316,12 @@ export class Sengi<
     props: ConstructDocumentProps<RequestProps, DocStoreOptions>,
   ): Promise<ConstructDocumentResult> {
     this.logRequest(`CREATE ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureCreatePermission(client, props.docTypeName);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
@@ -354,7 +349,7 @@ export class Sengi<
     } else {
       const doc = executeConstructor(
         docType,
-        props.user,
+        user,
         props.constructorName,
         props.constructorParams,
       );
@@ -365,7 +360,7 @@ export class Sengi<
       applyCommonFieldValuesToDoc(
         doc,
         this.getTimestamp(),
-        this.getUserId(user),
+        user.id,
       );
 
       ensureDocTypeCreateRequestAuthorised(docType, {
@@ -421,7 +416,12 @@ export class Sengi<
     props: DeleteDocumentProps<RequestProps, DocStoreOptions>,
   ): Promise<DeleteDocumentResult> {
     this.logRequest(`DELETE ${props.docTypeName} ${props.id}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureDeletePermission(client, props.docTypeName);
 
@@ -486,7 +486,12 @@ export class Sengi<
     props: NewDocumentProps<RequestProps, DocStoreOptions>,
   ): Promise<NewDocumentResult> {
     this.logRequest(`NEW ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureDocId(props.doc);
     ensureCreatePermission(client, props.docTypeName);
@@ -519,7 +524,7 @@ export class Sengi<
       applyCommonFieldValuesToDoc(
         doc,
         this.getTimestamp(),
-        this.getUserId(user),
+        user.id,
       );
 
       ensureDocTypeCreateRequestAuthorised(docType, {
@@ -576,7 +581,12 @@ export class Sengi<
     this.logRequest(
       `OPERATE (${props.operationName}) ${props.docTypeName} ${props.id}`,
     );
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureOperatePermission(client, props.docTypeName, props.operationName);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
@@ -613,7 +623,7 @@ export class Sengi<
       applyCommonFieldValuesToDoc(
         doc,
         this.getTimestamp(),
-        this.getUserId(user),
+        user.id,
       );
       executePreSave(docType, doc, user);
       executeValidateDoc(docType, doc);
@@ -662,7 +672,12 @@ export class Sengi<
     props: PatchDocumentProps<RequestProps, DocStoreOptions>,
   ): Promise<PatchDocumentResult> {
     this.logRequest(`PATCH ${props.docTypeName} ${props.id}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensurePatchPermission(client, props.docTypeName);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
@@ -699,7 +714,7 @@ export class Sengi<
       applyCommonFieldValuesToDoc(
         doc,
         this.getTimestamp(),
-        this.getUserId(user),
+        user.id,
       );
       executePreSave(docType, doc, user);
       executeValidateDoc(docType, doc);
@@ -748,7 +763,12 @@ export class Sengi<
     props: QueryDocumentsProps<RequestProps, DocStoreOptions>,
   ): Promise<QueryDocumentsResult> {
     this.logRequest(`QUERY (${props.queryName}) ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureQueryPermission(client, props.docTypeName, props.queryName);
 
@@ -788,7 +808,12 @@ export class Sengi<
     props: ReplaceDocumentProps<RequestProps, DocStoreOptions>,
   ): Promise<ReplaceDocumentResult> {
     this.logRequest(`REPLACE ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureReplacePermission(client, props.docTypeName);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
@@ -804,7 +829,7 @@ export class Sengi<
       requestType: "replace",
     });
 
-    applyCommonFieldValuesToDoc(doc, this.getTimestamp(), this.getUserId(user));
+    applyCommonFieldValuesToDoc(doc, this.getTimestamp(), user.id);
     executePreSave(docType, doc, user);
     executeValidateDoc(docType, doc);
     ensureDoc(docType, doc);
@@ -856,7 +881,12 @@ export class Sengi<
     props: SelectDocumentsByFilterProps<RequestProps, DocStoreOptions>,
   ): Promise<SelectDocumentsByFilterResult> {
     this.logRequest(`SELECT (${props.filterName}) ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
@@ -912,7 +942,12 @@ export class Sengi<
     props: SelectDocumentsByIdsProps<RequestProps, DocStoreOptions>,
   ): Promise<SelectDocumentsByIdsResult> {
     this.logRequest(`SELECT (IDS) ${props.docTypeName} ${props.ids}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
@@ -961,7 +996,12 @@ export class Sengi<
     props: SelectDocumentsProps<RequestProps, DocStoreOptions>,
   ): Promise<SelectDocumentsResult> {
     this.logRequest(`SELECT (TYPE) ${props.docTypeName}`);
-    const user = ensureUser<User>(props.user, this.validateUser);
+    const user = ensureUser(
+      props.userId,
+      this.validateUserId || null,
+      props.userClaims,
+      this.validateUserClaims || null,
+    );
     const client = ensureClient(props.apiKey, this.clients);
     ensureSelectPermission(client, props.docTypeName, props.fieldNames);
 
@@ -1016,24 +1056,6 @@ export class Sengi<
       }
     } else {
       return Date.now();
-    }
-  }
-
-  /**
-   * Returns the id of the given user object.  If a getIdFromUser function
-   * has not been supplied then a constant that represents an unknown
-   * user is returned.
-   * @param user A user object.
-   */
-  private getUserId(user: User): string {
-    if (this.getIdFromUser) {
-      try {
-        return this.getIdFromUser(user);
-      } catch (err) {
-        throw new SengiCallbackError("getIdFromUser", err as Error);
-      }
-    } else {
-      return ID_FOR_UNKNOWN_USER;
     }
   }
 

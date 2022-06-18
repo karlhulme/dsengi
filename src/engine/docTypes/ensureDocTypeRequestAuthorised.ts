@@ -21,7 +21,7 @@ import {
  */
 export function ensureDocTypeCreateRequestAuthorised(
   docType: AnyDocType,
-  authProps: DocTypeCreateAuthProps<unknown, unknown>,
+  authProps: DocTypeCreateAuthProps<unknown>,
 ): void {
   if (docType.authoriseCreate) {
     let result;
@@ -49,7 +49,7 @@ export function ensureDocTypeCreateRequestAuthorised(
  */
 export function ensureDocTypeDeleteRequestAuthorised(
   docType: AnyDocType,
-  authProps: DocTypeDeleteAuthProps<unknown, unknown>,
+  authProps: DocTypeDeleteAuthProps<unknown>,
 ): void {
   if (docType.authoriseDelete) {
     let result;
@@ -78,8 +78,8 @@ export function ensureDocTypeDeleteRequestAuthorised(
 export function ensureDocTypeOperationRequestAuthorised(
   docType: AnyDocType,
   operationName: string,
-  docTypeOperation: DocTypeOperation<unknown, unknown, unknown>,
-  authProps: DocTypeOperationAuthProps<unknown, unknown, unknown>,
+  docTypeOperation: DocTypeOperation<unknown, unknown>,
+  authProps: DocTypeOperationAuthProps<unknown, unknown>,
 ): void {
   if (docTypeOperation.authorise) {
     let result;
@@ -107,7 +107,7 @@ export function ensureDocTypeOperationRequestAuthorised(
  */
 export function ensureDocTypePatchRequestAuthorised(
   docType: AnyDocType,
-  authProps: DocTypePatchAuthProps<unknown, unknown>,
+  authProps: DocTypePatchAuthProps<unknown>,
 ): void {
   if (docType.authorisePatch) {
     let result;
@@ -136,8 +136,8 @@ export function ensureDocTypePatchRequestAuthorised(
 export function ensureDocTypeQueryRequestAuthorised(
   docType: AnyDocType,
   queryName: string,
-  docTypeQuery: DocTypeQuery<unknown, unknown, unknown, unknown>,
-  authProps: DocTypeQueryAuthProps<unknown, unknown>,
+  docTypeQuery: DocTypeQuery<unknown, unknown, unknown>,
+  authProps: DocTypeQueryAuthProps<unknown>,
 ): void {
   if (docTypeQuery.authorise) {
     let result;
@@ -165,7 +165,7 @@ export function ensureDocTypeQueryRequestAuthorised(
  */
 export function ensureDocTypeReadRequestAuthorised(
   docType: AnyDocType,
-  authProps: DocTypeReadAuthProps<unknown, unknown>,
+  authProps: DocTypeReadAuthProps<unknown>,
 ): void {
   if (docType.authoriseRead) {
     let result;

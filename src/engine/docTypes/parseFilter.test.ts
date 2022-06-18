@@ -8,8 +8,11 @@ import {
   SengiFilterParseFailedError,
   SengiFilterValidateParametersFailedError,
   SengiUnrecognisedFilterNameError,
+  User,
 } from "../../interfaces/index.ts";
 import { parseFilter } from "./parseFilter.ts";
+
+const dummyUser: User = { id: "test-0001", claims: [] };
 
 interface ExampleDoc extends DocBase {
   propA: string;
@@ -24,7 +27,6 @@ type ExampleFilter = string;
 function createDocType() {
   const docType: DocType<
     ExampleDoc,
-    unknown,
     unknown,
     ExampleFilter,
     unknown
@@ -47,7 +49,7 @@ function createDocType() {
 
           return props.parameters.filterPropA + "Filter";
         },
-      } as DocTypeFilter<unknown, ExampleFilter, ExampleFilterParams>,
+      } as DocTypeFilter<ExampleFilter, ExampleFilterParams>,
     },
   };
 
@@ -56,7 +58,7 @@ function createDocType() {
 
 Deno.test("Produce filter object from valid filter params.", () => {
   assertEquals(
-    parseFilter(createDocType(), null, "byPropA", { filterPropA: "abc" }),
+    parseFilter(createDocType(), dummyUser, "byPropA", { filterPropA: "abc" }),
     "abcFilter",
   );
 });
@@ -64,7 +66,7 @@ Deno.test("Produce filter object from valid filter params.", () => {
 Deno.test("Reject production of filter object for an unrecognised name.", () => {
   assertThrows(
     () =>
-      parseFilter(createDocType(), null, "unrecognised", {
+      parseFilter(createDocType(), dummyUser, "unrecognised", {
         filterPropA: "abc",
       }),
     SengiUnrecognisedFilterNameError,
@@ -75,14 +77,16 @@ Deno.test("Reject production of filter object if no filters defined.", () => {
   const docType = createDocType();
   delete docType.filters;
   assertThrows(
-    () => parseFilter(docType, null, "unrecognised", { filterPropA: "abc" }),
+    () =>
+      parseFilter(docType, dummyUser, "unrecognised", { filterPropA: "abc" }),
     SengiUnrecognisedFilterNameError,
   );
 });
 
 Deno.test("Reject production of filter object using invalid parameters.", () => {
   assertThrows(
-    () => parseFilter(createDocType(), null, "byPropA", { filterPropA: 123 }),
+    () =>
+      parseFilter(createDocType(), dummyUser, "byPropA", { filterPropA: 123 }),
     SengiFilterParamsValidationFailedError,
     "invalid filterPropA",
   );
@@ -90,7 +94,10 @@ Deno.test("Reject production of filter object using invalid parameters.", () => 
 
 Deno.test("Reject production of filter object if validation of parameters raises an error.", () => {
   assertThrows(
-    () => parseFilter(createDocType(), null, "byPropA", { filterPropA: "err" }),
+    () =>
+      parseFilter(createDocType(), dummyUser, "byPropA", {
+        filterPropA: "err",
+      }),
     SengiFilterValidateParametersFailedError,
     "validate-err",
   );
@@ -99,7 +106,9 @@ Deno.test("Reject production of filter object if validation of parameters raises
 Deno.test("Reject production of filter object if operation raises error.", () => {
   assertThrows(
     () =>
-      parseFilter(createDocType(), null, "byPropA", { filterPropA: "fail" }),
+      parseFilter(createDocType(), dummyUser, "byPropA", {
+        filterPropA: "fail",
+      }),
     SengiFilterParseFailedError,
     "fail",
   );

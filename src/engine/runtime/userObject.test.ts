@@ -2,7 +2,8 @@
 import { assertEquals, assertRejects } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
-  SengiUserValidationFailedError,
+  SengiUserClaimsValidationFailedError,
+  SengiUserIdValidationFailedError,
 } from "../../interfaces/index.ts";
 import {
   createSengiWithMockStore,
@@ -25,7 +26,8 @@ Deno.test("Supplying a valid user object is accepted.", async () => {
   assertEquals(
     await sengi.newDocument({
       ...defaultRequestProps,
-      user: { userId: "testUser", username: "valid-string" },
+      userId: "testUser",
+      userClaims: ["valid-claim"],
       docTypeName: "car",
       doc: newCar,
       fieldNames: ["id"],
@@ -34,15 +36,30 @@ Deno.test("Supplying a valid user object is accepted.", async () => {
   );
 });
 
-Deno.test("Supplying a invalid user object causes an error.", () => {
+Deno.test("Supplying an invalid user id causes an error.", async () => {
   const { sengi } = createSengiWithMockStore({});
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.newDocument({
       ...defaultRequestProps,
-      user: { userId: 123, username: "invalid: not-a-string" },
+      userId: 123 as unknown as string,
+      userClaims: [],
       docTypeName: "car",
       doc: newCar,
       fieldNames: ["id"],
-    }), SengiUserValidationFailedError);
+    }), SengiUserIdValidationFailedError);
+});
+
+Deno.test("Supplying invalid user claims causes an error.", async () => {
+  const { sengi } = createSengiWithMockStore({});
+
+  await assertRejects(() =>
+    sengi.newDocument({
+      ...defaultRequestProps,
+      userId: "valid-user",
+      userClaims: [123] as unknown as string[],
+      docTypeName: "car",
+      doc: newCar,
+      fieldNames: ["id"],
+    }), SengiUserClaimsValidationFailedError);
 });

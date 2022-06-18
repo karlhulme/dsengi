@@ -81,13 +81,12 @@ Deno.test("Creating a document with a constructor should call exists and then up
   );
 });
 
-Deno.test("Creating a document using the getMillisecondsSinceEpoch and getIdFromUser default implementations.", async () => {
+Deno.test("Creating a document using the default getMillisecondsSinceEpoch implementations.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
     fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   }, {
     getMillisecondsSinceEpoch: null,
-    getIdFromUser: null,
   });
 
   const spyUpsert = spy(docStore, "upsert");
@@ -135,8 +134,8 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
     doc: match.object,
     isNew: true,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -149,8 +148,8 @@ Deno.test("Creating a document with a constructor should cause the onPreSaveDoc 
     doc: match.object,
     isNew: true,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -193,7 +192,7 @@ Deno.test("Fail to create a document using a constructor where the constructor p
     fetch: async () => ({ doc: null }),
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
@@ -209,7 +208,7 @@ Deno.test("Fail to create a document using a constructor where the resulting doc
     fetch: async () => ({ doc: null }),
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
@@ -223,7 +222,7 @@ Deno.test("Fail to create a document using a constructor where the resulting doc
 Deno.test("Fail to create document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -239,7 +238,7 @@ Deno.test("Fail to create document if permissions insufficient.", async () => {
 Deno.test("Fail to create document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.createDocument({
       ...defaultRequestProps,
       apiKey: "unknown",

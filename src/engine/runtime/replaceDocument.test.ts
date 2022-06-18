@@ -110,8 +110,8 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
     doc: match.object,
     isNew: null,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -125,8 +125,8 @@ Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc del
     doc: match.object,
     isNew: false,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -167,8 +167,8 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
     doc: match.object,
     isNew: true,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -200,7 +200,7 @@ Deno.test("Replacing a non-existent document should raise the onSavedDoc delegat
 Deno.test("Fail to replace a document if it does not conform to the doc type schema.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {
@@ -215,7 +215,7 @@ Deno.test("Fail to replace a document if it does not conform to the doc type sch
 Deno.test("Fail to replace a document if it fails custom validation.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {
@@ -231,7 +231,7 @@ Deno.test("Fail to replace a document if it fails custom validation.", async () 
 Deno.test("Fail to replace a document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -245,7 +245,7 @@ Deno.test("Fail to replace a document if permissions insufficient.", async () =>
 Deno.test("Fail to replace a document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
@@ -265,7 +265,7 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
     carDocType.policy.canReplaceDocuments = false;
   }
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.replaceDocument({
       ...defaultRequestProps,
       doc: {

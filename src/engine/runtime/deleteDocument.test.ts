@@ -89,8 +89,8 @@ Deno.test("Delete document by id should raise callbacks.", async () => {
     docType: carDocType,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -173,7 +173,7 @@ Deno.test("Deleting a non-existing document is not an error but the lack of dele
 Deno.test("Fail to delete document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -185,13 +185,12 @@ Deno.test("Fail to delete document if permissions insufficient.", async () => {
 Deno.test("Fail to delete document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     });
-    throw new Error("fail");
   }, SengiUnrecognisedApiKeyError);
 });
 
@@ -202,11 +201,10 @@ Deno.test("Fail to delete document if disallowed by policy.", async () => {
     carDocType.policy.canDeleteDocuments = false;
   }
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.deleteDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     });
-    throw new Error("fail");
   }, SengiActionForbiddenByPolicyError);
 });

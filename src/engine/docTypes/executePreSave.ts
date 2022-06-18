@@ -2,6 +2,7 @@ import {
   AnyDocType,
   DocRecord,
   SengiPreSaveFailedError,
+  User,
 } from "../../interfaces/index.ts";
 
 /**
@@ -13,7 +14,7 @@ import {
 export function executePreSave(
   docType: AnyDocType,
   doc: DocRecord,
-  user: unknown,
+  user: User,
 ): void {
   if (typeof docType.preSave === "function") {
     try {

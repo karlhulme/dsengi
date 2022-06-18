@@ -9,8 +9,11 @@ import {
   SengiQueryParseFailedError,
   SengiQueryValidateParametersFailedError,
   SengiUnrecognisedQueryNameError,
+  User,
 } from "../../interfaces/index.ts";
 import { parseQuery } from "./parseQuery.ts";
+
+const dummyUser: User = { id: "test-0001", claims: [] };
 
 interface ExampleDoc extends DocBase {
   propA: string;
@@ -25,7 +28,6 @@ type ExampleQuery = string;
 function createDocType() {
   const docType: DocType<
     ExampleDoc,
-    unknown,
     unknown,
     unknown,
     ExampleQuery
@@ -56,7 +58,6 @@ function createDocType() {
         },
       } as DocTypeQuery<
         unknown,
-        unknown,
         ExampleQueryParams,
         ExampleQuery
       >,
@@ -68,7 +69,7 @@ function createDocType() {
 
 Deno.test("Produce query object from valid query params.", () => {
   assertEquals(
-    parseQuery(createDocType(), null, "count", { queryPropA: "abc" }),
+    parseQuery(createDocType(), dummyUser, "count", { queryPropA: "abc" }),
     "abcQuery",
   );
 });
@@ -76,7 +77,9 @@ Deno.test("Produce query object from valid query params.", () => {
 Deno.test("Reject production of query object for an unrecognised name.", () => {
   assertThrows(
     () =>
-      parseQuery(createDocType(), null, "unrecognised", { queryPropA: "abc" }),
+      parseQuery(createDocType(), dummyUser, "unrecognised", {
+        queryPropA: "abc",
+      }),
     SengiUnrecognisedQueryNameError,
   );
 });
@@ -85,14 +88,14 @@ Deno.test("Reject production of query object if no queries defined.", () => {
   const docType = createDocType();
   delete docType.queries;
   assertThrows(
-    () => parseQuery(docType, null, "unrecognised", { queryPropA: "abc" }),
+    () => parseQuery(docType, dummyUser, "unrecognised", { queryPropA: "abc" }),
     SengiUnrecognisedQueryNameError,
   );
 });
 
 Deno.test("Reject production of query object using invalid parameters.", () => {
   assertThrows(
-    () => parseQuery(createDocType(), null, "count", { queryPropA: 123 }),
+    () => parseQuery(createDocType(), dummyUser, "count", { queryPropA: 123 }),
     SengiQueryParamsValidationFailedError,
     "invalid queryPropA",
   );
@@ -100,7 +103,8 @@ Deno.test("Reject production of query object using invalid parameters.", () => {
 
 Deno.test("Reject production of query object if parameter validation raises error.", () => {
   assertThrows(
-    () => parseQuery(createDocType(), null, "count", { queryPropA: "err" }),
+    () =>
+      parseQuery(createDocType(), dummyUser, "count", { queryPropA: "err" }),
     SengiQueryValidateParametersFailedError,
     "validate-err",
   );
@@ -108,7 +112,8 @@ Deno.test("Reject production of query object if parameter validation raises erro
 
 Deno.test("Reject production of query object if parsing raises error.", () => {
   assertThrows(
-    () => parseQuery(createDocType(), null, "count", { queryPropA: "fail" }),
+    () =>
+      parseQuery(createDocType(), dummyUser, "count", { queryPropA: "fail" }),
     SengiQueryParseFailedError,
     "fail",
   );
@@ -116,7 +121,8 @@ Deno.test("Reject production of query object if parsing raises error.", () => {
 
 Deno.test("Reject production of query object if authorisation fails.", () => {
   assertThrows(
-    () => parseQuery(createDocType(), null, "count", { queryPropA: "noAuth" }),
+    () =>
+      parseQuery(createDocType(), dummyUser, "count", { queryPropA: "noAuth" }),
     SengiAuthorisationFailedError,
   );
 });
@@ -125,7 +131,7 @@ Deno.test("Skip query authorisation if no authorisation method defined.", () => 
   const docType = createDocType();
   delete docType.queries?.count.authorise;
   assertEquals(
-    parseQuery(docType, null, "count", { queryPropA: "noAuth" }),
+    parseQuery(docType, dummyUser, "count", { queryPropA: "noAuth" }),
     "noAuthQuery",
   );
 });

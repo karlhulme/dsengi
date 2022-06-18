@@ -1,5 +1,5 @@
 import { DocBase } from "../doc/index.ts";
-import { DocType } from "../docType/index.ts";
+import { DocType, User } from "../docType/index.ts";
 
 /**
  * Defines the properties passed to the delete callback.
@@ -8,7 +8,6 @@ export interface DeletedDocCallbackProps<
   RequestProps,
   Doc extends DocBase,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > {
@@ -25,7 +24,7 @@ export interface DeletedDocCallbackProps<
   /**
    * The document type associated with the deleted document.
    */
-  docType: DocType<Doc, DocStoreOptions, User, Filter, Query>;
+  docType: DocType<Doc, DocStoreOptions, Filter, Query>;
 
   /**
    * Any properties passed along with the request.
@@ -38,7 +37,7 @@ export interface DeletedDocCallbackProps<
   id: string;
 
   /**
-   * The user that triggered the callback.
+   * The user that is making the request.
    */
   user: User;
 }
@@ -50,7 +49,6 @@ export type DeletedDocCallback<
   RequestProps,
   Doc extends DocBase,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > = (
@@ -58,7 +56,6 @@ export type DeletedDocCallback<
     RequestProps,
     Doc,
     DocStoreOptions,
-    User,
     Filter,
     Query
   >,

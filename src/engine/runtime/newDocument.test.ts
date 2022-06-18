@@ -120,8 +120,8 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
     doc: match.object,
     isNew: true,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -134,8 +134,8 @@ Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc ev
     doc: match.object,
     isNew: true,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -188,7 +188,7 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
 Deno.test("Fail to add a new document if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -201,7 +201,7 @@ Deno.test("Fail to add a new document if permissions insufficient.", async () =>
 Deno.test("Fail to add a new document if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.newDocument({
       ...defaultRequestProps,
       apiKey: "unknown",

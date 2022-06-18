@@ -249,9 +249,18 @@ export class SengiUnrecognisedQueryNameError extends SengiRequestError {
   }
 }
 
-export class SengiUserValidationFailedError extends SengiRequestError {
+export class SengiUserIdValidationFailedError extends SengiRequestError {
   constructor(readonly validationError: string) {
-    super(`The user object was not valid.\n${validationError}`);
+    super(`The user id was not valid.\n${validationError}`);
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+    this.validationError = validationError;
+  }
+}
+
+export class SengiUserClaimsValidationFailedError extends SengiRequestError {
+  constructor(readonly validationError: string) {
+    super(`The user claims was not valid.\n${validationError}`);
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
     this.validationError = validationError;

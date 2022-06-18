@@ -1,10 +1,12 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a function that authorises the
  * creation of a new document.
  */
-export interface DocTypeCreateAuthProps<Doc, User> {
+export interface DocTypeCreateAuthProps<Doc> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

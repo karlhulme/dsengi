@@ -143,8 +143,8 @@ Deno.test("Patching a document should invoke the onPreSaveDoc and onUpdateDoc de
     doc: match.object,
     isNew: false,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -158,8 +158,8 @@ Deno.test("Patching a document should invoke the onPreSaveDoc and onUpdateDoc de
     doc: match.object,
     isNew: false,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -254,7 +254,7 @@ Deno.test("Fail to patch document when required version is not available.", asyn
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -273,7 +273,7 @@ Deno.test("Fail to patch document if it changes between fetch and upsert.", asyn
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -291,7 +291,7 @@ Deno.test("Reject a patch to a non-existent doc.", async () => {
     fetch: async () => ({ doc: null }),
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-aaaaaaaaaaaa",
@@ -307,7 +307,7 @@ Deno.test("Reject a patch to a non-existent doc.", async () => {
 Deno.test("Reject a patch to any field that is marked as readonly.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(
+  await assertRejects(
     async () => {
       await sengi.patchDocument({
         ...defaultRequestProps,
@@ -327,7 +327,7 @@ Deno.test("Reject a patch to any field that is marked as readonly.", async () =>
 Deno.test("Reject a patch with a field value that is given an invalid type.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(
+  await assertRejects(
     async () => {
       await sengi.patchDocument({
         ...defaultRequestProps,
@@ -347,7 +347,7 @@ Deno.test("Reject a patch with a field value that is given an invalid type.", as
 Deno.test("Reject a patch that would change a system field.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(
+  await assertRejects(
     async () => {
       await sengi.patchDocument({
         ...defaultRequestProps,
@@ -367,7 +367,7 @@ Deno.test("Reject a patch that would change a system field.", async () => {
 Deno.test("Reject a patch that produces a doc that fails the docType validate function.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(
+  await assertRejects(
     async () => {
       await sengi.patchDocument({
         ...defaultRequestProps,
@@ -387,7 +387,7 @@ Deno.test("Reject a patch that produces a doc that fails the docType validate fu
 Deno.test("Fail to patch a document if permissions insufficient.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -404,7 +404,7 @@ Deno.test("Fail to patch a document if permissions insufficient.", async () => {
 Deno.test("Fail to patch a document if client api key is not recognised.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       apiKey: "unknown",
@@ -421,7 +421,7 @@ Deno.test("Fail to patch a document if client api key is not recognised.", async
 Deno.test("Fail to patch with a field that is protected by authorisation.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.patchDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",

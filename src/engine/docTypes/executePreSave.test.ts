@@ -4,8 +4,11 @@ import {
   DocRecord,
   DocType,
   SengiPreSaveFailedError,
+  User,
 } from "../../interfaces/index.ts";
 import { executePreSave } from "./executePreSave.ts";
+
+const dummyUser: User = { id: "test-0001", claims: [] };
 
 interface ExampleDoc extends DocBase {
   propA: string;
@@ -14,7 +17,6 @@ interface ExampleDoc extends DocBase {
 function createDocType() {
   const docType: DocType<
     ExampleDoc,
-    unknown,
     unknown,
     unknown,
     unknown
@@ -35,7 +37,7 @@ function createDocType() {
 
 Deno.test("Executing a valid pre-save function raises no errors.", () => {
   const doc: DocRecord = { propA: "abc" };
-  executePreSave(createDocType(), doc, null);
+  executePreSave(createDocType(), doc, dummyUser);
   assertEquals(doc, { propA: "ABC" });
 });
 
@@ -43,14 +45,14 @@ Deno.test("Executing a pre-save function on a doc type that does not define one 
   const docType = createDocType();
   delete docType.preSave;
   const doc: DocRecord = { propA: "abc" };
-  executePreSave(docType, doc, null);
+  executePreSave(docType, doc, dummyUser);
   assertEquals(doc, { propA: "abc" });
 });
 
 Deno.test("Executing a pre-save function that raises errors will be wrapped.", () => {
   const doc: DocRecord = { propA: "fail" };
   assertThrows(
-    () => executePreSave(createDocType(), doc, null),
+    () => executePreSave(createDocType(), doc, dummyUser),
     SengiPreSaveFailedError,
     "Error: fail",
   );

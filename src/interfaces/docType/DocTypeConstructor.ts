@@ -3,7 +3,7 @@ import { DocTypeConstructorImplProps } from "./DocTypeConstructorImplProps.ts";
 /**
  * Represents the constructor for a document type.
  */
-export interface DocTypeConstructor<Doc, User, Parameters> {
+export interface DocTypeConstructor<Doc, Parameters> {
   /**
    * A description of the purpose of the constructor.
    */
@@ -25,6 +25,6 @@ export interface DocTypeConstructor<Doc, User, Parameters> {
    * A function that returns a new document based on the given parameters.
    */
   implementation: (
-    props: DocTypeConstructorImplProps<User, Parameters>,
+    props: DocTypeConstructorImplProps<Parameters>,
   ) => Omit<Doc, "id" | "docType" | "docOpIds" | "docVersion">;
 }

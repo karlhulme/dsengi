@@ -30,15 +30,9 @@ export interface Car {
   engineCode?: string;
 }
 
-export interface AuthUser {
-  userId?: string;
-  username?: string;
-}
-
 export function createCarDocType(): DocType<
   Car,
   TestDocStoreOptions,
-  AuthUser,
   string,
   string
 > {
@@ -90,7 +84,7 @@ export function createCarDocType(): DocType<
           model: "T",
           registration: props.parameters,
         }),
-      } as DocTypeConstructor<Car, AuthUser, string>,
+      } as DocTypeConstructor<Car, string>,
     },
     filters: {
       byModel: {
@@ -112,7 +106,7 @@ export function createCarDocType(): DocType<
         implementation: (props) => {
           props.doc.model = props.doc.model + props.parameters;
         },
-      } as DocTypeOperation<Car, AuthUser, string>,
+      } as DocTypeOperation<Car, string>,
     },
     queries: {
       count: {
@@ -187,14 +181,12 @@ interface SengiTestObjects {
   sengi: Sengi<
     TestRequestProps,
     TestDocStoreOptions,
-    AuthUser,
     string,
     string
   >;
   sengiCtorProps: SengiConstructorProps<
     TestRequestProps,
     TestDocStoreOptions,
-    AuthUser,
     string,
     string
   >;
@@ -202,7 +194,6 @@ interface SengiTestObjects {
   carDocType: DocType<
     Car,
     TestDocStoreOptions,
-    AuthUser,
     string,
     string
   >;
@@ -224,21 +215,15 @@ export const createSengiWithMockStore = (
     docTypes: [carDocType],
     clients: [adminClient, noneClient],
     docStore,
-    validateUser: (user: any) => {
-      if (typeof user.userId !== "string") {
+    validateUserId: (userId: any) => {
+      if (typeof userId !== "string") {
         return "Field userId must be a string.";
       }
-
-      if (typeof user.username !== "string") {
-        return "Field username must be a string.";
-      }
     },
-    getIdFromUser: (authUser: AuthUser) => authUser.userId as string,
     getMillisecondsSinceEpoch: () => 1629881470000,
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     TestRequestProps,
     TestDocStoreOptions,
-    AuthUser,
     string,
     string
   >;
@@ -246,7 +231,6 @@ export const createSengiWithMockStore = (
   const sengi = new Sengi<
     TestRequestProps,
     TestDocStoreOptions,
-    AuthUser,
     string,
     string
   >(sengiCtorProps);
@@ -266,10 +250,8 @@ export const defaultRequestProps = {
   apiKey: "adminKey",
   reqProps: { foo: "bar" },
   docStoreOptions: { custom: "prop" },
-  user: {
-    userId: "user-0001",
-    username: "testUser",
-  },
+  userId: "user-0001",
+  userClaims: [],
 };
 
 Deno.test("createSengiWithMockStore creates a valid sengi object.", async () => {

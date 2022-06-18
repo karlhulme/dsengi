@@ -138,8 +138,8 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
     doc: match.object,
     isNew: false,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 
@@ -152,8 +152,8 @@ Deno.test("Operating on a document should raise callbacks.", async () => {
     doc: match.object,
     isNew: false,
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -244,7 +244,7 @@ Deno.test("Fail to operate on document when required version is not available.",
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -262,7 +262,7 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -278,7 +278,7 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
 Deno.test("Fail to operate on document using an unknown operation.", async () => {
   const { sengi } = createSengiForTest();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -295,7 +295,7 @@ Deno.test("Fail to operate on document if it does not exist.", async () => {
     fetch: async () => ({ doc: null }),
   });
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -310,7 +310,7 @@ Deno.test("Fail to operate on document if it does not exist.", async () => {
 Deno.test("Fail to invoke an operation if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -326,7 +326,7 @@ Deno.test("Fail to invoke an operation if permissions insufficient.", async () =
 Deno.test("Fail to invoke an operation if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(async () => {
+  await assertRejects(async () => {
     await sengi.operateOnDocument({
       ...defaultRequestProps,
       apiKey: "unknown",

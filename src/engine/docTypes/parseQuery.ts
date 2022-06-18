@@ -5,6 +5,7 @@ import {
   SengiQueryParseFailedError,
   SengiQueryValidateParametersFailedError,
   SengiUnrecognisedQueryNameError,
+  User,
 } from "../../interfaces/index.ts";
 import { ensureDocTypeQueryRequestAuthorised } from "./ensureDocTypeRequestAuthorised.ts";
 
@@ -18,7 +19,7 @@ import { ensureDocTypeQueryRequestAuthorised } from "./ensureDocTypeRequestAutho
  */
 export function parseQuery(
   docType: AnyDocType,
-  user: unknown,
+  user: User,
   queryName: string,
   queryParams: unknown,
 ): any {

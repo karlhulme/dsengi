@@ -6,6 +6,7 @@ import {
   SengiConstructorValidateParametersFailedError,
   SengiCtorParamsValidationFailedError,
   SengiUnrecognisedCtorNameError,
+  User,
 } from "../../interfaces/index.ts";
 
 /**
@@ -17,7 +18,7 @@ import {
  */
 export function executeConstructor(
   docType: AnyDocType,
-  user: unknown,
+  user: User,
   constructorName: string,
   constructorParams: unknown,
 ): DocRecord {

@@ -1,12 +1,13 @@
 import { DocPatch } from "../doc/index.ts";
+import { User } from "./User.ts";
 
 /**
  * Represents the properties passed to a function that authorises the
  * patching of a document.
  */
-export interface DocTypePatchAuthProps<Doc, User> {
+export interface DocTypePatchAuthProps<Doc> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

@@ -93,8 +93,8 @@ Deno.test("Select by document ids using a onPreSelectDocs delegate.", async () =
     docType: carDocType,
     fieldNames: ["id", "model"],
     user: {
-      userId: "user-0001",
-      username: "testUser",
+      id: "user-0001",
+      claims: [],
     },
   }));
 });
@@ -102,7 +102,7 @@ Deno.test("Select by document ids using a onPreSelectDocs delegate.", async () =
 Deno.test("Fail to select by document ids if permissions insufficient.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.selectDocumentsByIds({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -117,7 +117,7 @@ Deno.test("Fail to select by document ids if permissions insufficient.", async (
 Deno.test("Fail to select by document ids if client api key is not recognised.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.selectDocumentsByIds({
       ...defaultRequestProps,
       apiKey: "unknown",

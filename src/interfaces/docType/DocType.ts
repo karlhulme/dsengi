@@ -22,7 +22,6 @@ import { DocTypeReadAuthProps } from "./DocTypeReadAuthProps.ts";
 export interface DocType<
   Doc extends DocBase,
   DocStoreOptions,
-  User,
   Filter,
   Query,
 > {
@@ -60,30 +59,30 @@ export interface DocType<
   /**
    * A record of constructors that can be used to build new documents.
    */
-  constructors?: Record<string, DocTypeConstructor<Doc, User, any>>;
+  constructors?: Record<string, DocTypeConstructor<Doc, any>>;
 
   /**
    * A record of filters that can be used to extract sections of the
    * document collection.
    */
-  filters?: Record<string, DocTypeFilter<User, Filter, any>>;
+  filters?: Record<string, DocTypeFilter<Filter, any>>;
 
   /**
    * A record of operations that can be used to update a document.
    */
-  operations?: Record<string, DocTypeOperation<Doc, User, any>>;
+  operations?: Record<string, DocTypeOperation<Doc, any>>;
 
   /**
    * A record of queries that can be executed against a document collection.
    */
-  queries?: Record<string, DocTypeQuery<User, any, any, Query>>;
+  queries?: Record<string, DocTypeQuery<any, any, Query>>;
 
   /**
    * A function that can perform cleanup adjustments on a document, such as removing
    * deprecated fields or updating lastUpdated fields.
    * It operates directly on the given document.
    */
-  preSave?: (props: DocTypePreSaveProps<Doc, User>) => void;
+  preSave?: (props: DocTypePreSaveProps<Doc>) => void;
 
   /**
    * A function that returns an error message if the given doc does not contain valid field values.
@@ -112,28 +111,28 @@ export interface DocType<
    * A function that returns an authorisation error if the create request is not permitted.
    */
   authoriseCreate?: (
-    props: DocTypeCreateAuthProps<Doc, User>,
+    props: DocTypeCreateAuthProps<Doc>,
   ) => string | undefined;
 
   /**
    * A function that returns an authorisation error if the delete request is not permitted.
    */
   authoriseDelete?: (
-    props: DocTypeDeleteAuthProps<Doc, User>,
+    props: DocTypeDeleteAuthProps<Doc>,
   ) => string | undefined;
 
   /**
    * A function that returns an authorisation error if the patch request is not permitted.
    */
   authorisePatch?: (
-    props: DocTypePatchAuthProps<Doc, User>,
+    props: DocTypePatchAuthProps<Doc>,
   ) => string | undefined;
 
   /**
    * A function that returns an authorisation error if the read request is not permitted.
    */
   authoriseRead?: (
-    props: DocTypeReadAuthProps<Doc, User>,
+    props: DocTypeReadAuthProps<Doc>,
   ) => string | undefined;
 }
 

@@ -1,14 +1,16 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to an operation authorisation function.
  */
-export interface DocTypeOperationAuthProps<Doc, User, Parameters> {
+export interface DocTypeOperationAuthProps<Doc, Parameters> {
   /**
    * The document that is to be operated on.
    */
   doc: Doc;
 
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

@@ -1,9 +1,11 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a query authorisation function.
  */
-export interface DocTypeQueryAuthProps<User, Parameters> {
+export interface DocTypeQueryAuthProps<Parameters> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

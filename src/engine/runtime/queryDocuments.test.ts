@@ -38,7 +38,7 @@ Deno.test("Execute a query on a document collection.", async () => {
 Deno.test("Fail to execute query if permissions insufficient.", async () => {
   const { sengi } = createSengiForTests();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.queryDocuments({
       ...defaultRequestProps,
       apiKey: "noneKey",
@@ -50,7 +50,7 @@ Deno.test("Fail to execute query if permissions insufficient.", async () => {
 Deno.test("Fail to execute query if client api key is not recognised.", async () => {
   const { sengi } = createSengiForTests();
 
-  assertRejects(() =>
+  await assertRejects(() =>
     sengi.queryDocuments({
       ...defaultRequestProps,
       apiKey: "unknown",

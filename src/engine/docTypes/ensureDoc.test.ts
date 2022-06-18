@@ -15,7 +15,6 @@ const exampleDocType: DocType<
   ExampleDoc,
   unknown,
   unknown,
-  unknown,
   unknown
 > = {
   name: "test",

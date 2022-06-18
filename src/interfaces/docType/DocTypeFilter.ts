@@ -3,7 +3,7 @@ import { DocTypeFilterParseProps } from "./DocTypeFilterParseProps.ts";
 /**
  * Represents a filter that can be applied to a collection of documents.
  */
-export interface DocTypeFilter<User, Filter, Parameters> {
+export interface DocTypeFilter<Filter, Parameters> {
   /**
    * A description of this filter.
    */
@@ -25,5 +25,5 @@ export interface DocTypeFilter<User, Filter, Parameters> {
    * A function that builds a doc store filter based on the given parameters.
    * The Filter type is dependent upon the doc store in use.
    */
-  parse: (props: DocTypeFilterParseProps<User, Parameters>) => Filter;
+  parse: (props: DocTypeFilterParseProps<Parameters>) => Filter;
 }

@@ -10,7 +10,7 @@ import {
   defaultRequestProps,
 } from "./shared.test.ts";
 
-Deno.test("Error in onDeletedDoc callback should be wrapped.", () => {
+Deno.test("Error in onDeletedDoc callback should be wrapped.", async () => {
   const { sengi } = createSengiWithMockStore({
     fetch: async () => ({
       doc: {
@@ -25,7 +25,7 @@ Deno.test("Error in onDeletedDoc callback should be wrapped.", () => {
     },
   });
 
-  assertRejects(
+  await assertRejects(
     () =>
       sengi.deleteDocument({
         ...defaultRequestProps,
@@ -36,7 +36,7 @@ Deno.test("Error in onDeletedDoc callback should be wrapped.", () => {
   );
 });
 
-Deno.test("Error in onSavedDoc callback should be wrapped.", () => {
+Deno.test("Error in onSavedDoc callback should be wrapped.", async () => {
   const { sengi } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
@@ -47,7 +47,7 @@ Deno.test("Error in onSavedDoc callback should be wrapped.", () => {
     },
   });
 
-  assertRejects(
+  await assertRejects(
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
@@ -64,7 +64,7 @@ Deno.test("Error in onSavedDoc callback should be wrapped.", () => {
   );
 });
 
-Deno.test("Error in onPreSaveDoc callback should be wrapped.", () => {
+Deno.test("Error in onPreSaveDoc callback should be wrapped.", async () => {
   const { sengi } = createSengiWithMockStore({
     exists: async () => ({ found: false }),
   }, {
@@ -73,7 +73,7 @@ Deno.test("Error in onPreSaveDoc callback should be wrapped.", () => {
     },
   });
 
-  assertRejects(
+  await assertRejects(
     () =>
       sengi.newDocument({
         ...defaultRequestProps,
@@ -90,14 +90,14 @@ Deno.test("Error in onPreSaveDoc callback should be wrapped.", () => {
   );
 });
 
-Deno.test("Error in onPreSelectDocs callback should be wrapped.", () => {
+Deno.test("Error in onPreSelectDocs callback should be wrapped.", async () => {
   const { sengi } = createSengiWithMockStore(undefined, {
     onPreSelectDocs: () => {
       throw new Error("callback problem");
     },
   });
 
-  assertRejects(
+  await assertRejects(
     () =>
       sengi.selectDocuments({
         ...defaultRequestProps,
@@ -108,38 +108,14 @@ Deno.test("Error in onPreSelectDocs callback should be wrapped.", () => {
   );
 });
 
-Deno.test("Error in getMillisecondsSinceEpoch callback should be wrapped.", () => {
+Deno.test("Error in getMillisecondsSinceEpoch callback should be wrapped.", async () => {
   const { sengi } = createSengiWithMockStore(undefined, {
     getMillisecondsSinceEpoch: () => {
       throw new Error("callback problem");
     },
   });
 
-  assertRejects(
-    () =>
-      sengi.newDocument({
-        ...defaultRequestProps,
-        doc: {
-          id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-          manufacturer: "ford",
-          model: "ka",
-          registration: "HG12 3AB",
-        },
-        fieldNames: ["id"],
-      }),
-    SengiCallbackError,
-    "callback problem",
-  );
-});
-
-Deno.test("Error in getIdFromUser callback should be wrapped.", () => {
-  const { sengi } = createSengiWithMockStore(undefined, {
-    getIdFromUser: () => {
-      throw new Error("callback problem");
-    },
-  });
-
-  assertRejects(
+  await assertRejects(
     () =>
       sengi.newDocument({
         ...defaultRequestProps,

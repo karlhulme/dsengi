@@ -1,9 +1,11 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a constructor implementation.
  */
-export interface DocTypeConstructorImplProps<User, Parameters> {
+export interface DocTypeConstructorImplProps<Parameters> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

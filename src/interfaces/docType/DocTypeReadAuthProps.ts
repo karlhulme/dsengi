@@ -1,10 +1,12 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a function that authorises the
  * reading of a document.
  */
-export interface DocTypeReadAuthProps<Doc, User> {
+export interface DocTypeReadAuthProps<Doc> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

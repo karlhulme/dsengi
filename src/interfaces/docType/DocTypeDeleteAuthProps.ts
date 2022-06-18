@@ -1,10 +1,12 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a function that authorises the
  * deletion of a document.
  */
-export interface DocTypeDeleteAuthProps<Doc, User> {
+export interface DocTypeDeleteAuthProps<Doc> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

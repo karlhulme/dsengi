@@ -1,9 +1,11 @@
+import { User } from "./User.ts";
+
 /**
  * Represents the properties passed to a query parse function.
  */
-export interface DocTypeQueryParseProps<User, Parameters> {
+export interface DocTypeQueryParseProps<Parameters> {
   /**
-   * The user that made the request.
+   * The user making the request.
    */
   user: User;
 

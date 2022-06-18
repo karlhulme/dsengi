@@ -15,3 +15,4 @@ export * from "./DocTypeQuery.ts";
 export * from "./DocTypeQueryAuthProps.ts";
 export * from "./DocTypeQueryParseProps.ts";
 export * from "./DocTypeReadAuthProps.ts";
+export * from "./User.ts";
