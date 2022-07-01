@@ -1,4 +1,4 @@
-import { DocRecord } from "../interfaces/index.ts";
+import { DocStoreRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
@@ -11,7 +11,7 @@ export async function getDocument(
   collectionName: string,
   partition: string,
   documentId: string,
-): Promise<DocRecord | null> {
+): Promise<DocStoreRecord | null> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
     method: "GET",
@@ -49,7 +49,7 @@ export async function getDocument(
       await response.body?.cancel();
       return null;
     } else {
-      const result = await response.json() as DocRecord;
+      const result = await response.json() as DocStoreRecord;
       return result;
     }
   });

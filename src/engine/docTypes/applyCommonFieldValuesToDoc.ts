@@ -1,4 +1,4 @@
-import { DocRecord } from "../../interfaces/index.ts";
+import { DocBase } from "../../interfaces/index.ts";
 
 /**
  * Ensures the given doc has a docOpIds array and values for the audit fields
@@ -8,7 +8,7 @@ import { DocRecord } from "../../interfaces/index.ts";
  * @param userId The id of a user.
  */
 export function applyCommonFieldValuesToDoc(
-  doc: DocRecord,
+  doc: Partial<DocBase>,
   millisecondsSinceEpoch: number,
   userId: string,
 ): void {

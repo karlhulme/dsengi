@@ -9,20 +9,14 @@ import {
   replaceDocument,
 } from "../cosmosClient/index.ts";
 import {
-  DocRecord,
   DocStore,
-  DocStoreDeleteByIdProps,
   DocStoreDeleteByIdResult,
   DocStoreDeleteByIdResultCode,
-  DocStoreExistsProps,
   DocStoreExistsResult,
-  DocStoreFetchProps,
   DocStoreFetchResult,
-  DocStoreQueryProps,
   DocStoreQueryResult,
-  DocStoreSelectProps,
+  DocStoreRecord,
   DocStoreSelectResult,
-  DocStoreUpsertProps,
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
@@ -35,9 +29,20 @@ import {
 const MAX_DOCS_TO_SELECT = 200;
 
 /**
- * Represents the options that can be passed to the cosmosdb store.
+ * Defines the parameters that must be passed to the Cosmos
+ * document store.
  */
-export type CosmosDbDocStoreOptions = Record<string, unknown>;
+export type CosmosDbDocStoreParams = {
+  /**
+   * The name of a Cosmos database.
+   */
+  databaseName: string;
+
+  /**
+   * The name of a Cosmos collection.
+   */
+  collectionName: string;
+};
 
 /**
  * Represents a parameter in a Cosmos SQL statement or clause.
@@ -122,7 +127,7 @@ export interface CosmosDbDocStoreQuery {
    * the pk-range that each one supports.  This transform function then determines
    * which of the complete result set should be returned to the client.
    */
-  transform: (docs: DocRecord[]) => DocRecord[];
+  transform: (docs: DocStoreRecord[]) => DocStoreRecord[];
 }
 
 /**
@@ -132,7 +137,7 @@ export interface CosmosDbDocStoreQueryResult {
   /**
    * If populated, contains the result of an executed sql command.
    */
-  docs?: DocRecord[];
+  docs?: DocStoreRecord[];
 }
 
 /**
@@ -150,25 +155,6 @@ interface CosmosDbDocStoreConstructorProps {
    * time the store needs to communicate with Cosmos.
    */
   cosmosKey: string;
-
-  /**
-   * A function that names the database that contains documents identified by the given docTypeName or docTypePluralName.
-   */
-  getDatabaseNameFunc: (
-    docTypeName: string,
-    docTypePluralName: string,
-    options: CosmosDbDocStoreOptions,
-  ) => string;
-
-  /**
-   * A function that names the container that contains documents identified by the given docTypeName or docTypePluralName.
-   */
-  getContainerNameFunc: (
-    databaseName: string,
-    docTypeName: string,
-    docTypePluralName: string,
-    options: CosmosDbDocStoreOptions,
-  ) => string;
 }
 
 /**
@@ -176,7 +162,7 @@ interface CosmosDbDocStoreConstructorProps {
  */
 export class CosmosDbDocStore implements
   DocStore<
-    CosmosDbDocStoreOptions,
+    CosmosDbDocStoreParams,
     CosmosDbDocStoreFilter,
     CosmosDbDocStoreQuery
   > {
@@ -184,17 +170,6 @@ export class CosmosDbDocStore implements
   cosmosUrl: string;
   cosmosKey: string;
   cryptoKey: CryptoKey | null;
-  getDatabaseNameFunc: (
-    docTypeName: string,
-    docTypePluralName: string,
-    options: CosmosDbDocStoreOptions,
-  ) => string;
-  getContainerNameFunc: (
-    databaseName: string,
-    docTypeName: string,
-    docTypePluralName: string,
-    options: CosmosDbDocStoreOptions,
-  ) => string;
 
   /**
    * Returns a select query based on the given inputs.
@@ -257,15 +232,15 @@ export class CosmosDbDocStore implements
    * @param {Array} docs An array of docs.
    * @param {Array} fieldNames An array of field names.
    */
-  private buildResultDocs(docs: DocRecord[], fieldNames: string[]) {
-    const results: DocRecord[] = [];
+  private buildResultDocs(docs: DocStoreRecord[], fieldNames: string[]) {
+    const results: DocStoreRecord[] = [];
 
     for (let i = 0; i < docs.length; i++) {
-      const result: DocRecord = {};
+      const result: DocStoreRecord = {};
 
       for (const fieldName of fieldNames) {
-        if (fieldName === "docVersion") {
-          result[fieldName] = docs[i]._etag;
+        if (fieldName === "docVersion" && typeof docs[i]._etag === "string") {
+          result[fieldName] = (docs[i]._etag as string).replaceAll('"', "");
         } else {
           result[fieldName] = docs[i][fieldName];
         }
@@ -283,8 +258,11 @@ export class CosmosDbDocStore implements
    * @param doc A document.
    * @param fieldNamesToOmit An array of property keys.
    */
-  private createSubsetOfDocument(doc: DocRecord, fieldNamesToOmit: string[]) {
-    return Object.keys(doc).reduce((result: DocRecord, key: string) => {
+  private createSubsetOfDocument(
+    doc: DocStoreRecord,
+    fieldNamesToOmit: string[],
+  ) {
+    return Object.keys(doc).reduce((result: DocStoreRecord, key: string) => {
       if (!fieldNamesToOmit.includes(key)) {
         result[key] = doc[key];
       }
@@ -311,48 +289,28 @@ export class CosmosDbDocStore implements
     this.cosmosUrl = props.cosmosUrl;
     this.cosmosKey = props.cosmosKey;
     this.cryptoKey = null;
-    this.getDatabaseNameFunc = props.getDatabaseNameFunc;
-    this.getContainerNameFunc = props.getContainerNameFunc;
   }
 
   /**
    * Delete a single document from the store using it's id.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async deleteById(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
     id: string,
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreDeleteByIdProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreDeleteByIdResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     await this.ensureCryptoKey();
 
     const didDelete = await deleteDocument(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       id,
     );
@@ -366,42 +324,24 @@ export class CosmosDbDocStore implements
 
   /**
    * Determines if a document with the given id is in the datastore.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async exists(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
     id: string,
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreExistsProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreExistsResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     await this.ensureCryptoKey();
 
     const docs = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       "SELECT VALUE COUNT(1) FROM Docs d WHERE d.partitionKey = @partitionKey AND d.id = @id",
       [
@@ -423,43 +363,25 @@ export class CosmosDbDocStore implements
    * document will be fetched via id, otherwise a cross-partition
    * query will be used.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async fetch(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreFetchProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreFetchResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     await this.ensureCryptoKey();
 
-    let rawDoc: DocRecord | null = null;
+    let rawDoc: DocStoreRecord | null = null;
 
     rawDoc = await getDocument(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       id,
     );
@@ -476,41 +398,23 @@ export class CosmosDbDocStore implements
 
   /**
    * Execute a query against the document store.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param query A query to execute that should include a clause for =
    * a specific partition.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async query(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     query: CosmosDbDocStoreQuery,
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreQueryProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreQueryResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     await this.ensureCryptoKey();
 
     const docs = await queryDocumentsContainersDirect(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       query.queryStatement,
       query.parameters,
       {
@@ -523,35 +427,17 @@ export class CosmosDbDocStore implements
 
   /**
    * Select all documents of a specified type.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
     fieldNames: string[],
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreSelectProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     const queryCmd = this.buildSelectCommand(
       fieldNames,
     );
@@ -561,8 +447,8 @@ export class CosmosDbDocStore implements
     const docs = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       queryCmd,
       [
@@ -575,38 +461,20 @@ export class CosmosDbDocStore implements
 
   /**
    * Select documents of a specified type that also match a filter.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async selectByFilter(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
     fieldNames: string[],
     filter: CosmosDbDocStoreFilter,
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreSelectProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     const queryCmd = this.buildSelectCommand(
       fieldNames,
       filter.whereClause,
@@ -619,8 +487,8 @@ export class CosmosDbDocStore implements
     const docs = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       queryCmd,
       [
@@ -634,37 +502,19 @@ export class CosmosDbDocStore implements
 
   /**
    * Select documents of a specified type that also have one of the given ids.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param _props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async selectByIds(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
     fieldNames: string[],
     ids: string[],
-    options: CosmosDbDocStoreOptions,
-    _props: DocStoreSelectProps,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
 
     const queryCmd = this.buildSelectCommand(
@@ -677,8 +527,8 @@ export class CosmosDbDocStore implements
     const docs = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
-      databaseName,
-      containerName,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
       partition,
       queryCmd,
       [
@@ -691,21 +541,17 @@ export class CosmosDbDocStore implements
 
   /**
    * Store a single document in the store, overwriting an existing if necessary.
-   * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param doc The document to store.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The parameters for the document store.
    */
   async upsert(
-    docTypeName: string,
-    docTypePluralName: string,
+    _docTypeName: string,
     partition: string,
-    doc: DocRecord,
-    options: CosmosDbDocStoreOptions,
-    props: DocStoreUpsertProps,
+    doc: DocStoreRecord,
+    reqVersion: string | null,
+    docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreUpsertResult> {
     const cleanDoc = this.createSubsetOfDocument(doc, [
       "docVersion",
@@ -714,31 +560,18 @@ export class CosmosDbDocStore implements
       "_ts",
     ]);
 
-    const databaseName = this.getDatabaseNameFunc(
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
-    const containerName = this.getContainerNameFunc(
-      databaseName,
-      docTypeName,
-      docTypePluralName,
-      options,
-    );
-
     await this.ensureCryptoKey();
 
-    if (props.reqVersion) {
+    if (reqVersion) {
       const didReplace = await replaceDocument(
         this.cryptoKey as CryptoKey,
         this.cosmosUrl,
-        databaseName,
-        containerName,
+        docStoreParams.databaseName,
+        docStoreParams.collectionName,
         partition,
         cleanDoc,
         {
-          ifMatch: props.reqVersion,
+          ifMatch: reqVersion,
         },
       );
 
@@ -751,8 +584,8 @@ export class CosmosDbDocStore implements
       const didCreate = await createDocument(
         this.cryptoKey as CryptoKey,
         this.cosmosUrl,
-        databaseName,
-        containerName,
+        docStoreParams.databaseName,
+        docStoreParams.collectionName,
         partition,
         cleanDoc,
         {

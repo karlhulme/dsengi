@@ -1,67 +1,55 @@
 import {
-  AnyDocType,
-  DocRecord,
+  DocBase,
   SengiConstructorFailedError,
   SengiConstructorNonObjectResponseError,
   SengiConstructorValidateParametersFailedError,
   SengiCtorParamsValidationFailedError,
-  SengiUnrecognisedCtorNameError,
-  User,
 } from "../../interfaces/index.ts";
 
 /**
- * Execute a constructor to produce a new document.
- * @param docType A document type.
- * @param user A user object.
- * @param constructorName The name of a constructor.
- * @param constructorParams A set of constructor params.
+ * Returns a document constructed using the given constructor and params.
+ * @param docTypeName The name of the document type.
+ * @param validateParams A function for validating the parameters.
+ * @param implementation The implementation of the constructor that returns a new document.
+ * @param constructorParams The parameters to be passed to the constructor.
+ * @param userId The id of the user making the request.
  */
-export function executeConstructor(
-  docType: AnyDocType,
-  user: User,
-  constructorName: string,
-  constructorParams: unknown,
-): DocRecord {
-  const ctor = docType.constructors?.[constructorName];
+export function executeConstructor<Doc extends DocBase, ConstructorParams>(
+  docTypeName: string,
+  validateParams: (params: unknown) => string | void,
+  implementation: (params: ConstructorParams, userId: string) => Partial<Doc>,
+  constructorParams: ConstructorParams,
+  userId: string,
+): Partial<Doc> {
+  let validationErrorMessage;
 
-  if (typeof ctor !== "object") {
-    throw new SengiUnrecognisedCtorNameError(docType.name, constructorName);
+  try {
+    validationErrorMessage = validateParams(constructorParams);
+  } catch (err) {
+    throw new SengiConstructorValidateParametersFailedError(
+      docTypeName,
+      err,
+    );
   }
 
-  if (typeof ctor.validateParameters === "function") {
-    let validationErrorMessage;
-
-    try {
-      validationErrorMessage = ctor.validateParameters(constructorParams);
-    } catch (err) {
-      throw new SengiConstructorValidateParametersFailedError(
-        docType.name,
-        constructorName,
-        err,
-      );
-    }
-
-    if (validationErrorMessage) {
-      throw new SengiCtorParamsValidationFailedError(
-        docType.name,
-        constructorName,
-        validationErrorMessage,
-      );
-    }
+  if (validationErrorMessage) {
+    throw new SengiCtorParamsValidationFailedError(
+      docTypeName,
+      validationErrorMessage,
+    );
   }
 
   let result;
 
   try {
-    result = ctor.implementation({ user, parameters: constructorParams });
+    result = implementation(constructorParams, userId);
   } catch (err) {
-    throw new SengiConstructorFailedError(docType.name, constructorName, err);
+    throw new SengiConstructorFailedError(docTypeName, err);
   }
 
   if (typeof result !== "object" || result === null || Array.isArray(result)) {
     throw new SengiConstructorNonObjectResponseError(
-      docType.name,
-      constructorName,
+      docTypeName,
     );
   }
 

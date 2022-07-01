@@ -1,5 +1,5 @@
 import {
-  AnyDocType,
+  DocType,
   SengiActionForbiddenByPolicyError,
 } from "../../interfaces/index.ts";
 
@@ -8,7 +8,7 @@ import {
  * the entire collection to be fetched in one go.
  * @param docType A document type.
  */
-export function ensureCanFetchWholeCollection(docType: AnyDocType): void {
+export function ensureCanFetchWholeCollection(docType: DocType): void {
   if (docType.policy?.canFetchWholeCollection !== true) {
     throw new SengiActionForbiddenByPolicyError(
       docType.name,

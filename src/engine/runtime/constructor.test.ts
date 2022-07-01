@@ -1,41 +1,45 @@
-import { assertEquals, assertThrows } from "../../../deps.ts";
+import { assertThrows } from "../../../deps.ts";
 import { Sengi } from "./Sengi.ts";
-import { createMockStore } from "./shared.test.ts";
+import { Car, createMockStore } from "./shared.test.ts";
 
-Deno.test("Fail to create a Sengi if a doc store is not provided.", () => {
-  assertThrows(() => new Sengi({}), Error, "Must supply a docStore.");
+Deno.test("Fail to create a Sengi if no parameters are provided, because we need a docstore.", () => {
+  assertThrows(
+    () => new Sengi(),
+    Error,
+    "Must supply a docStore.",
+  );
 });
 
-Deno.test("Create a sengi with a client that uses environment variable based api keys.", () => {
-  Deno.env.set("ADMIN_PRIMARY_KEY", "aaaa");
-  Deno.env.set("ADMIN_SECONDARY_KEY", "bbbb");
-
-  const sengi = new Sengi({
-    clients: [{
-      name: "admin",
-      docPermissions: true,
-      apiKeys: ["$ADMIN_PRIMARY_KEY", "$ADMIN_SECONDARY_KEY"],
-    }],
-    docStore: createMockStore(),
-  });
-
-  assertEquals(sengi.getApiKeysLoadedFromEnvCount(), 2);
-  assertEquals(sengi.getApiKeysNotFoundInEnvCount(), 0);
+Deno.test("Fail to create a Sengi if no doc store is provided.", () => {
+  assertThrows(
+    () => new Sengi({}),
+    Error,
+    "Must supply a docStore.",
+  );
 });
 
-Deno.test("Create a sengi with a client that uses environment variable based api keys that do not exist.", () => {
+Deno.test("Create a Sengi using a mock doc store and the default functions which are then invoked as a result of creating a doc.", async () => {
   const sengi = new Sengi({
-    clients: [{
-      name: "admin",
-      docPermissions: true,
-      apiKeys: [
-        "$ADMIN_NON_EXISTENT_PRIMARY_KEY",
-        "$ADMIN_NON_EXISTENT_SECONDARY_KEY",
-      ],
-    }],
     docStore: createMockStore(),
+    docTypes: [{
+      name: "car",
+      readOnlyFieldNames: [],
+      validateDoc: () => {},
+      validateFields: () => {},
+      validatePatch: () => {},
+    }],
   });
 
-  assertEquals(sengi.getApiKeysLoadedFromEnvCount(), 0);
-  assertEquals(sengi.getApiKeysNotFoundInEnvCount(), 2);
+  await sengi.newDocument<Car>({
+    docTypeName: "car",
+    doc: {
+      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+      manufacturer: "Ford",
+      model: "ka",
+    },
+    docStoreParams: { custom: "props" },
+    fieldNames: ["id"],
+    partition: "_central",
+    userId: "me",
+  });
 });

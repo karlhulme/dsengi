@@ -11,12 +11,10 @@ import {
   DocStoreUpsertResultCode,
   SengiConflictOnSaveError,
   SengiDocNotFoundError,
-  SengiInsufficientPermissionsError,
   SengiRequiredVersionNotAvailableError,
-  SengiUnrecognisedApiKeyError,
-  SengiUnrecognisedOperationNameError,
 } from "../../interfaces/index.ts";
 import {
+  Car,
   createSengiWithMockStore,
   defaultRequestProps,
 } from "./shared.test.ts";
@@ -42,6 +40,10 @@ const createSengiForTest = (
   }, sengiCtorOverrides);
 };
 
+function defaultImplementation(doc: Car, params: number) {
+  doc.model = doc.model + params.toString();
+}
+
 Deno.test("Operate on document should call fetch and upsert on doc store while retaining existing properties.", async () => {
   const { sengi, docStore } = createSengiForTest();
 
@@ -66,11 +68,12 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   };
 
   assertEquals(
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
       fieldNames: ["id"],
     }),
@@ -85,77 +88,20 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
     "car",
-    "cars",
     "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
-    {},
   ));
 
   assertEquals(spyUpsert.callCount, 1);
+
   assert(spyUpsert.calledWith(
     "car",
-    "cars",
     "_central",
     resultDoc,
+    null,
     { custom: "prop" },
-    { reqVersion: "aaaa" },
   ));
-});
-
-Deno.test("Operating on a document should raise callbacks.", async () => {
-  const onPreSaveDoc = spy((..._args: unknown[]) => {});
-  const onSavedDoc = spy((..._args: unknown[]) => {});
-
-  const { sengi, carDocType } = createSengiForTest(undefined, {
-    onPreSaveDoc,
-    onSavedDoc,
-  });
-
-  assertEquals(
-    await sengi.operateOnDocument({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
-      operationParams: 2,
-      fieldNames: ["id"],
-    }),
-    {
-      isUpdated: true,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
-    },
-  );
-
-  assertEquals(onPreSaveDoc.callCount, 1);
-  assert(onPreSaveDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: false,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-
-  assertEquals(onSavedDoc.callCount, 1);
-  assert(onSavedDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: false,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
 });
 
 Deno.test("Operating on a document with a recognised operation id should only call fetch on doc store.", async () => {
@@ -165,11 +111,12 @@ Deno.test("Operating on a document with a recognised operation id should only ca
   const spyUpsert = spy(docStore, "upsert");
 
   assertEquals(
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
       fieldNames: ["id"],
     }),
@@ -184,11 +131,9 @@ Deno.test("Operating on a document with a recognised operation id should only ca
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
     "car",
-    "cars",
     "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
-    {},
   ));
 
   assertEquals(spyUpsert.callCount, 0);
@@ -201,11 +146,12 @@ Deno.test("Operating on a document using a required version should cause require
   const spyUpsert = spy(docStore, "upsert");
 
   assertEquals(
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
       reqVersion: "aaaa",
       fieldNames: ["id"],
@@ -221,21 +167,18 @@ Deno.test("Operating on a document using a required version should cause require
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
     "car",
-    "cars",
     "_central",
     "06151119-065a-4691-a7c8-2d84ec746ba9",
     { custom: "prop" },
-    {},
   ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
     "car",
-    "cars",
     "_central",
     match.object,
+    "aaaa",
     { custom: "prop" },
-    { reqVersion: "aaaa" },
   ));
 });
 
@@ -245,13 +188,14 @@ Deno.test("Fail to operate on document when required version is not available.",
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
-      reqVersion: "bbbb", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then versionNotAvailable error is raised
+      reqVersion: "bbbb", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then VersionNotAvailable error is raised
       fieldNames: ["id"],
     });
   }, SengiRequiredVersionNotAvailableError);
@@ -263,31 +207,17 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
       fieldNames: ["id"],
       // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is NOT specified then conflictOnSave error is raised
     });
   }, SengiConflictOnSaveError);
-});
-
-Deno.test("Fail to operate on document using an unknown operation.", async () => {
-  const { sengi } = createSengiForTest();
-
-  await assertRejects(async () => {
-    await sengi.operateOnDocument({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "a2c9bec0-ab03-4ded-bce6-d8a91f71e1d4",
-      operationName: "unknownOperation",
-      operationParams: {},
-      fieldNames: ["id"],
-    });
-  }, SengiUnrecognisedOperationNameError);
 });
 
 Deno.test("Fail to operate on document if it does not exist.", async () => {
@@ -296,45 +226,14 @@ Deno.test("Fail to operate on document if it does not exist.", async () => {
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument({
+    await sengi.operateOnDocument<Car, number>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       operationParams: 2,
       fieldNames: ["id"],
     });
   }, SengiDocNotFoundError);
-});
-
-Deno.test("Fail to invoke an operation if permissions insufficient.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.operateOnDocument({
-      ...defaultRequestProps,
-      apiKey: "noneKey",
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
-      operationParams: 2,
-      fieldNames: ["id"],
-    });
-  }, SengiInsufficientPermissionsError);
-});
-
-Deno.test("Fail to invoke an operation if client api key is not recognised.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.operateOnDocument({
-      ...defaultRequestProps,
-      apiKey: "unknown",
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      operationName: "upgradeModel",
-      operationParams: 2,
-      fieldNames: ["id"],
-    });
-  }, SengiUnrecognisedApiKeyError);
 });

@@ -1,5 +1,5 @@
 import {
-  AnyDocType,
+  DocType,
   SengiActionForbiddenByPolicyError,
 } from "../../interfaces/index.ts";
 
@@ -8,7 +8,7 @@ import {
  * a document to be replaced.
  * @param docType A document type.
  */
-export function ensureCanReplaceDocuments(docType: AnyDocType): void {
+export function ensureCanReplaceDocuments(docType: DocType): void {
   if (docType.policy?.canReplaceDocuments !== true) {
     throw new SengiActionForbiddenByPolicyError(
       docType.name,

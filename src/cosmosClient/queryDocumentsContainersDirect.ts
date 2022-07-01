@@ -1,4 +1,4 @@
-import { DocRecord } from "../interfaces/index.ts";
+import { DocStoreRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
@@ -15,7 +15,7 @@ interface QueryDocumentsDirectOptions {
    * first for the applicable pkranges and then queried again for the results
    * from each container.
    */
-  transform: (docs: DocRecord[]) => DocRecord[];
+  transform: (docs: DocStoreRecord[]) => DocStoreRecord[];
 }
 
 interface CosmosQueryParameter {
@@ -38,7 +38,7 @@ export async function queryDocumentsContainersDirect(
   query: string,
   parameters: CosmosQueryParameter[],
   options: QueryDocumentsDirectOptions,
-): Promise<DocRecord[]> {
+): Promise<DocStoreRecord[]> {
   // Retrieve the pk ranges for the collection.  This can change at
   // any time so we perform this lookup on each query.
   // There is potential performance uplift by only doing this once
@@ -151,7 +151,7 @@ async function getDocumentsForPkRange(
     resourceLink: `dbs/${databaseName}/colls/${collectionName}`,
   });
 
-  const records: DocRecord[] = [];
+  const records: DocStoreRecord[] = [];
 
   let continuationToken: string | null = null;
   let isAllRecordsLoaded = false;

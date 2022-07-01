@@ -1,9 +1,16 @@
 import { assertEquals } from "../../../deps.ts";
-import { DocRecord } from "../../interfaces/index.ts";
+import { DocBase } from "../../interfaces/index.ts";
 import { isOpIdInDocument } from "./isOpIdInDocument.ts";
 
-const doc: DocRecord = {
+const doc: DocBase = {
+  id: "123",
+  docType: "test",
   docOpIds: ["aaa", "bbb"],
+  docVersion: "1234",
+  docCreatedMillisecondsSinceEpoch: 1234,
+  docCreatedByUserId: "anon",
+  docLastUpdatedMillisecondsSinceEpoch: 1234,
+  docLastUpdatedByUserId: "anon",
 };
 
 Deno.test("Recognise existing op ids on a document.", () => {

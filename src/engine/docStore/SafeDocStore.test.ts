@@ -38,26 +38,26 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   const docStore = createTestDocStore();
   const safeDocStore = new SafeDocStore(docStore);
 
-  assertEquals(await safeDocStore.deleteById("", "", "", "", {}, {}), {
+  assertEquals(await safeDocStore.deleteById("", "", "", {}), {
     code: DocStoreDeleteByIdResultCode.DELETED,
   });
-  assertEquals(await safeDocStore.exists("", "", "", "", {}, {}), {
+  assertEquals(await safeDocStore.exists("", "", "", {}), {
     found: true,
   });
-  assertEquals(await safeDocStore.fetch("", "", "", "", {}, {}), {
+  assertEquals(await safeDocStore.fetch("", "", "", {}), {
     doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
   });
-  assertEquals(await safeDocStore.query("", "", "", {}, {}), { data: null });
-  assertEquals(await safeDocStore.selectAll("", "", "", [], {}, {}), {
+  assertEquals(await safeDocStore.query("", "", {}), { data: null });
+  assertEquals(await safeDocStore.selectAll("", "", [], {}), {
     docs: [],
   });
-  assertEquals(await safeDocStore.selectByFilter("", "", "", [], {}, {}, {}), {
+  assertEquals(await safeDocStore.selectByFilter("", "", [], {}, {}), {
     docs: [],
   });
-  assertEquals(await safeDocStore.selectByIds("", "", "", [], [], {}, {}), {
+  assertEquals(await safeDocStore.selectByIds("", "", [], [], {}), {
     docs: [],
   });
-  assertEquals(await safeDocStore.upsert("", "", "", {}, {}, {}), {
+  assertEquals(await safeDocStore.upsert("", "", {}, null, {}), {
     code: DocStoreUpsertResultCode.CREATED,
   });
 });
@@ -128,35 +128,35 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
   const safeDocStore = new SafeDocStore(docStore);
 
   await assertRejects(
-    () => safeDocStore.deleteById("", "", "", "", {}, {}),
+    () => safeDocStore.deleteById("", "", "", {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.exists("", "", "", "", {}, {}),
+    () => safeDocStore.exists("", "", "", {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.fetch("", "", "", "", {}, {}),
+    () => safeDocStore.fetch("", "", "", {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.query("", "", "", {}, {}),
+    () => safeDocStore.query("", "", {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.selectAll("", "", "", [], {}, {}),
+    () => safeDocStore.selectAll("", "", [], {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.selectByFilter("", "", "", [], {}, {}, {}),
+    () => safeDocStore.selectByFilter("", "", [], {}, {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.selectByIds("", "", "", [], [], {}, {}),
+    () => safeDocStore.selectByIds("", "", [], [], {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.upsert("", "", "", {}, {}, {}),
+    () => safeDocStore.upsert("", "", {}, null, {}),
     UnexpectedDocStoreError,
   );
 });

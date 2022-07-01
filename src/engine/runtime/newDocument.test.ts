@@ -1,23 +1,16 @@
 // deno-lint-ignore-file require-await
-import {
-  assert,
-  assertEquals,
-  assertRejects,
-  match,
-  spy,
-} from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiDocValidationFailedError,
-  SengiInsufficientPermissionsError,
-  SengiUnrecognisedApiKeyError,
 } from "../../interfaces/index.ts";
 import {
+  Car,
   createSengiWithMockStore,
   defaultRequestProps,
 } from "./shared.test.ts";
 
-const newCar = {
+const newCar: Partial<Car> = {
   id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
   manufacturer: "ford",
   model: "ka",
@@ -66,78 +59,19 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
     "car",
-    "cars",
     "_central",
     "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     { custom: "prop" },
-    {},
   ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
     "car",
-    "cars",
     "_central",
     resultDoc,
+    null,
     { custom: "prop" },
-    {},
   ));
-});
-
-Deno.test("Adding a new document should cause the onPreSaveDoc and onSavedDoc events to be invoked.", async () => {
-  const onPreSaveDoc = spy((..._args: unknown[]) => {});
-  const onSavedDoc = spy((..._args: unknown[]) => {});
-
-  const { sengi, carDocType } = createSengiWithMockStore({
-    fetch: async () => ({ doc: null }),
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  }, {
-    onPreSaveDoc,
-    onSavedDoc,
-  });
-
-  assertEquals(
-    await sengi.newDocument({
-      ...defaultRequestProps,
-      docTypeName: "car",
-      doc: newCar,
-      fieldNames: ["id"],
-    }),
-    {
-      isNew: true,
-      doc: {
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      },
-    },
-  );
-
-  assertEquals(onPreSaveDoc.callCount, 1);
-  assert(onPreSaveDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: true,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-
-  assertEquals(onSavedDoc.callCount, 1);
-  assert(onSavedDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: true,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
 });
 
 Deno.test("Adding a new document that already exists should not lead to a call to upsert.", async () => {
@@ -183,30 +117,4 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
       fieldNames: ["id"],
     });
   }, SengiDocValidationFailedError);
-});
-
-Deno.test("Fail to add a new document if permissions insufficient.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.newDocument({
-      ...defaultRequestProps,
-      apiKey: "noneKey",
-      doc: newCar,
-      fieldNames: ["id"],
-    });
-  }, SengiInsufficientPermissionsError);
-});
-
-Deno.test("Fail to add a new document if client api key is not recognised.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.newDocument({
-      ...defaultRequestProps,
-      apiKey: "unknown",
-      doc: newCar,
-      fieldNames: ["id"],
-    });
-  }, SengiUnrecognisedApiKeyError);
 });

@@ -1,29 +1,46 @@
 /**
- * Defines the system fields that are common to all documents
- * that can be sent to or returned from a document store.  All properties are
- * optional because they are populated at different points
- * in the creation and save process.  All the properties will
- * be populated in a retrieved document if all properties
- * are requested.
+ * Defines the system fields that are common to all documents.
  */
 export interface DocBase {
   /**
    * The id of the document.
    */
-  id?: string;
+  id: string;
 
   /**
    * The document type.
    */
-  docType?: string;
+  docType: string;
 
   /**
    * The version of the document
    */
-  docVersion?: string;
+  docVersion: string;
 
   /**
    * An array of operation ids that have been applied to this document.
    */
-  docOpIds?: string[];
+  docOpIds: string[];
+
+  /**
+   * The number of milliseconds that have elapsed between the unix epoch
+   * and the document being created.
+   */
+  docCreatedMillisecondsSinceEpoch: number;
+
+  /**
+   * The id of the user that created the document.
+   */
+  docCreatedByUserId: string;
+
+  /**
+   * The number of milliseconds that have elapsed between the unix epoch
+   * and the document being last updated.
+   */
+  docLastUpdatedMillisecondsSinceEpoch: number;
+
+  /**
+   * The id of the user that last updated the document.
+   */
+  docLastUpdatedByUserId: string;
 }

@@ -1,4 +1,4 @@
-import { DocRecord } from "../interfaces/index.ts";
+import { DocStoreRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
@@ -24,7 +24,7 @@ export async function queryDocumentsGateway(
   partition: string,
   query: string,
   parameters: CosmosQueryParameter[],
-): Promise<DocRecord[]> {
+): Promise<DocStoreRecord[]> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
     method: "POST",
@@ -32,7 +32,7 @@ export async function queryDocumentsGateway(
     resourceLink: `dbs/${databaseName}/colls/${collectionName}`,
   });
 
-  const records: DocRecord[] = [];
+  const records: DocStoreRecord[] = [];
 
   let continuationToken: string | null = null;
   let isAllRecordsLoaded = false;

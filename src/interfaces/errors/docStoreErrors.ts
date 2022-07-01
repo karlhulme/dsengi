@@ -12,7 +12,6 @@ export class MissingDocStoreFunctionError extends SengiDocStoreError {
     super(`Doc store does not provide '${functionName}' function.`);
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
-    this.functionName = functionName;
   }
 }
 
@@ -32,7 +31,5 @@ export class UnexpectedDocStoreError extends SengiDocStoreError {
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
-    this.functionName = functionName;
-    this.innerErr = innerErr;
   }
 }

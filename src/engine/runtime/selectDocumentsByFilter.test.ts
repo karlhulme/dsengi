@@ -1,22 +1,19 @@
 // deno-lint-ignore-file require-await
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
-  assert,
-  assertEquals,
-  assertExists,
-  assertRejects,
-  spy,
-} from "../../../deps.ts";
-import {
-  SengiInsufficientPermissionsError,
-  SengiUnrecognisedApiKeyError,
-  SengiUnrecognisedFilterNameError,
+  SengiFilterParamsValidationFailedError,
 } from "../../interfaces/index.ts";
 import {
+  Car,
   createSengiWithMockStore,
   defaultRequestProps,
 } from "./shared.test.ts";
 
-Deno.test("Select by document filter.", async () => {
+function defaultImplementation(params: string) {
+  return `MODEL=${params}`;
+}
+
+Deno.test("Select documents using a filter.", async () => {
   const { sengi, docStore } = createSengiWithMockStore({
     selectByFilter: async () => ({
       docs: [{
@@ -31,10 +28,11 @@ Deno.test("Select by document filter.", async () => {
   const spySelectByFilter = spy(docStore, "selectByFilter");
 
   assertEquals(
-    await sengi.selectDocumentsByFilter({
+    await sengi.selectDocumentsByFilter<Car, string>({
       ...defaultRequestProps,
       fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
-      filterName: "byModel",
+      validateParams: () => {},
+      implementation: defaultImplementation,
       filterParams: "ka",
     }),
     {
@@ -52,19 +50,15 @@ Deno.test("Select by document filter.", async () => {
   assertEquals(spySelectByFilter.callCount, 1);
   assert(spySelectByFilter.calledWith(
     "car",
-    "cars",
     "_central",
     ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },
-    {},
   ));
 });
 
-Deno.test("Select by document filter with onPreSelectDocs delegate.", async () => {
-  const onPreSelectDocs = spy((..._args: unknown[]) => {});
-
-  const { carDocType, sengi, docStore } = createSengiWithMockStore({
+Deno.test("Fail to select documents if filter parameters are invalid.", async () => {
+  const { sengi } = createSengiWithMockStore({
     selectByFilter: async () => ({
       docs: [{
         id: "06151119-065a-4691-a7c8-2d84ec746ba9",
@@ -73,80 +67,16 @@ Deno.test("Select by document filter with onPreSelectDocs delegate.", async () =
         registration: "HG12 3AB",
       }],
     }),
-  }, {
-    onPreSelectDocs,
   });
 
-  const spySelectByFilter = spy(docStore, "selectByFilter");
-
-  assertExists(
-    await sengi.selectDocumentsByFilter({
-      ...defaultRequestProps,
-      fieldNames: ["id", "model"],
-      filterName: "byModel",
-      filterParams: "ka",
-    }),
-  );
-
-  assertEquals(spySelectByFilter.callCount, 1);
-  assert(spySelectByFilter.calledWith(
-    "car",
-    "cars",
-    "_central",
-    ["id", "model"],
-    "MODEL=ka",
-    { custom: "prop" },
-    {},
-  ));
-
-  assertEquals(onPreSelectDocs.callCount, 1);
-  assert(onPreSelectDocs.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    fieldNames: ["id", "model"],
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-});
-
-Deno.test("Fail to select by document filter if filter name not recognised.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
   await assertRejects(() =>
-    sengi.selectDocumentsByFilter({
+    sengi.selectDocumentsByFilter<Car, string>({
       ...defaultRequestProps,
-      fieldNames: ["id"],
-      filterName: "byInvalid",
-      filterParams: {},
-    }), SengiUnrecognisedFilterNameError);
-});
-
-Deno.test("Fail to select by document filter if permissions insufficient.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(() =>
-    sengi.selectDocumentsByFilter({
-      ...defaultRequestProps,
-      apiKey: "noneKey",
-      fieldNames: ["id"],
-      filterName: "byModel",
+      fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
+      validateParams: () => {
+        return "invalid params";
+      },
+      implementation: defaultImplementation,
       filterParams: "ka",
-    }), SengiInsufficientPermissionsError);
-});
-
-Deno.test("Fail to select by document filter if client api key is not recognised.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(() =>
-    sengi.selectDocumentsByFilter({
-      ...defaultRequestProps,
-      apiKey: "unknown",
-      fieldNames: ["id"],
-      filterName: "byModel",
-      filterParams: "ka",
-    }), SengiUnrecognisedApiKeyError);
+    }), SengiFilterParamsValidationFailedError);
 });

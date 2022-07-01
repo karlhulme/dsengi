@@ -1,14 +1,17 @@
 import { assertThrows } from "../../../deps.ts";
 import {
-  AnyDocType,
+  DocType,
   SengiActionForbiddenByPolicyError,
 } from "../../interfaces/index.ts";
 import { ensureCanDeleteDocuments } from "./ensureCanDeleteDocuments.ts";
 
 Deno.test("Remain silent if policy allows delete action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canDeleteDocuments: true,
     },
@@ -18,9 +21,12 @@ Deno.test("Remain silent if policy allows delete action.", () => {
 });
 
 Deno.test("Raise error if policy disallows delete action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canDeleteDocuments: false,
     },
@@ -34,9 +40,12 @@ Deno.test("Raise error if policy disallows delete action.", () => {
 });
 
 Deno.test("Raise error if policy not specified for delete action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
   };
 
   assertThrows(

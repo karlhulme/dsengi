@@ -1,14 +1,17 @@
 import { assertThrows } from "../../../deps.ts";
 import {
-  AnyDocType,
+  DocType,
   SengiActionForbiddenByPolicyError,
 } from "../../interfaces/index.ts";
 import { ensureCanFetchWholeCollection } from "./ensureCanFetchWholeCollection.ts";
 
 Deno.test("Remain silent if policy allows fetch whole collection action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canFetchWholeCollection: true,
     },
@@ -18,9 +21,12 @@ Deno.test("Remain silent if policy allows fetch whole collection action.", () =>
 });
 
 Deno.test("Raise error if policy disallows fetch whole collection action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canFetchWholeCollection: false,
     },
@@ -34,9 +40,12 @@ Deno.test("Raise error if policy disallows fetch whole collection action.", () =
 });
 
 Deno.test("Raise error if policy not specified for fetch whole collection action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
   };
 
   assertThrows(

@@ -1,4 +1,4 @@
-import { DocRecord } from "../doc/index.ts";
+import { DocStoreRecord } from "./DocStoreRecord.ts";
 
 /**
  * The result of fetching a document from a document store.
@@ -7,5 +7,5 @@ export interface DocStoreFetchResult {
   /**
    * The retrieved document.
    */
-  doc: DocRecord | null;
+  doc: DocStoreRecord | null;
 }

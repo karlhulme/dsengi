@@ -1,31 +1,26 @@
 // deno-lint-ignore-file require-await
-import {
-  assert,
-  assertEquals,
-  assertRejects,
-  match,
-  spy,
-} from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiActionForbiddenByPolicyError,
   SengiDocValidationFailedError,
-  SengiInsufficientPermissionsError,
-  SengiUnrecognisedApiKeyError,
 } from "../../interfaces/index.ts";
 import {
+  Car,
   createSengiWithMockStore,
   defaultRequestProps,
 } from "./shared.test.ts";
 
-const createNewDocument = () => ({
-  id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-  docType: "car",
-  docOpIds: [],
-  manufacturer: "ford",
-  model: "ka",
-  registration: "HG12 3AB",
-});
+function createNewDocument(): Partial<Car> {
+  return {
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    docType: "car",
+    docOpIds: [],
+    manufacturer: "ford",
+    model: "ka",
+    registration: "HG12 3AB",
+  };
+}
 
 Deno.test("Replacing a document should call upsert on the doc store.", async () => {
   const { sengi, docStore } = createSengiWithMockStore({
@@ -48,10 +43,10 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
   };
 
   assertEquals(
-    await sengi.replaceDocument({
+    await sengi.replaceDocument<Car>({
       ...defaultRequestProps,
       docTypeName: "car",
-      doc: createNewDocument(),
+      doc: createNewDocument() as Car,
       fieldNames: ["id"],
     }),
     {
@@ -66,194 +61,39 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
 
   assert(spyUpsert.calledWith(
     "car",
-    "cars",
     "_central",
     resultDoc,
+    null,
     { custom: "prop" },
-    {},
-  ));
-});
-
-Deno.test("Replacing a document should raise the onPreSaveDoc and onSavedDoc delegates.", async () => {
-  const onPreSaveDoc = spy((..._args: unknown[]) => {});
-  const onSavedDoc = spy((..._args: unknown[]) => {});
-
-  const { sengi, carDocType } = createSengiWithMockStore({
-    upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    onPreSaveDoc,
-    onSavedDoc,
-  });
-
-  assertEquals(
-    await sengi.replaceDocument({
-      ...defaultRequestProps,
-      docTypeName: "car",
-      doc: createNewDocument(),
-      fieldNames: ["id"],
-    }),
-    {
-      isNew: false,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
-    },
-  );
-
-  assertEquals(onPreSaveDoc.callCount, 1);
-
-  assert(onPreSaveDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: null,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-
-  assertEquals(onSavedDoc.callCount, 1);
-
-  assert(onSavedDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: false,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-});
-
-Deno.test("Replacing a non-existent document should raise the onSavedDoc delegate.", async () => {
-  const onSavedDoc = spy((..._args: unknown[]) => {});
-
-  const { sengi, docStore, carDocType } = createSengiWithMockStore({
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  }, {
-    onSavedDoc,
-  });
-
-  const spyUpsert = spy(docStore, "upsert");
-
-  assertEquals(
-    await sengi.replaceDocument({
-      ...defaultRequestProps,
-      docTypeName: "car",
-      doc: createNewDocument(),
-      fieldNames: ["id"],
-    }),
-    {
-      isNew: true,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
-    },
-  );
-
-  assertEquals(onSavedDoc.callCount, 1);
-
-  assert(onSavedDoc.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    doc: match.object,
-    isNew: true,
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-
-  const resultDoc = {
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    docType: "car",
-    docCreatedByUserId: "user-0001",
-    docCreatedMillisecondsSinceEpoch: 1629881470000,
-    docLastUpdatedByUserId: "user-0001",
-    docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
-    docOpIds: [],
-    manufacturer: "ford",
-    model: "ka",
-    registration: "HG12 3AB",
-  };
-
-  assertEquals(spyUpsert.callCount, 1);
-
-  assert(spyUpsert.calledWith(
-    "car",
-    "cars",
-    "_central",
-    resultDoc,
-    { custom: "prop" },
-    {},
   ));
 });
 
 Deno.test("Fail to replace a document if it does not conform to the doc type schema.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  await assertRejects(async () => {
-    await sengi.replaceDocument({
+  await assertRejects(() =>
+    sengi.replaceDocument<Car>({
       ...defaultRequestProps,
       doc: {
-        ...createNewDocument(),
-        model: 123, // rather than a string
+        ...createNewDocument() as Car,
+        model: 123 as unknown as string, // rather than a string
       },
       fieldNames: ["id"],
-    });
-  }, SengiDocValidationFailedError);
+    }), SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to replace a document if it fails custom validation.", async () => {
   const { sengi } = createSengiWithMockStore();
 
-  await assertRejects(async () => {
-    await sengi.replaceDocument({
+  await assertRejects(() =>
+    sengi.replaceDocument<Car>({
       ...defaultRequestProps,
       doc: {
-        ...createNewDocument(),
+        ...createNewDocument() as Car,
         registration: "HZ12 3AB", // registration must begin HG
       },
       fieldNames: ["id"],
-    });
-    throw new Error("fail");
-  }, SengiDocValidationFailedError);
-});
-
-Deno.test("Fail to replace a document if permissions insufficient.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.replaceDocument({
-      ...defaultRequestProps,
-      apiKey: "noneKey",
-      doc: createNewDocument(),
-      fieldNames: ["id"],
-    });
-    throw new Error("fail");
-  }, SengiInsufficientPermissionsError);
-});
-
-Deno.test("Fail to replace a document if client api key is not recognised.", async () => {
-  const { sengi } = createSengiWithMockStore();
-
-  await assertRejects(async () => {
-    await sengi.replaceDocument({
-      ...defaultRequestProps,
-      apiKey: "unknown",
-      doc: createNewDocument(),
-      fieldNames: ["id"],
-    });
-    throw new Error("fail");
-  }, SengiUnrecognisedApiKeyError);
+    }), SengiDocValidationFailedError);
 });
 
 Deno.test("Fail to replace a document if disallowed by doc type policy.", async () => {
@@ -265,19 +105,10 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
     carDocType.policy.canReplaceDocuments = false;
   }
 
-  await assertRejects(async () => {
-    await sengi.replaceDocument({
+  await assertRejects(() =>
+    sengi.replaceDocument<Car>({
       ...defaultRequestProps,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-        docType: "car",
-        docVersion: "aaaa",
-        manufacturer: "Honda",
-        model: "Accord",
-        registration: "HG67 8HJ",
-      },
+      doc: createNewDocument() as Car,
       fieldNames: ["id"],
-    });
-    throw new Error("fail");
-  }, SengiActionForbiddenByPolicyError);
+    }), SengiActionForbiddenByPolicyError);
 });

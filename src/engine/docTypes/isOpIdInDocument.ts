@@ -1,4 +1,4 @@
-import { DocRecord } from "../../interfaces/index.ts";
+import { DocBase } from "../../interfaces/index.ts";
 
 /**
  * Returns true if the given operation id exists in
@@ -6,7 +6,7 @@ import { DocRecord } from "../../interfaces/index.ts";
  * @param doc A document.
  * @param opId The id of an operation.
  */
-export function isOpIdInDocument(doc: DocRecord, opId: string): boolean {
+export function isOpIdInDocument(doc: Partial<DocBase>, opId: string): boolean {
   if (Array.isArray(doc.docOpIds)) {
     const docOpIds = doc.docOpIds as string[];
     return docOpIds.includes(opId);

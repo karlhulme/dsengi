@@ -1,4 +1,4 @@
-import { DocRecord } from "../interfaces/index.ts";
+import { DocStoreRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
@@ -19,7 +19,7 @@ export async function replaceDocument(
   databaseName: string,
   collectionName: string,
   partition: string,
-  document: DocRecord,
+  document: DocStoreRecord,
   options: ReplaceDocumentOptions,
 ): Promise<boolean> {
   const reqHeaders = await generateCosmosReqHeaders({

@@ -6,8 +6,8 @@ import {
   queryDocumentsContainersDirect,
 } from "../cosmosClient/index.ts";
 import {
-  DocRecord,
   DocStoreDeleteByIdResultCode,
+  DocStoreRecord,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
 import { CosmosDbDocStore } from "./CosmosDbDocStore.ts";
@@ -21,22 +21,6 @@ function createCosmosDbDocStore(): CosmosDbDocStore {
   return new CosmosDbDocStore({
     cosmosUrl: TEST_COSMOS_URL,
     cosmosKey: TEST_COSMOS_KEY,
-    getDatabaseNameFunc: () => "sengi",
-    getContainerNameFunc: (
-      _databaseName: string,
-      _docTypeName: string,
-      docTypePluralName: string,
-    ) => docTypePluralName,
-    // getPartitionKeyValueFunc: (
-    //   _databaseName: string,
-    //   _containerName: string,
-    //   _docTypeName: string,
-    //   docTypePluralName: string,
-    //   doc: DocRecord,
-    // ) =>
-    //   docTypePluralName === "trees"
-    //     ? doc.id as string
-    //     : doc.environment as string,
   });
 }
 
@@ -108,7 +92,7 @@ async function initDb(): Promise<void> {
 
   // populate trees container
 
-  const trees: DocRecord[] = [
+  const trees: DocStoreRecord[] = [
     {
       id: "01",
       docType: "tree",
@@ -149,7 +133,7 @@ async function initDb(): Promise<void> {
 
   // populate treePacks container
 
-  const treePacks: DocRecord[] = [
+  const treePacks: DocStoreRecord[] = [
     {
       id: "01",
       docType: "treePack",
@@ -227,7 +211,10 @@ Deno.test("A document can be deleted from a central partition.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.deleteById("tree", "trees", TestPartition, "03", {}, {}),
+    await docStore.deleteById("tree", TestPartition, "03", {
+      databaseName: "sengi",
+      collectionName: "trees",
+    }),
     {
       code: DocStoreDeleteByIdResultCode.DELETED,
     },
@@ -245,11 +232,9 @@ Deno.test("A document can be deleted from a non-central partition.", async () =>
   assertEquals(
     await docStore.deleteById(
       "treePack",
-      "treePacks",
       "tropical",
       "03",
-      {},
-      {},
+      { databaseName: "sengi", collectionName: "treePacks" },
     ),
     { code: DocStoreDeleteByIdResultCode.DELETED },
   );
@@ -264,7 +249,12 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.deleteById("tree", "trees", TestPartition, "200", {}, {}),
+    await docStore.deleteById(
+      "tree",
+      TestPartition,
+      "200",
+      { databaseName: "sengi", collectionName: "trees" },
+    ),
     {
       code: DocStoreDeleteByIdResultCode.NOT_FOUND,
     },
@@ -280,7 +270,10 @@ Deno.test("A document can be found to exist.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.exists("tree", "trees", TestPartition, "02", {}, {}),
+    await docStore.exists("tree", TestPartition, "02", {
+      databaseName: "sengi",
+      collectionName: "trees",
+    }),
     {
       found: true,
     },
@@ -293,7 +286,10 @@ Deno.test("A non-existent document is not found.", async () => {
   const docStore = createCosmosDbDocStore();
 
   assertEquals(
-    await docStore.exists("tree", "trees", TestPartition, "202", {}, {}),
+    await docStore.exists("tree", TestPartition, "202", {
+      databaseName: "sengi",
+      collectionName: "trees",
+    }),
     {
       found: false,
     },
@@ -307,11 +303,9 @@ Deno.test("A document can be fetched.", async () => {
 
   const fetchResult = await docStore.fetch(
     "tree",
-    "trees",
     TestPartition,
     "02",
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
 
   assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
@@ -330,11 +324,9 @@ Deno.test("A non-existent document cannot be fetched.", async () => {
 
   const fetchResult = await docStore.fetch(
     "tree",
-    "trees",
     TestPartition,
     "202",
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
 
   assertEquals(fetchResult.doc, null);
@@ -347,11 +339,9 @@ Deno.test("A document can be fetched from a container that uses a partition key 
 
   const fetchResult = await docStore.fetch(
     "treePack",
-    "treePacks",
     "forest",
     "02",
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
@@ -371,11 +361,9 @@ Deno.test("A non-existent document cannot be fetched from a container that uses 
 
   const fetchResult = await docStore.fetch(
     "treePack",
-    "treePacks",
     "forest",
     "202",
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertEquals(fetchResult.doc, null);
@@ -388,14 +376,12 @@ Deno.test("A sql query can be executed.", async () => {
 
   const queryResult = await docStore.query(
     "tree",
-    "trees",
     {
       queryStatement: "SELECT * FROM Docs d WHERE d.id = @id",
       parameters: [{ name: "@id", value: "01" }],
       transform: (docs) => docs,
     },
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
 
   assertEquals(Array.isArray(queryResult.data), true);
@@ -415,11 +401,9 @@ Deno.test("All documents of a type can be selected from a single partition.", as
 
   const result = await docStore.selectAll(
     "tree",
-    "trees",
     TestPartition,
     ["id"],
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.id as string).localeCompare(b.id as string)
@@ -434,12 +418,10 @@ Deno.test("Select documents using a filter.", async () => {
 
   const result = await docStore.selectByFilter(
     "treePack",
-    "treePacks",
     "forest",
     ["id"],
     { whereClause: "d.heightInCms > 215" },
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertEquals(result.docs, [{ id: "02" }]);
@@ -452,7 +434,6 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
 
   const result = await docStore.selectByFilter(
     "treePack",
-    "treePacks",
     "forest",
     ["id"],
     {
@@ -460,8 +441,7 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
       orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
       limit: 1,
     },
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertEquals(result.docs, [{ id: "01" }]);
@@ -474,7 +454,6 @@ Deno.test("Select documents using a filter, descending order by clause and limit
 
   const result = await docStore.selectByFilter(
     "treePack",
-    "treePacks",
     "forest",
     ["id"],
     {
@@ -482,8 +461,7 @@ Deno.test("Select documents using a filter, descending order by clause and limit
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
       limit: 1,
     },
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertEquals(result.docs, [{ id: "02" }]);
@@ -496,14 +474,12 @@ Deno.test("Select documents using an ordering clause with multiple results.", as
 
   const result = await docStore.selectByFilter(
     "treePack",
-    "treePacks",
     "forest",
     ["id"],
     {
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
     },
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
 
   assertEquals(result.docs, [{ id: "02" }, { id: "01" }]);
@@ -516,12 +492,10 @@ Deno.test("Select documents using ids.", async () => {
 
   const result = await docStore.selectByIds(
     "tree",
-    "trees",
     TestPartition,
     ["id", "name"],
     ["02", "03"],
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.id as string).localeCompare(b.id as string)
@@ -539,17 +513,34 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
 
   const result = await docStore.selectByIds(
     "tree",
-    "trees",
     TestPartition,
     ["name"],
     ["02", "03", "03", "02"],
-    {},
-    {},
+    { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.name as string).localeCompare(b.name as string)
   );
   assertEquals(sortedDocs, [{ name: "beech" }, { name: "pine" }]);
+});
+
+Deno.test("Select documents that include document versions.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByIds(
+    "tree",
+    TestPartition,
+    ["name", "docVersion"],
+    ["02"],
+    { databaseName: "sengi", collectionName: "trees" },
+  );
+  const sortedDocs = result.docs.sort((a, b) =>
+    (a.name as string).localeCompare(b.name as string)
+  );
+  assertEquals(sortedDocs[0].name, "beech");
+  assertEquals(typeof sortedDocs[0].docVersion, "string");
 });
 
 Deno.test("Insert a new document and rely on doc store to generate doc version.", async () => {
@@ -558,7 +549,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   const docStore = createCosmosDbDocStore();
 
   // docVersion will be stripped out before upsert
-  const doc: DocRecord = {
+  const doc: DocStoreRecord = {
     id: "04",
     docType: "tree",
     name: "oak",
@@ -567,7 +558,10 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {}),
+    await docStore.upsert("tree", TestPartition, doc, null, {
+      databaseName: "sengi",
+      collectionName: "trees",
+    }),
     {
       code: DocStoreUpsertResultCode.CREATED,
     },
@@ -591,7 +585,7 @@ Deno.test("Update an existing document.", async () => {
 
   const docStore = createCosmosDbDocStore();
 
-  const doc: DocRecord = {
+  const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
     name: "palm",
@@ -600,7 +594,10 @@ Deno.test("Update an existing document.", async () => {
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {}),
+    await docStore.upsert("tree", TestPartition, doc, null, {
+      databaseName: "sengi",
+      collectionName: "trees",
+    }),
     {
       code: DocStoreUpsertResultCode.REPLACED,
     },
@@ -628,7 +625,7 @@ Deno.test("Update an existing document with a required version.", async () => {
   const reqVersion = (initialContents.find((d) => d.id === "03") || {})
     ._etag as string;
 
-  const doc: DocRecord = {
+  const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
     name: "palm",
@@ -637,8 +634,9 @@ Deno.test("Update an existing document with a required version.", async () => {
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {
-      reqVersion,
+    await docStore.upsert("tree", TestPartition, doc, reqVersion, {
+      databaseName: "sengi",
+      collectionName: "trees",
     }),
     { code: DocStoreUpsertResultCode.REPLACED },
   );
@@ -661,7 +659,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
 
   const docStore = createCosmosDbDocStore();
 
-  const doc: DocRecord = {
+  const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
     name: "palm",
@@ -670,8 +668,9 @@ Deno.test("Fail to update an existing document if the required version is unavai
     docOpIds: [],
   };
   assertEquals(
-    await docStore.upsert("tree", "trees", TestPartition, doc, {}, {
-      reqVersion: "bbbb",
+    await docStore.upsert("tree", TestPartition, doc, "bbbb", {
+      databaseName: "sengi",
+      collectionName: "trees",
     }),
     { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE },
   );

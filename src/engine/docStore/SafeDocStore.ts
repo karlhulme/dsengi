@@ -1,27 +1,21 @@
 import {
-  DocRecord,
   DocStore,
-  DocStoreDeleteByIdProps,
   DocStoreDeleteByIdResult,
-  DocStoreExistsProps,
   DocStoreExistsResult,
-  DocStoreFetchProps,
   DocStoreFetchResult,
-  DocStoreQueryProps,
   DocStoreQueryResult,
-  DocStoreSelectProps,
+  DocStoreRecord,
   DocStoreSelectResult,
-  DocStoreUpsertProps,
   DocStoreUpsertResult,
   MissingDocStoreFunctionError,
   UnexpectedDocStoreError,
 } from "../../interfaces/index.ts";
 
 /**
- * A Doc Store that wraps any errors so the source can be identified.
+ * A document store that wraps any errors so the source can be identified.
  */
-export class SafeDocStore<DocStoreOptions, Filter, Query>
-  implements DocStore<DocStoreOptions, Filter, Query> {
+export class SafeDocStore<DocStoreParams, Filter, Query>
+  implements DocStore<DocStoreParams, Filter, Query> {
   /**
    * Constructs a new instance of the safe doc store.
    * This function raises an error if a required function is not
@@ -29,7 +23,7 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
    * @param docStore A doc store implementation.
    */
   constructor(
-    readonly docStore: DocStore<DocStoreOptions, Filter, Query>,
+    readonly docStore: DocStore<DocStoreParams, Filter, Query>,
   ) {
     const functionNames = [
       "deleteById",
@@ -54,29 +48,22 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Delete a single document from the store using it's id.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async deleteById(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreDeleteByIdProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreDeleteByIdResult> {
     try {
       const result = await this.docStore.deleteById(
         docTypeName,
-        docTypePluralName,
         partition,
         id,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -87,29 +74,22 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Determines if a document with the given id is in the datastore.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async exists(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreExistsProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreExistsResult> {
     try {
       const result = await this.docStore.exists(
         docTypeName,
-        docTypePluralName,
         partition,
         id,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -120,29 +100,22 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Fetch a single document using it's id.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param id The id of a document.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async fetch(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreFetchProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreFetchResult> {
     try {
       const result = await this.docStore.fetch(
         docTypeName,
-        docTypePluralName,
         partition,
         id,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -153,26 +126,19 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Execute a query against the doc store.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param query The query to be executed.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async query(
     docTypeName: string,
-    docTypePluralName: string,
     query: Query,
-    options: DocStoreOptions,
-    props: DocStoreQueryProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreQueryResult> {
     try {
       const result = await this.docStore.query(
         docTypeName,
-        docTypePluralName,
         query,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -183,29 +149,22 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param fieldNames An array of field names to include in the response.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async selectAll(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
       const result = await this.docStore.selectAll(
         docTypeName,
-        docTypePluralName,
         partition,
         fieldNames,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -216,32 +175,25 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Select documents of a specified type that also match a filter.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param fieldNames An array of field names to include in the response.
    * @param filter A filter.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async selectByFilter(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
     filter: Filter,
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
       const result = await this.docStore.selectByFilter(
         docTypeName,
-        docTypePluralName,
         partition,
         fieldNames,
         filter,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -252,32 +204,25 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Select documents of a specified type that also have one of the given ids.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param docStoreParams The params for the document store.
    */
   async selectByIds(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
     ids: string[],
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
       const result = await this.docStore.selectByIds(
         docTypeName,
-        docTypePluralName,
         partition,
         fieldNames,
         ids,
-        options,
-        props,
+        docStoreParams,
       );
       return result;
     } catch (err) {
@@ -288,29 +233,26 @@ export class SafeDocStore<DocStoreOptions, Filter, Query>
   /**
    * Store a single document in the store, overwriting an existing if necessary.
    * @param docTypeName The name of a doc type.
-   * @param docTypePluralName The plural name of a doc type.
    * @param partition The name of a document partition.
    * @param doc The document to store.
-   * @param options A set of options supplied with the original request
-   * and options defined on the document type.
-   * @param props Properties that define how to carry out this action.
+   * @param reqVersion If populated, the target document must have the stated version,
+   * otherwise the document will not be updated.
+   * @param docStoreParams The params for the document store.
    */
   async upsert(
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
-    doc: DocRecord,
-    options: DocStoreOptions,
-    props: DocStoreUpsertProps,
+    doc: DocStoreRecord,
+    reqVersion: string | null,
+    docStoreParams: DocStoreParams,
   ): Promise<DocStoreUpsertResult> {
     try {
       const result = await this.docStore.upsert(
         docTypeName,
-        docTypePluralName,
         partition,
         doc,
-        options,
-        props,
+        reqVersion,
+        docStoreParams,
       );
       return result;
     } catch (err) {

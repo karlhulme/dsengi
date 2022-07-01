@@ -1,31 +1,23 @@
-import { DocRecord } from "../doc/index.ts";
-import { DocStoreDeleteByIdProps } from "./DocStoreDeleteByIdProps.ts";
+import { DocStoreRecord } from "./DocStoreRecord.ts";
 import { DocStoreDeleteByIdResult } from "./DocStoreDeleteByIdResult.ts";
-import { DocStoreExistsProps } from "./DocStoreExistsProps.ts";
 import { DocStoreExistsResult } from "./DocStoreExistsResult.ts";
-import { DocStoreFetchProps } from "./DocStoreFetchProps.ts";
 import { DocStoreFetchResult } from "./DocStoreFetchResult.ts";
-import { DocStoreQueryProps } from "./DocStoreQueryProps.ts";
 import { DocStoreQueryResult } from "./DocStoreQueryResult.ts";
-import { DocStoreSelectProps } from "./DocStoreSelectProps.ts";
 import { DocStoreSelectResult } from "./DocStoreSelectResult.ts";
-import { DocStoreUpsertProps } from "./DocStoreUpsertProps.ts";
 import { DocStoreUpsertResult } from "./DocStoreUpsertResult.ts";
 
 /**
  * Defines the functions that must be implemented by a document store.
  */
-export interface DocStore<DocStoreOptions, Filter, Query> {
+export interface DocStore<DocStoreParams, Filter, Query> {
   /**
    * Delete a document using a document id.
    */
   deleteById: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreDeleteByIdProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreDeleteByIdResult>;
 
   /**
@@ -33,11 +25,9 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   exists: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreExistsProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreExistsResult>;
 
   /**
@@ -45,11 +35,9 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   fetch: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     id: string,
-    options: DocStoreOptions,
-    props: DocStoreFetchProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreFetchResult>;
 
   /**
@@ -57,10 +45,8 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   query: (
     docTypeName: string,
-    docTypePluralName: string,
     query: Query,
-    options: DocStoreOptions,
-    props: DocStoreQueryProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreQueryResult>;
 
   /**
@@ -68,11 +54,9 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   selectAll: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
   /**
@@ -81,12 +65,10 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   selectByFilter: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
     filter: Filter,
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
   /**
@@ -94,12 +76,10 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   selectByIds: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
     fieldNames: string[],
     ids: string[],
-    options: DocStoreOptions,
-    props: DocStoreSelectProps,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
   /**
@@ -107,10 +87,9 @@ export interface DocStore<DocStoreOptions, Filter, Query> {
    */
   upsert: (
     docTypeName: string,
-    docTypePluralName: string,
     partition: string,
-    doc: DocRecord,
-    options: DocStoreOptions,
-    props: DocStoreUpsertProps,
+    doc: DocStoreRecord,
+    reqVersion: string | null,
+    docStoreParams: DocStoreParams,
   ) => Promise<DocStoreUpsertResult>;
 }

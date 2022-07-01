@@ -2,17 +2,13 @@
 import {
   assert,
   assertEquals,
-  assertExists,
   assertRejects,
   fail,
   spy,
 } from "../../../deps.ts";
+import { SengiActionForbiddenByPolicyError } from "../../interfaces/index.ts";
 import {
-  SengiActionForbiddenByPolicyError,
-  SengiInsufficientPermissionsError,
-  SengiUnrecognisedApiKeyError,
-} from "../../interfaces/index.ts";
-import {
+  Car,
   createSengiWithMockStore,
   defaultRequestProps,
 } from "./shared.test.ts";
@@ -44,13 +40,13 @@ const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
   }, sengiCtorOverrides);
 };
 
-Deno.test("Select all documents of a type in a collection with support for paging.", async () => {
+Deno.test("Select all documents of a type in a collection.", async () => {
   const { sengi, docStore } = createSengiForTests();
 
   const spySelectAll = spy(docStore, "selectAll");
 
   assertEquals(
-    await sengi.selectDocuments({
+    await sengi.selectDocuments<Car>({
       ...defaultRequestProps,
       fieldNames: ["id", "model"], // the test doc store 'selectAll' implementation above will not respect this
     }),
@@ -82,72 +78,11 @@ Deno.test("Select all documents of a type in a collection with support for pagin
   assert(
     spySelectAll.calledWith(
       "car",
-      "cars",
       "_central",
       ["id", "model"],
       { custom: "prop" },
-      {},
     ),
   );
-});
-
-Deno.test("Select all documents of a type in a collection with an onSelectDocs delegate but without paging.", async () => {
-  const onPreSelectDocs = spy((..._args: unknown[]) => {});
-
-  const { carDocType, sengi, docStore } = createSengiForTests({
-    onPreSelectDocs,
-  });
-
-  const spySelectAll = spy(docStore, "selectAll");
-
-  assertExists(
-    await sengi.selectDocuments({
-      ...defaultRequestProps,
-      fieldNames: ["id"],
-    }),
-  );
-
-  assertEquals(spySelectAll.callCount, 1);
-  assert(
-    spySelectAll.calledWith("car", "cars", "_central", ["id"], {
-      custom: "prop",
-    }, {}),
-  );
-
-  assertEquals(onPreSelectDocs.callCount, 1);
-  assert(onPreSelectDocs.calledWith({
-    clientName: "admin",
-    docStoreOptions: { custom: "prop" },
-    reqProps: { foo: "bar" },
-    docType: carDocType,
-    fieldNames: ["id"],
-    user: {
-      id: "user-0001",
-      claims: [],
-    },
-  }));
-});
-
-Deno.test("Fail to select all documents of type if permissions insufficient.", async () => {
-  const { sengi } = createSengiForTests();
-
-  await assertRejects(() =>
-    sengi.selectDocuments({
-      ...defaultRequestProps,
-      apiKey: "noneKey",
-      fieldNames: ["id"],
-    }), SengiInsufficientPermissionsError);
-});
-
-Deno.test("Fail to select all documents of type if client api key is not recognised.", async () => {
-  const { sengi } = createSengiForTests();
-
-  await assertRejects(() =>
-    sengi.selectDocuments({
-      ...defaultRequestProps,
-      apiKey: "unknown",
-      fieldNames: ["id"],
-    }), SengiUnrecognisedApiKeyError);
 });
 
 Deno.test("Fail to select all documents of a type in collection if fetchWholeCollection is not allowed.", async () => {

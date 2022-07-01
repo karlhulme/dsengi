@@ -1,14 +1,17 @@
 import { assertThrows } from "../../../deps.ts";
 import {
-  AnyDocType,
+  DocType,
   SengiActionForbiddenByPolicyError,
 } from "../../interfaces/index.ts";
 import { ensureCanReplaceDocuments } from "./ensureCanReplaceDocuments.ts";
 
 Deno.test("Remain silent if policy allows replace document action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canReplaceDocuments: true,
     },
@@ -18,9 +21,12 @@ Deno.test("Remain silent if policy allows replace document action.", () => {
 });
 
 Deno.test("Raise error if policy disallows replace document action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
     policy: {
       canReplaceDocuments: false,
     },
@@ -34,9 +40,12 @@ Deno.test("Raise error if policy disallows replace document action.", () => {
 });
 
 Deno.test("Raise error if policy not specified for replace document action.", () => {
-  const docType: AnyDocType = {
+  const docType: DocType = {
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
   };
 
   assertThrows(

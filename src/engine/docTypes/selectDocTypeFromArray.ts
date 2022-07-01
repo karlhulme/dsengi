@@ -1,5 +1,5 @@
 import {
-  AnyDocType,
+  DocType,
   SengiUnrecognisedDocTypeNameError,
 } from "../../interfaces/index.ts";
 
@@ -9,9 +9,9 @@ import {
  * @param docTypeName The name of a doc type.
  */
 export function selectDocTypeFromArray(
-  docTypes: AnyDocType[],
+  docTypes: DocType[],
   docTypeName: string,
-): AnyDocType {
+): DocType {
   const docType = docTypes.find((dt) => dt.name === docTypeName);
 
   if (!docType) {

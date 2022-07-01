@@ -1,29 +1,35 @@
 import { assertEquals, assertThrows } from "../../../deps.ts";
 import {
-  AnyDocType,
+  DocType,
   SengiUnrecognisedDocTypeNameError,
 } from "../../interfaces/index.ts";
 import { selectDocTypeFromArray } from "./selectDocTypeFromArray.ts";
 
 function createDocTypes() {
-  const docTypes: AnyDocType[] = [{
+  const docTypes: DocType[] = [{
     name: "test",
-    pluralName: "tests",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
   }, {
     name: "example",
-    pluralName: "examples",
+    readOnlyFieldNames: [],
+    validateDoc: () => {},
+    validateFields: () => {},
+    validatePatch: () => {},
   }];
 
   return docTypes;
 }
 
-Deno.test("Find valid doc types by name", () => {
+Deno.test("Find valid doc type by name", () => {
   const docTypes = createDocTypes();
   assertEquals(selectDocTypeFromArray(docTypes, "test"), docTypes[0]);
   assertEquals(selectDocTypeFromArray(docTypes, "example"), docTypes[1]);
 });
 
-Deno.test("Fail to find invalid doc types by name.", () => {
+Deno.test("Fail to find doc type if name is not recognised.", () => {
   assertThrows(
     () => selectDocTypeFromArray(createDocTypes(), "madeup"),
     SengiUnrecognisedDocTypeNameError,

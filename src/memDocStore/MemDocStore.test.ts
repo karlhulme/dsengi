@@ -1,12 +1,12 @@
 import { assertEquals } from "../../deps.ts";
 import {
-  DocRecord,
   DocStoreDeleteByIdResultCode,
+  DocStoreRecord,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
 import { MemDocStore } from "./MemDocStore.ts";
 
-function createDocs(): DocRecord[] {
+function createDocs(): DocStoreRecord[] {
   return [
     {
       id: "001",
@@ -68,10 +68,8 @@ Deno.test("A document can be deleted.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.deleteById(
     "test",
-    "tests",
     "_central",
     "003",
-    {},
     {},
   );
   assertEquals(result, { code: DocStoreDeleteByIdResultCode.DELETED });
@@ -84,10 +82,8 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.deleteById(
     "test",
-    "tests",
     "_central",
     "200",
-    {},
     {},
   );
   assertEquals(result, { code: DocStoreDeleteByIdResultCode.NOT_FOUND });
@@ -107,10 +103,8 @@ Deno.test("A document can be found to exist.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.exists(
     "test",
-    "tests",
     "_central",
     "003",
-    {},
     {},
   );
   assertEquals(result, { found: true });
@@ -121,10 +115,8 @@ Deno.test("A non-existent document is not found.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.exists(
     "test",
-    "tests",
     "_central",
     "005",
-    {},
     {},
   );
   assertEquals(result, { found: false });
@@ -135,10 +127,8 @@ Deno.test("A document can be fetched.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.fetch(
     "test",
-    "tests",
     "_central",
     "003",
-    {},
     {},
   );
   assertEquals(result, {
@@ -158,10 +148,8 @@ Deno.test("A non-existent document cannot be fetched.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.fetch(
     "test",
-    "tests",
     "_central",
     "005",
-    {},
     {},
   );
   assertEquals(result, { doc: null });
@@ -172,9 +160,7 @@ Deno.test("A count query can be executed.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.query(
     "test",
-    "tests",
     { reducer: (agg) => (agg as number) + 1, initialValue: 0 },
-    {},
     {},
   );
   assertEquals(result, { data: 3 });
@@ -185,19 +171,15 @@ Deno.test("All documents of a type can be selected.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectAll(
     "test",
-    "tests",
     "_central",
     ["id"],
-    {},
     {},
   );
   assertEquals(result, { docs: [{ id: "001" }, { id: "002" }, { id: "003" }] });
   const result2 = await docStore.selectAll(
     "test2",
-    "test2s",
     "_central",
     ["vehicle"],
-    {},
     {},
   );
   assertEquals(result2, {
@@ -210,10 +192,8 @@ Deno.test("All documents of a recognised type can selected.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectAll(
     "test3",
-    "tests",
     "_central",
     ["fieldA", "fieldB"],
-    {},
     {},
   );
   assertEquals(result, { docs: [] });
@@ -224,11 +204,9 @@ Deno.test("Select documents using a filter.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectByFilter(
     "test2",
-    "test2s",
     "_central",
     ["id", "vehicle"],
     (d) => (d.vehicle as string).startsWith("c"),
-    {},
     {},
   );
   assertEquals(result, {
@@ -241,11 +219,9 @@ Deno.test("Select documents using ids.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectByIds(
     "test",
-    "tests",
     "_central",
     ["id", "fruit"],
     ["002", "003"],
-    {},
     {},
   );
   assertEquals(result, {
@@ -258,11 +234,9 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectByIds(
     "test",
-    "tests",
     "_central",
     ["id", "fruit"],
     ["002", "003", "002"],
-    {},
     {},
   );
   assertEquals(result, {
@@ -275,7 +249,6 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.upsert(
     "test",
-    "tests",
     "_central",
     {
       id: "004",
@@ -284,7 +257,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
       docVersion: "000",
       docOpIds: [],
     },
-    {},
+    null,
     {},
   );
   assertEquals(result, { code: DocStoreUpsertResultCode.CREATED });
@@ -313,7 +286,6 @@ Deno.test("Update an existing document.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.upsert(
     "test2",
-    "test2s",
     "_central",
     {
       id: "102",
@@ -322,7 +294,7 @@ Deno.test("Update an existing document.", async () => {
       docVersion: "000",
       docOpIds: [],
     },
-    {},
+    null,
     {},
   );
   assertEquals(result, { code: DocStoreUpsertResultCode.REPLACED });
@@ -350,7 +322,6 @@ Deno.test("Update an existing document with a required version.", async () => {
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.upsert(
     "test2",
-    "test2s",
     "_central",
     {
       id: "102",
@@ -359,8 +330,8 @@ Deno.test("Update an existing document with a required version.", async () => {
       docVersion: "000",
       docOpIds: [],
     },
+    "a102",
     {},
-    { reqVersion: "a102" },
   );
   assertEquals(result, { code: DocStoreUpsertResultCode.REPLACED });
   assertEquals(docs.length, 6);
@@ -387,7 +358,6 @@ Deno.test("Fail to update an existing document if the required version is unavai
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.upsert(
     "test2",
-    "test2s",
     "_central",
     {
       id: "102",
@@ -396,8 +366,8 @@ Deno.test("Fail to update an existing document if the required version is unavai
       docVersion: "000",
       docOpIds: [],
     },
+    "a999",
     {},
-    { reqVersion: "a999" },
   );
   assertEquals(result, {
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,

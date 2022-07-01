@@ -1,4 +1,4 @@
-import { AnyDocType, DocRecord } from "../../interfaces/index.ts";
+import { DocBase, DocType } from "../../interfaces/index.ts";
 
 const DEFAULT_MAX_OP_IDS = 5;
 
@@ -8,9 +8,9 @@ const DEFAULT_MAX_OP_IDS = 5;
  * @param doc A doc.
  * @param opId An operation id.
  */
-export function appendDocOpId(
-  docType: AnyDocType,
-  doc: DocRecord,
+export function appendDocOpId<Doc extends DocBase>(
+  docType: DocType,
+  doc: Partial<Doc>,
   opId: string,
 ): void {
   if (!Array.isArray(doc.docOpIds)) {
