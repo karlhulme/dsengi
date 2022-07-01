@@ -14,11 +14,6 @@ export interface SelectDocumentsProps<Doc, DocStoreParams> {
   partition: string;
 
   /**
-   * An array of field names to return.
-   */
-  fieldNames: (keyof Doc)[];
-
-  /**
    * The parameters to be passed to the document store.
    */
   docStoreParams: DocStoreParams;

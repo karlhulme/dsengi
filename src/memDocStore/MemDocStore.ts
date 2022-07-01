@@ -79,28 +79,16 @@ export class MemDocStore implements
   generateDocVersionFunc: () => string;
 
   /**
-   * Return a new array of docs whereby each document
-   * only contains the fields in the given fieldNames array.
+   * Deep clone the given array of docs and create a
+   * DocStoreSelectResult object.
    * @param docs An array of docs.
-   * @param fieldNames An array of field names.
    */
   private buildSelectResult(
     docs: DocStoreRecord[],
-    fieldNames: string[],
   ): DocStoreSelectResult {
-    const results: DocStoreRecord[] = [];
-
-    for (let i = 0; i < docs.length; i++) {
-      const result: DocStoreRecord = {};
-
-      for (const fieldName of fieldNames) {
-        result[fieldName] = docs[i][fieldName];
-      }
-
-      results.push(result);
-    }
-
-    return { docs: JSON.parse(JSON.stringify(results)) };
+    return {
+      docs: docs.map((doc) => structuredClone(doc)),
+    };
   }
 
   /**
@@ -202,54 +190,48 @@ export class MemDocStore implements
    * Selects all documents of a specified type.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
       d.docType === docTypeName && d.partitionKey === partition
     );
-    return this.buildSelectResult(matchedDocs, fieldNames);
+    return this.buildSelectResult(matchedDocs);
   }
 
   /**
    * Select the documents of a specified type that also match a filter.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param filter A filter.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     filter: MemDocStoreFilter,
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
       d.docType === docTypeName && d.partitionKey === partition && filter(d)
     );
-    return this.buildSelectResult(matchedDocs, fieldNames);
+    return this.buildSelectResult(matchedDocs);
   }
 
   /**
    * Select documents of a specified type that also have one of the given ids.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectByIds(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     ids: string[],
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
@@ -257,7 +239,7 @@ export class MemDocStore implements
       d.docType === docTypeName && d.partitionKey === partition &&
       ids.includes(d.id as string)
     );
-    return this.buildSelectResult(matchedDocs, fieldNames);
+    return this.buildSelectResult(matchedDocs);
   }
 
   /**

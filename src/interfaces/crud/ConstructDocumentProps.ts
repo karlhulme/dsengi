@@ -51,9 +51,4 @@ export interface ConstructDocumentProps<
    * The id of the user that is making the request.
    */
   userId: string;
-
-  /**
-   * An array of field names to return after the request has completed.
-   */
-  fieldNames: (keyof Doc)[];
 }

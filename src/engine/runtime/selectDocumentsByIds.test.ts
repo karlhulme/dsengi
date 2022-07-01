@@ -23,7 +23,6 @@ Deno.test("Select by document ids.", async () => {
   assertEquals(
     await sengi.selectDocumentsByIds<Car>({
       ...defaultRequestProps,
-      fieldNames: ["id", "model"], // the test doc store 'selectByIds' implementation above will not respect this
       ids: ["06151119-065a-4691-a7c8-2d84ec746ba9"],
     }),
     {
@@ -43,7 +42,6 @@ Deno.test("Select by document ids.", async () => {
     spySelectByIds.calledWith(
       "car",
       "_central",
-      ["id", "model"],
       ["06151119-065a-4691-a7c8-2d84ec746ba9"],
       { custom: "prop" },
     ),

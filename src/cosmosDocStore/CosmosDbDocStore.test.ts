@@ -205,6 +205,19 @@ async function readContainer(
   return docs;
 }
 
+function subsetDoc(
+  doc: DocStoreRecord,
+  fieldNames: string[],
+): DocStoreRecord {
+  const result: DocStoreRecord = {};
+
+  for (const fieldName of fieldNames) {
+    result[fieldName] = doc[fieldName];
+  }
+
+  return result;
+}
+
 Deno.test("A document can be deleted from a central partition.", async () => {
   await initDb();
 
@@ -402,13 +415,15 @@ Deno.test("All documents of a type can be selected from a single partition.", as
   const result = await docStore.selectAll(
     "tree",
     TestPartition,
-    ["id"],
     { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.id as string).localeCompare(b.id as string)
   );
-  assertEquals(sortedDocs, [{ id: "01" }, { id: "02" }, { id: "03" }]);
+  assertEquals(
+    sortedDocs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "01" }, { id: "02" }, { id: "03" }],
+  );
 });
 
 Deno.test("Select documents using a filter.", async () => {
@@ -419,12 +434,14 @@ Deno.test("Select documents using a filter.", async () => {
   const result = await docStore.selectByFilter(
     "treePack",
     "forest",
-    ["id"],
     { whereClause: "d.heightInCms > 215" },
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
-  assertEquals(result.docs, [{ id: "02" }]);
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "02" }],
+  );
 });
 
 Deno.test("Select documents using a filter, order by clause and limit.", async () => {
@@ -435,7 +452,6 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
   const result = await docStore.selectByFilter(
     "treePack",
     "forest",
-    ["id"],
     {
       whereClause: "d.heightInCms > 200",
       orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
@@ -444,7 +460,10 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
-  assertEquals(result.docs, [{ id: "01" }]);
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "01" }],
+  );
 });
 
 Deno.test("Select documents using a filter, descending order by clause and limit.", async () => {
@@ -455,7 +474,6 @@ Deno.test("Select documents using a filter, descending order by clause and limit
   const result = await docStore.selectByFilter(
     "treePack",
     "forest",
-    ["id"],
     {
       whereClause: "d.heightInCms > 200",
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
@@ -464,7 +482,10 @@ Deno.test("Select documents using a filter, descending order by clause and limit
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
-  assertEquals(result.docs, [{ id: "02" }]);
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "02" }],
+  );
 });
 
 Deno.test("Select documents using an ordering clause with multiple results.", async () => {
@@ -475,14 +496,16 @@ Deno.test("Select documents using an ordering clause with multiple results.", as
   const result = await docStore.selectByFilter(
     "treePack",
     "forest",
-    ["id"],
     {
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
     },
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
-  assertEquals(result.docs, [{ id: "02" }, { id: "01" }]);
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "02" }, { id: "01" }],
+  );
 });
 
 Deno.test("Select documents using ids.", async () => {
@@ -493,17 +516,19 @@ Deno.test("Select documents using ids.", async () => {
   const result = await docStore.selectByIds(
     "tree",
     TestPartition,
-    ["id", "name"],
     ["02", "03"],
     { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.id as string).localeCompare(b.id as string)
   );
-  assertEquals(sortedDocs, [{ id: "02", name: "beech" }, {
-    id: "03",
-    name: "pine",
-  }]);
+  assertEquals(
+    sortedDocs.map((doc) => subsetDoc(doc, ["id", "name"])),
+    [{ id: "02", name: "beech" }, {
+      id: "03",
+      name: "pine",
+    }],
+  );
 });
 
 Deno.test("Select documents using ids that appear multiple times.", async () => {
@@ -514,17 +539,19 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   const result = await docStore.selectByIds(
     "tree",
     TestPartition,
-    ["name"],
     ["02", "03", "03", "02"],
     { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
     (a.name as string).localeCompare(b.name as string)
   );
-  assertEquals(sortedDocs, [{ name: "beech" }, { name: "pine" }]);
+  assertEquals(
+    sortedDocs.map((doc) => subsetDoc(doc, ["name"])),
+    [{ name: "beech" }, { name: "pine" }],
+  );
 });
 
-Deno.test("Select documents that include document versions.", async () => {
+Deno.test("Select a documents that includes a document version.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();
@@ -532,15 +559,13 @@ Deno.test("Select documents that include document versions.", async () => {
   const result = await docStore.selectByIds(
     "tree",
     TestPartition,
-    ["name", "docVersion"],
     ["02"],
     { databaseName: "sengi", collectionName: "trees" },
   );
-  const sortedDocs = result.docs.sort((a, b) =>
-    (a.name as string).localeCompare(b.name as string)
-  );
-  assertEquals(sortedDocs[0].name, "beech");
-  assertEquals(typeof sortedDocs[0].docVersion, "string");
+
+  assertEquals(result.docs.length, 1);
+  assertEquals(result.docs[0].name, "beech");
+  assertEquals(typeof result.docs[0].docVersion, "string");
 });
 
 Deno.test("Insert a new document and rely on doc store to generate doc version.", async () => {

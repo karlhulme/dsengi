@@ -73,13 +73,10 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
       patch: {
         model: "fiesta",
       },
-      fieldNames: ["id"],
     }),
     {
       isUpdated: true,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
+      doc: resultDoc,
     },
   );
 
@@ -107,23 +104,17 @@ Deno.test("Patching a document with a known operation id should only call fetch 
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.patchDocument<Car>({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
-      patch: {
-        model: "fiesta",
-      },
-      fieldNames: ["id"],
-    }),
-    {
-      isUpdated: false,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
+  const result = await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
+    patch: {
+      model: "fiesta",
     },
-  );
+  });
+
+  assertEquals(result.isUpdated, false);
+  assertEquals(result.doc.id, "06151119-065a-4691-a7c8-2d84ec746ba9");
 
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
@@ -142,24 +133,18 @@ Deno.test("Patching a document using a required version should cause the require
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.patchDocument<Car>({
-      ...defaultRequestProps,
-      id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-      reqVersion: "aaaa",
-      patch: {
-        model: "fiesta",
-      },
-      fieldNames: ["id"],
-    }),
-    {
-      isUpdated: true,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
+  const result = await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    reqVersion: "aaaa",
+    patch: {
+      model: "fiesta",
     },
-  );
+  });
+
+  assertEquals(result.isUpdated, true);
+  assertEquals(result.doc.id, "06151119-065a-4691-a7c8-2d84ec746ba9");
 
   assertEquals(spyFetch.callCount, 1);
 
@@ -195,7 +180,6 @@ Deno.test("Fail to patch document when required version is not available.", asyn
         model: "fiesta",
       },
       reqVersion: "aaaa", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then VersionNotAvailable error is raised
-      fieldNames: ["id"],
     }), SengiRequiredVersionNotAvailableError);
 });
 
@@ -212,7 +196,6 @@ Deno.test("Fail to patch document if it changes between fetch and upsert.", asyn
       patch: {
         model: "fiesta",
       },
-      fieldNames: ["id"],
     }), SengiConflictOnSaveError);
 });
 
@@ -229,7 +212,6 @@ Deno.test("Reject a patch to a non-existent doc.", async () => {
       patch: {
         model: "fiesta",
       },
-      fieldNames: ["id"],
     }), SengiDocNotFoundError);
 });
 
@@ -245,7 +227,6 @@ Deno.test("Reject a patch to any field that is marked as readonly.", async () =>
         patch: {
           manufacturer: "tesla",
         },
-        fieldNames: ["id"],
       }),
     SengiPatchValidationFailedError,
     "Cannot patch read-only field",
@@ -264,7 +245,6 @@ Deno.test("Reject a patch with a field value that is given an invalid type.", as
         patch: {
           model: 123 as unknown as string,
         },
-        fieldNames: ["id"],
       }),
     SengiPatchValidationFailedError,
     "model",
@@ -283,7 +263,6 @@ Deno.test("Reject a patch that would change a system field.", async () => {
         patch: {
           id: "aaaaaaaa-065a-4691-a7c8-2d84ec746ba9",
         },
-        fieldNames: ["id"],
       }),
     SengiPatchValidationFailedError,
     "system field",
@@ -302,7 +281,6 @@ Deno.test("Reject a patch that produces a doc that fails the docType validate fu
         patch: {
           registration: "HZ12 3AB",
         },
-        fieldNames: ["id"],
       }),
     SengiDocValidationFailedError,
     "Unrecognised vehicle registration prefix",

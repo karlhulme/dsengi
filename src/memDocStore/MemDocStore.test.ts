@@ -59,6 +59,19 @@ function createDocs(): DocStoreRecord[] {
   ];
 }
 
+function subsetDoc(
+  doc: DocStoreRecord,
+  fieldNames: string[],
+): DocStoreRecord {
+  const result: DocStoreRecord = {};
+
+  for (const fieldName of fieldNames) {
+    result[fieldName] = doc[fieldName];
+  }
+
+  return result;
+}
+
 function generateDocVersionFunc() {
   return "xxxx";
 }
@@ -172,19 +185,22 @@ Deno.test("All documents of a type can be selected.", async () => {
   const result = await docStore.selectAll(
     "test",
     "_central",
-    ["id"],
     {},
   );
-  assertEquals(result, { docs: [{ id: "001" }, { id: "002" }, { id: "003" }] });
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "001" }, { id: "002" }, { id: "003" }],
+  );
+
   const result2 = await docStore.selectAll(
     "test2",
     "_central",
-    ["vehicle"],
     {},
   );
-  assertEquals(result2, {
-    docs: [{ vehicle: "car" }, { vehicle: "cargoBoat" }, { vehicle: "plane" }],
-  });
+  assertEquals(
+    result2.docs.map((doc) => subsetDoc(doc, ["vehicle"])),
+    [{ vehicle: "car" }, { vehicle: "cargoBoat" }, { vehicle: "plane" }],
+  );
 });
 
 Deno.test("All documents of a recognised type can selected.", async () => {
@@ -193,7 +209,6 @@ Deno.test("All documents of a recognised type can selected.", async () => {
   const result = await docStore.selectAll(
     "test3",
     "_central",
-    ["fieldA", "fieldB"],
     {},
   );
   assertEquals(result, { docs: [] });
@@ -205,13 +220,13 @@ Deno.test("Select documents using a filter.", async () => {
   const result = await docStore.selectByFilter(
     "test2",
     "_central",
-    ["id", "vehicle"],
     (d) => (d.vehicle as string).startsWith("c"),
     {},
   );
-  assertEquals(result, {
-    docs: [{ id: "101", vehicle: "car" }, { id: "102", vehicle: "cargoBoat" }],
-  });
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id", "vehicle"])),
+    [{ id: "101", vehicle: "car" }, { id: "102", vehicle: "cargoBoat" }],
+  );
 });
 
 Deno.test("Select documents using ids.", async () => {
@@ -220,13 +235,13 @@ Deno.test("Select documents using ids.", async () => {
   const result = await docStore.selectByIds(
     "test",
     "_central",
-    ["id", "fruit"],
     ["002", "003"],
     {},
   );
-  assertEquals(result, {
-    docs: [{ id: "002", fruit: "banana" }, { id: "003", fruit: "orange" }],
-  });
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id", "fruit"])),
+    [{ id: "002", fruit: "banana" }, { id: "003", fruit: "orange" }],
+  );
 });
 
 Deno.test("Select documents using ids that appear multiple times.", async () => {
@@ -235,13 +250,13 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   const result = await docStore.selectByIds(
     "test",
     "_central",
-    ["id", "fruit"],
     ["002", "003", "002"],
     {},
   );
-  assertEquals(result, {
-    docs: [{ id: "002", fruit: "banana" }, { id: "003", fruit: "orange" }],
-  });
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id", "fruit"])),
+    [{ id: "002", fruit: "banana" }, { id: "003", fruit: "orange" }],
+  );
 });
 
 Deno.test("Insert a new document and rely on doc store to generate doc version.", async () => {

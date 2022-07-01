@@ -30,7 +30,6 @@ Deno.test("Select documents using a filter.", async () => {
   assertEquals(
     await sengi.selectDocumentsByFilter<Car, string>({
       ...defaultRequestProps,
-      fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
       validateParams: () => {},
       implementation: defaultImplementation,
       filterParams: "ka",
@@ -51,7 +50,6 @@ Deno.test("Select documents using a filter.", async () => {
   assert(spySelectByFilter.calledWith(
     "car",
     "_central",
-    ["id", "model"],
     "MODEL=ka",
     { custom: "prop" },
   ));
@@ -72,7 +70,6 @@ Deno.test("Fail to select documents if filter parameters are invalid.", async ()
   await assertRejects(() =>
     sengi.selectDocumentsByFilter<Car, string>({
       ...defaultRequestProps,
-      fieldNames: ["id", "model"], // the test doc store 'selectByFilter' implementation above will not respect this
       validateParams: () => {
         return "invalid params";
       },

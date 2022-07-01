@@ -12,5 +12,5 @@ export interface OperateOnDocumentResult<Doc extends DocBase> {
   /**
    * The updated document.
    */
-  doc: Partial<Doc>;
+  doc: Doc;
 }

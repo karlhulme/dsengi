@@ -173,29 +173,15 @@ export class CosmosDbDocStore implements
 
   /**
    * Returns a select query based on the given inputs.
-   * @param fieldNames An array of field names.
    * @param whereClause A Cosmos WHERE clause.
    * @param orderByFields An array of fields that will appear in the ORDER BY clause.
    * @param limit The maximum number of documents to select.
    */
   private buildSelectCommand(
-    fieldNames: string[],
     whereClause?: string,
     orderByFields?: CosmosDbDocStoreFilterOrderByField[],
     limit?: number,
   ): string {
-    // Determine the field names by combining orderBy fields
-    // with the ones originally requested.  Then use sets
-    // to knock out any duplicates and finally use filter
-    // to remove any empty strings.  Field names not found
-    // on the resource will not produce any output and this
-    // is not an error condition.
-    const orderByFieldNames = Array.isArray(orderByFields)
-      ? orderByFields.map((o) => o.fieldName)
-      : [];
-    const finalFieldNames = [...new Set(fieldNames.concat(orderByFieldNames))]
-      .filter((f) => f);
-
     // Determine the top/limit.
     const top = limit && limit < MAX_DOCS_TO_SELECT
       ? limit
@@ -203,9 +189,7 @@ export class CosmosDbDocStore implements
 
     // Determine the select, from and initial where clauses.
     let sql = `
-      SELECT TOP ${top} d._etag ${
-      finalFieldNames.map((f) => `, d.${f}`).join("")
-    }
+      SELECT TOP ${top} *
       FROM Docs d
       WHERE d.partitionKey = @partitionKey
     `;
@@ -227,48 +211,17 @@ export class CosmosDbDocStore implements
   }
 
   /**
-   * Return a new array of docs whereby each document
-   * only contains the fields in the given fieldNames array.
-   * @param {Array} docs An array of docs.
-   * @param {Array} fieldNames An array of field names.
+   * Return a new document with the Cosmos internal fields
+   * removed and the _etag copied to the docVersion field.
+   * @param doc A document retrieved from a Cosmos database.
    */
-  private buildResultDocs(docs: DocStoreRecord[], fieldNames: string[]) {
-    const results: DocStoreRecord[] = [];
+  private cleanDoc(doc: DocStoreRecord) {
+    const { _rid, _ts, _self, _etag, _attachments, ...others } = doc;
 
-    for (let i = 0; i < docs.length; i++) {
-      const result: DocStoreRecord = {};
-
-      for (const fieldName of fieldNames) {
-        if (fieldName === "docVersion" && typeof docs[i]._etag === "string") {
-          result[fieldName] = (docs[i]._etag as string).replaceAll('"', "");
-        } else {
-          result[fieldName] = docs[i][fieldName];
-        }
-      }
-
-      results.push(result);
-    }
-
-    return results;
-  }
-
-  /**
-   * Creates a new document using the keys of the given doc
-   * bypassing any properties named in the given omitKeys array.
-   * @param doc A document.
-   * @param fieldNamesToOmit An array of property keys.
-   */
-  private createSubsetOfDocument(
-    doc: DocStoreRecord,
-    fieldNamesToOmit: string[],
-  ) {
-    return Object.keys(doc).reduce((result: DocStoreRecord, key: string) => {
-      if (!fieldNamesToOmit.includes(key)) {
-        result[key] = doc[key];
-      }
-
-      return result;
-    }, {});
+    return {
+      ...others,
+      docVersion: _etag,
+    };
   }
 
   /**
@@ -389,8 +342,7 @@ export class CosmosDbDocStore implements
     let doc = null;
 
     if (rawDoc && rawDoc.docType === docTypeName) {
-      const { _rid, _ts, _self, _etag, _attachments, ...others } = rawDoc;
-      doc = { ...others, docVersion: _etag };
+      doc = this.cleanDoc(rawDoc);
     }
 
     return { doc };
@@ -429,18 +381,14 @@ export class CosmosDbDocStore implements
    * Select all documents of a specified type.
    * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
     _docTypeName: string,
     partition: string,
-    fieldNames: string[],
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
-    const queryCmd = this.buildSelectCommand(
-      fieldNames,
-    );
+    const queryCmd = this.buildSelectCommand();
 
     await this.ensureCryptoKey();
 
@@ -456,14 +404,13 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: this.buildResultDocs(docs, fieldNames) };
+    return { docs: docs.map(this.cleanDoc) };
   }
 
   /**
    * Select documents of a specified type that also match a filter.
    * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
    * @param docStoreParams The parameters for the document store.
@@ -471,12 +418,10 @@ export class CosmosDbDocStore implements
   async selectByFilter(
     _docTypeName: string,
     partition: string,
-    fieldNames: string[],
     filter: CosmosDbDocStoreFilter,
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const queryCmd = this.buildSelectCommand(
-      fieldNames,
       filter.whereClause,
       filter.orderByFields,
       filter.limit,
@@ -497,30 +442,25 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: this.buildResultDocs(docs, fieldNames) };
+    return { docs: docs.map(this.cleanDoc) };
   }
 
   /**
    * Select documents of a specified type that also have one of the given ids.
    * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
-   * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByIds(
     _docTypeName: string,
     partition: string,
-    fieldNames: string[],
     ids: string[],
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
 
-    const queryCmd = this.buildSelectCommand(
-      fieldNames,
-      whereClause,
-    );
+    const queryCmd = this.buildSelectCommand(whereClause);
 
     await this.ensureCryptoKey();
 
@@ -536,7 +476,7 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: this.buildResultDocs(docs, fieldNames) };
+    return { docs: docs.map(this.cleanDoc) };
   }
 
   /**
@@ -553,12 +493,11 @@ export class CosmosDbDocStore implements
     reqVersion: string | null,
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreUpsertResult> {
-    const cleanDoc = this.createSubsetOfDocument(doc, [
-      "docVersion",
-      "_attachments",
-      "_etag",
-      "_ts",
-    ]);
+    const uploadableDoc = structuredClone(doc);
+
+    if (typeof uploadableDoc.docVersion !== "undefined") {
+      delete uploadableDoc.docVersion;
+    }
 
     await this.ensureCryptoKey();
 
@@ -569,7 +508,7 @@ export class CosmosDbDocStore implements
         docStoreParams.databaseName,
         docStoreParams.collectionName,
         partition,
-        cleanDoc,
+        uploadableDoc,
         {
           ifMatch: reqVersion,
         },
@@ -587,7 +526,7 @@ export class CosmosDbDocStore implements
         docStoreParams.databaseName,
         docStoreParams.collectionName,
         partition,
-        cleanDoc,
+        uploadableDoc,
         {
           upsertDocument: true,
         },

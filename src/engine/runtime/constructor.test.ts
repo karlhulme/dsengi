@@ -38,7 +38,6 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
       model: "ka",
     },
     docStoreParams: { custom: "props" },
-    fieldNames: ["id"],
     partition: "_central",
     userId: "me",
   });

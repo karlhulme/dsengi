@@ -55,7 +55,6 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   selectAll: (
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
@@ -66,7 +65,6 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   selectByFilter: (
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     filter: Filter,
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
@@ -77,7 +75,6 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   selectByIds: (
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     ids: string[],
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;

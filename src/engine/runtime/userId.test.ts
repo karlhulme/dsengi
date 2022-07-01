@@ -21,7 +21,6 @@ Deno.test("Reject an invalid user id.", async () => {
           model: "ka",
           registration: "HG12 3AB",
         },
-        fieldNames: ["id"],
       }),
     SengiUserIdValidationFailedError,
     "user id '123'",

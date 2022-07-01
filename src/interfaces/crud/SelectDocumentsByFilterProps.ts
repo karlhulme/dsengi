@@ -19,11 +19,6 @@ export interface SelectDocumentsByFilterProps<
   partition: string;
 
   /**
-   * An array of field names to return.
-   */
-  fieldNames: (keyof Doc)[];
-
-  /**
    * A function that validates the filter parameters.
    */
   // deno-lint-ignore no-explicit-any

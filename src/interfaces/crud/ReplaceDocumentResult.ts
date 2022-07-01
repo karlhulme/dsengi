@@ -13,5 +13,5 @@ export interface ReplaceDocumentResult<Doc extends DocBase> {
   /**
    * The updated document.
    */
-  doc: Partial<Doc>;
+  doc: Doc;
 }

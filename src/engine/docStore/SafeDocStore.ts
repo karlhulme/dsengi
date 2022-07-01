@@ -150,20 +150,17 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
-   * @param fieldNames An array of field names to include in the response.
    * @param docStoreParams The params for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
       const result = await this.docStore.selectAll(
         docTypeName,
         partition,
-        fieldNames,
         docStoreParams,
       );
       return result;
@@ -176,14 +173,12 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * Select documents of a specified type that also match a filter.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
-   * @param fieldNames An array of field names to include in the response.
    * @param filter A filter.
    * @param docStoreParams The params for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     filter: Filter,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
@@ -191,7 +186,6 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       const result = await this.docStore.selectByFilter(
         docTypeName,
         partition,
-        fieldNames,
         filter,
         docStoreParams,
       );
@@ -205,14 +199,12 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * Select documents of a specified type that also have one of the given ids.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
-   * @param fieldNames An array of field names to include in the response.
    * @param ids An array of document ids.
    * @param docStoreParams The params for the document store.
    */
   async selectByIds(
     docTypeName: string,
     partition: string,
-    fieldNames: string[],
     ids: string[],
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
@@ -220,7 +212,6 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       const result = await this.docStore.selectByIds(
         docTypeName,
         partition,
-        fieldNames,
         ids,
         docStoreParams,
       );

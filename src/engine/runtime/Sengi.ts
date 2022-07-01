@@ -46,7 +46,6 @@ import {
   parseFilterParams,
   parseQueryParams,
   selectDocTypeFromArray,
-  subsetDoc,
 } from "../docTypes/index.ts";
 
 /**
@@ -143,10 +142,7 @@ export class Sengi<
     if (existingDocResult.doc) {
       return {
         isNew: false,
-        doc: subsetDoc<Doc>(
-          existingDocResult.doc as unknown as Doc,
-          props.fieldNames,
-        ),
+        doc: existingDocResult.doc as unknown as Doc,
       };
     } else {
       const doc = executeConstructor<Doc, ConstructorParams>(
@@ -185,7 +181,7 @@ export class Sengi<
 
       return {
         isNew: true,
-        doc: subsetDoc(doc, props.fieldNames),
+        doc: doc as Doc,
       };
     }
   }
@@ -246,10 +242,7 @@ export class Sengi<
     if (fetchResult.doc) {
       return {
         isNew: false,
-        doc: subsetDoc(
-          fetchResult.doc as unknown as Partial<Doc>,
-          props.fieldNames,
-        ),
+        doc: fetchResult.doc as unknown as Doc,
       };
     } else {
       const doc = props.doc;
@@ -280,7 +273,7 @@ export class Sengi<
 
       return {
         isNew: true,
-        doc: subsetDoc(doc, props.fieldNames),
+        doc: doc as Doc,
       };
     }
   }
@@ -309,7 +302,7 @@ export class Sengi<
     const doc = ensureDocWasFound(
       props.docTypeName,
       props.id,
-      fetchResult.doc as unknown as Partial<Doc>,
+      fetchResult.doc as unknown as Doc,
     );
 
     const opIdAlreadyExists = isOpIdInDocument(doc, props.operationId);
@@ -352,7 +345,7 @@ export class Sengi<
 
     return {
       isUpdated: !opIdAlreadyExists,
-      doc: subsetDoc(doc, props.fieldNames),
+      doc: doc as Doc,
     };
   }
 
@@ -422,7 +415,7 @@ export class Sengi<
 
     return {
       isUpdated: !opIdAlreadyExists,
-      doc: subsetDoc(doc, props.fieldNames),
+      doc: doc as Doc,
     };
   }
 
@@ -510,7 +503,7 @@ export class Sengi<
 
     return {
       isNew,
-      doc: subsetDoc(doc, props.fieldNames),
+      doc,
     };
   }
 
@@ -542,7 +535,6 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectByFilter(
       props.docTypeName,
       props.partition,
-      props.fieldNames as string[],
       filter,
       props.docStoreParams,
     );
@@ -565,7 +557,6 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectByIds(
       props.docTypeName,
       props.partition,
-      props.fieldNames as string[],
       props.ids,
       props.docStoreParams,
     );
@@ -591,7 +582,6 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
       props.partition,
-      props.fieldNames as string[],
       props.docStoreParams,
     );
 

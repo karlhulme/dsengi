@@ -48,7 +48,6 @@ Deno.test("Select all documents of a type in a collection.", async () => {
   assertEquals(
     await sengi.selectDocuments<Car>({
       ...defaultRequestProps,
-      fieldNames: ["id", "model"], // the test doc store 'selectAll' implementation above will not respect this
     }),
     {
       docs: [
@@ -79,7 +78,6 @@ Deno.test("Select all documents of a type in a collection.", async () => {
     spySelectAll.calledWith(
       "car",
       "_central",
-      ["id", "model"],
       { custom: "prop" },
     ),
   );
@@ -97,6 +95,5 @@ Deno.test("Fail to select all documents of a type in collection if fetchWholeCol
   await assertRejects(() =>
     sengi.selectDocuments({
       ...defaultRequestProps,
-      fieldNames: ["id"],
     }), SengiActionForbiddenByPolicyError);
 });

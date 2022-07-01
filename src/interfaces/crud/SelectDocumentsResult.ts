@@ -8,5 +8,5 @@ export interface SelectDocumentsResult<Doc extends DocBase> {
   /**
    * An array of documents.
    */
-  docs: Partial<Doc>[];
+  docs: Doc[];
 }

@@ -16,4 +16,3 @@ export * from "./isOpIdInDocument.ts";
 export * from "./parseFilterParams.ts";
 export * from "./parseQueryParams.ts";
 export * from "./selectDocTypeFromArray.ts";
-export * from "./subsetDoc.ts";

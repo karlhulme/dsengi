@@ -50,11 +50,10 @@ Deno.test("Creating a document with a constructor should call exists and then up
       validateParams: () => {},
       implementation: defaultImplementation,
       constructorParams: "HG12 3AB",
-      fieldNames: ["id"],
     }),
     {
       isNew: true,
-      doc: { id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1" },
+      doc: resultDoc,
     },
   );
 
@@ -90,17 +89,16 @@ Deno.test("Creating a document using the default getMillisecondsSinceEpoch imple
 
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.createDocument<Car, string>({
-      ...defaultRequestProps,
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      fieldNames: ["id"],
-      constructorParams: "HG12 3AB",
-    }),
-    { isNew: true, doc: { id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1" } },
-  );
+  const result = await sengi.createDocument<Car, string>({
+    ...defaultRequestProps,
+    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+    validateParams: () => {},
+    implementation: defaultImplementation,
+    constructorParams: "HG12 3AB",
+  });
+
+  assertEquals(result.isNew, true);
+  assertEquals(result.doc.id, "d7fe060b-2d03-46e2-8cb5-ab18380790d1");
 
   assertEquals(spyUpsert.callCount, 1);
 });
@@ -118,22 +116,16 @@ Deno.test("Creating a document with a constructor that already exists should not
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.createDocument<Car, string>({
-      ...defaultRequestProps,
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      constructorParams: "HG12 3AB",
-      fieldNames: ["id"],
-    }),
-    {
-      isNew: false,
-      doc: {
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      },
-    },
-  );
+  const result = await sengi.createDocument<Car, string>({
+    ...defaultRequestProps,
+    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+    validateParams: () => {},
+    implementation: defaultImplementation,
+    constructorParams: "HG12 3AB",
+  });
+
+  assertEquals(result.isNew, false);
+  assertEquals(result.doc.id, "d7fe060b-2d03-46e2-8cb5-ab18380790d1");
 
   assertEquals(spyFetch.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
@@ -153,7 +145,6 @@ Deno.test("Fail to create a document using a constructor where the constructor p
       },
       implementation: defaultImplementation,
       constructorParams: "not-valid",
-      fieldNames: ["id"],
     }), SengiCtorParamsValidationFailedError);
 });
 
@@ -171,6 +162,5 @@ Deno.test("Fail to create a document using a constructor where the resulting doc
         registration: 123 as unknown as string,
       }),
       constructorParams: "HZ12 3AB",
-      fieldNames: ["id"],
     }), SengiDocValidationFailedError);
 });

@@ -46,13 +46,10 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
       ...defaultRequestProps,
       docTypeName: "car",
       doc: newCar,
-      fieldNames: ["id"],
     }),
     {
       isNew: true,
-      doc: {
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      },
+      doc: resultDoc,
     },
   );
 
@@ -87,19 +84,13 @@ Deno.test("Adding a new document that already exists should not lead to a call t
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  assertEquals(
-    await sengi.newDocument({
-      ...defaultRequestProps,
-      doc: newCar,
-      fieldNames: ["id"],
-    }),
-    {
-      isNew: false,
-      doc: {
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      },
-    },
-  );
+  const result = await sengi.newDocument({
+    ...defaultRequestProps,
+    doc: newCar,
+  });
+
+  assertEquals(result.isNew, false);
+  assertEquals(result.doc.id, "d7fe060b-2d03-46e2-8cb5-ab18380790d1");
 
   assertEquals(spyFetch.callCount, 1);
   assertEquals(spyUpsert.callCount, 0);
@@ -114,7 +105,6 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
     await sengi.newDocument({
       ...defaultRequestProps,
       doc: { ...newCar, registration: "HZ12 3AB" },
-      fieldNames: ["id"],
     });
   }, SengiDocValidationFailedError);
 });

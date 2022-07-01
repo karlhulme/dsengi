@@ -47,13 +47,10 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
       ...defaultRequestProps,
       docTypeName: "car",
       doc: createNewDocument() as Car,
-      fieldNames: ["id"],
     }),
     {
       isNew: false,
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      },
+      doc: resultDoc,
     },
   );
 
@@ -78,7 +75,6 @@ Deno.test("Fail to replace a document if it does not conform to the doc type sch
         ...createNewDocument() as Car,
         model: 123 as unknown as string, // rather than a string
       },
-      fieldNames: ["id"],
     }), SengiDocValidationFailedError);
 });
 
@@ -92,7 +88,6 @@ Deno.test("Fail to replace a document if it fails custom validation.", async () 
         ...createNewDocument() as Car,
         registration: "HZ12 3AB", // registration must begin HG
       },
-      fieldNames: ["id"],
     }), SengiDocValidationFailedError);
 });
 
@@ -109,6 +104,5 @@ Deno.test("Fail to replace a document if disallowed by doc type policy.", async 
     sengi.replaceDocument<Car>({
       ...defaultRequestProps,
       doc: createNewDocument() as Car,
-      fieldNames: ["id"],
     }), SengiActionForbiddenByPolicyError);
 });

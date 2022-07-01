@@ -13,5 +13,5 @@ export interface ConstructDocumentResult<Doc extends DocBase> {
   /**
    * The document that was created or the document that already existed.
    */
-  doc: Partial<Doc>;
+  doc: Doc;
 }
