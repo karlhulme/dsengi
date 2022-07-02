@@ -67,6 +67,11 @@ export interface SengiConstructorProps<
   getMillisecondsSinceEpoch?: () => number;
 
   /**
+   * A function that returns a new document version.
+   */
+  getNewDocVersion?: () => string;
+
+  /**
    * An array of document types that are managed by the engine.
    */
   docTypes?: DocType[];
@@ -94,6 +99,7 @@ export class Sengi<
   >;
   private validateUserId: (userId: string) => string | void;
   private getMillisecondsSinceEpoch: () => number;
+  private getNewDocVersion: () => string;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -109,7 +115,9 @@ export class Sengi<
     this.docTypes = props.docTypes || [];
     this.validateUserId = props.validateUserId || (() => {});
     this.getMillisecondsSinceEpoch = props.getMillisecondsSinceEpoch ||
-      Date.now;
+      (() => Date.now());
+    this.getNewDocVersion = props.getNewDocVersion ||
+      (() => crypto.randomUUID());
 
     if (!props.docStore) {
       throw new Error("Must supply a docStore.");
@@ -161,6 +169,7 @@ export class Sengi<
         doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
+        this.getNewDocVersion(),
       );
 
       executeValidateDoc<Doc>(
@@ -253,6 +262,7 @@ export class Sengi<
         doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
+        this.getNewDocVersion(),
       );
 
       executeValidateDoc(
@@ -322,6 +332,7 @@ export class Sengi<
         doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
+        this.getNewDocVersion(),
       );
 
       executeValidateDoc(
@@ -392,6 +403,7 @@ export class Sengi<
         doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
+        this.getNewDocVersion(),
       );
 
       executeValidateDoc(
@@ -482,6 +494,7 @@ export class Sengi<
       doc,
       this.getMillisecondsSinceEpoch(),
       props.userId,
+      this.getNewDocVersion(),
     );
     executeValidateDoc(
       props.docTypeName,

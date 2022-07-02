@@ -32,6 +32,7 @@ Deno.test("Creating a document with a constructor should call exists and then up
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     docType: "car",
     docOpIds: [],
+    docVersion: "1111-2222",
     docCreatedByUserId: "user-0001",
     docCreatedMillisecondsSinceEpoch: 1629881470000,
     docLastUpdatedByUserId: "user-0001",

@@ -11,7 +11,12 @@ export function applyCommonFieldValuesToDoc(
   doc: Partial<DocBase>,
   millisecondsSinceEpoch: number,
   userId: string,
+  docVersion: string,
 ): void {
+  // We assign a new docVersion so that the document validates before
+  // it is sent to the document store, whereby a new docVersion be assigned.
+  doc.docVersion = docVersion;
+
   // Most mutations call appendDocOpId which will ensure that the doc
   // has an array of docOpIds, but the replaceDocument operation will not
   // so we include the safety check here.

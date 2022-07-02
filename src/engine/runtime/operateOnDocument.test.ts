@@ -53,7 +53,7 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
-    docVersion: "aaaa",
+    docVersion: "1111-2222",
     docOpIds: [
       "50e02b33-b22c-4207-8785-5a8aa529ec84",
       "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",

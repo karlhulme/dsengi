@@ -141,6 +141,7 @@ export const createSengiWithMockStore = (
       }
     },
     getMillisecondsSinceEpoch: () => 1629881470000,
+    getNewDocVersion: () => "1111-2222",
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     TestDocStoreParams,
     string,
