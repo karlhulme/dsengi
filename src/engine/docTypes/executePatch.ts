@@ -36,7 +36,7 @@ export function executePatch<Doc extends DocBase>(
   }
 
   try {
-    validationErrorMessage = validateDoc(patch);
+    validationErrorMessage = validateDoc(patchUpdate);
   } catch (err) {
     throw new SengiValidatePatchFailedError(
       docTypeName,
@@ -51,6 +51,8 @@ export function executePatch<Doc extends DocBase>(
     );
   }
 
+  // Use the original patch for the patching process,
+  // do not use the update-only patch we created for validation.
   const patchKeys = Object.keys(patch);
 
   for (const patchKey of patchKeys) {
