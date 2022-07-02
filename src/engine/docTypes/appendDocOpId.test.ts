@@ -8,7 +8,6 @@ function createDocType(): DocType {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
     policy: {
       maxOpIds: 3,
     },

@@ -11,7 +11,6 @@ Deno.test("Remain silent if policy allows replace document action.", () => {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
     policy: {
       canReplaceDocuments: true,
     },
@@ -26,7 +25,6 @@ Deno.test("Raise error if policy disallows replace document action.", () => {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
     policy: {
       canReplaceDocuments: false,
     },
@@ -45,7 +43,6 @@ Deno.test("Raise error if policy not specified for replace document action.", ()
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
   };
 
   assertThrows(

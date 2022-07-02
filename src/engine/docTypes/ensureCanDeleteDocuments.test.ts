@@ -11,7 +11,6 @@ Deno.test("Remain silent if policy allows delete action.", () => {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
     policy: {
       canDeleteDocuments: true,
     },
@@ -26,7 +25,6 @@ Deno.test("Raise error if policy disallows delete action.", () => {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
     policy: {
       canDeleteDocuments: false,
     },
@@ -45,7 +43,6 @@ Deno.test("Raise error if policy not specified for delete action.", () => {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
   };
 
   assertThrows(

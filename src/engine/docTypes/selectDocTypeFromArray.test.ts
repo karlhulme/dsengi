@@ -11,13 +11,11 @@ function createDocTypes() {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
   }, {
     name: "example",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
-    validatePatch: () => {},
   }];
 
   return docTypes;

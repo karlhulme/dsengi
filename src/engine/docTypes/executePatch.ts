@@ -12,14 +12,15 @@ import {
  * then an error will be raised when the document is validated.
  * @param docTypeName The name of a document type.
  * @param readOnlyFieldNames An array of the read-only fields.
- * @param validateDoc A function that validates the type of document to be patchd.
+ * @param validateFields A function that validates the types and ranges of the fields
+ * of the document to be patched.
  * @param doc The doc that will be patched.
  * @param patch The patch to be applied.
  */
 export function executePatch<Doc extends DocBase>(
   docTypeName: string,
   readOnlyFieldNames: string[],
-  validateDoc: (patch: unknown) => string | void,
+  validateFields: (patch: unknown) => string | void,
   doc: Doc,
   patch: PartialNullable<Doc>,
 ): void {
@@ -27,16 +28,16 @@ export function executePatch<Doc extends DocBase>(
 
   // Clone the patch and them remove any null properties.
   // This allows us to use validateDoc to check the patch fields.
-  const patchUpdate = structuredClone(patch)
+  const patchUpdate = structuredClone(patch);
 
   for (const key of Object.keys(patchUpdate)) {
     if (patchUpdate[key] === null) {
-      delete patchUpdate[key]
+      delete patchUpdate[key];
     }
   }
 
   try {
-    validationErrorMessage = validateDoc(patchUpdate);
+    validationErrorMessage = validateFields(patchUpdate);
   } catch (err) {
     throw new SengiValidatePatchFailedError(
       docTypeName,
