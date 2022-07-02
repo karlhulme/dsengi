@@ -34,15 +34,6 @@ export interface DocType {
   validateDoc: (doc: any) => string | void;
 
   /**
-   * A validator function that returns a string describing the validation
-   * failure, or uses a void return if the given patch is valid.
-   * This function may alter the document to make it valid,
-   * such as removing unrecognised fields.
-   */
-  // deno-lint-ignore no-explicit-any
-  validatePatch: (patch: any) => string | void;
-
-  /**
    * An array of field names that cannot be patched.
    * System fields are always read-only and do not need to be specified.
    */

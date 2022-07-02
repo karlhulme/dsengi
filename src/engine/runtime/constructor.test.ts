@@ -26,7 +26,6 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
       readOnlyFieldNames: [],
       validateDoc: () => {},
       validateFields: () => {},
-      validatePatch: () => {},
     }],
   });
 

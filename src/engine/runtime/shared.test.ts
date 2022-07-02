@@ -64,27 +64,6 @@ export function createCarDocType(): DocType {
         return "Field originalOwner must be a string";
       }
     },
-    validatePatch: (patch) => {
-      if (typeof patch !== "object") {
-        return "Patch is not an object";
-      }
-
-      if (!["string", "undefined"].includes(typeof patch.manufacturer)) {
-        return "Field manufacturer must be a string";
-      }
-
-      if (!["string", "undefined"].includes(typeof patch.model)) {
-        return "Field model must be a string";
-      }
-
-      if (!["string", "undefined"].includes(typeof patch.registration)) {
-        return "Field registration must be a string";
-      }
-
-      if (!["string", "undefined"].includes(typeof patch.originalOwner)) {
-        return "Field originalOwner must be a string";
-      }
-    },
   };
 }
 
