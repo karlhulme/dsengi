@@ -1,17 +1,12 @@
 # DSengi
 
-The basis of a data layer based on a series of schemas and mutations.
+A utility for retrieving, storing and mutating documents stored
+in a NoSQL database such as Azure Cosmos DB.
 
-## Migration
+You can use Jsonotron to generate a typed wrapper for sengi.  This
+is similar to an ORM, allowing you to work with documents and fields
+as if they are classes and fields.
 
-In process of migrating from the NodeJS version.
+## Todo
 
-Engine work: Finish fixing up the tests in /src/engine/runtime (switching from
-Jest to Deno/Sinon).
-
-Finally we need a REST layer that is based around Oak rather than Express. Here,
-we need to generate the `service.ts` file that we use to generate REST/OpenAPI
-interfaces from on the other services (see Email and PDF). The existing
-generators should then do most of the scaffolding. And then we need to create
-something that builds the `ops` methods automatically, binding the routes to the
-functions provided by the sengi engine.
+*  Write tests for the `/src/cosmosClient` namespace.
