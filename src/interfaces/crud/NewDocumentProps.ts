@@ -1,4 +1,4 @@
-import { DocBase } from "../doc/index.ts";
+import { DocBase, DocSystemFieldNamesUnion } from "../doc/index.ts";
 
 /**
  * Defines the properties that are required to create
@@ -19,7 +19,7 @@ export interface NewDocumentProps<Doc extends DocBase, DocStoreParams> {
    * The new document.  All of the system fields will be added automatically
    * expect for the id property which must be populated.
    */
-  doc: Partial<Doc>;
+  doc: Partial<Omit<Doc, DocSystemFieldNamesUnion>>;
 
   /**
    * The parameters to be passed to the document store.

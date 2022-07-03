@@ -85,7 +85,7 @@ Deno.test("Adding a new document that already exists should not lead to a call t
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  const result = await sengi.newDocument({
+  const result = await sengi.newDocument<Car>({
     ...defaultRequestProps,
     doc: newCar,
   });
@@ -103,9 +103,12 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
   });
 
   assertRejects(async () => {
-    await sengi.newDocument({
+    await sengi.newDocument<Car>({
       ...defaultRequestProps,
-      doc: { ...newCar, registration: "HZ12 3AB" },
+      doc: {
+        ...newCar,
+        registration: "HZ12 3AB",
+      },
     });
   }, SengiDocValidationFailedError);
 });

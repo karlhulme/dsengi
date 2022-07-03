@@ -262,7 +262,7 @@ Deno.test("Reject a patch that would change a system field.", async () => {
         operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
         patch: {
           id: "aaaaaaaa-065a-4691-a7c8-2d84ec746ba9",
-        },
+        } as Partial<Car>,
       }),
     SengiPatchValidationFailedError,
     "system field",

@@ -1,3 +1,4 @@
+import { DocSystemFieldNamesUnion } from "../doc/index.ts";
 import { PartialNullable } from "../generic/index.ts";
 
 /**
@@ -27,7 +28,7 @@ export interface PatchDocumentProps<Doc, DocStoreParams> {
   /**
    * The patch to be applied.
    */
-  patch: PartialNullable<Doc>;
+  patch: Omit<PartialNullable<Doc>, "id" | DocSystemFieldNamesUnion>;
 
   /**
    * The parameters to be passed to the document store.

@@ -254,7 +254,7 @@ export class Sengi<
         doc: fetchResult.doc as unknown as Doc,
       };
     } else {
-      const doc = props.doc;
+      const doc = props.doc as Partial<Doc>;
 
       doc.docType = props.docTypeName;
       doc.docOpIds = [];

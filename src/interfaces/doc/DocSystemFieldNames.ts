@@ -1,4 +1,16 @@
 /**
+ * Exports the system field names as a string union.
+ */
+export type DocSystemFieldNamesUnion =
+  | "docType"
+  | "docVersion"
+  | "docOpIds"
+  | "docCreatedByUserId"
+  | "docCreatedMillisecondsSinceEpoch"
+  | "docLastUpdatedByUserId"
+  | "docLastUpdatedMillisecondsSinceEpoch";
+
+/**
  * Defines the field names that must be defined on all document types.
  */
 export const DocSystemFieldNames = [
