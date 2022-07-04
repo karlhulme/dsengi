@@ -22,3 +22,5 @@ export {
   OperationTransitoryError,
   retryable,
 } from "https://raw.githubusercontent.com/karlhulme/dpiggle/main/mod.ts";
+
+export { default as TtlCache } from "https://deno.land/x/ttl@1.0.1/mod.ts";

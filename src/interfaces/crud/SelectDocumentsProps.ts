@@ -2,7 +2,7 @@
  * Defines the properties that are required to extract all
  * the documents from a collection.
  */
-export interface SelectDocumentsProps<Doc, DocStoreParams> {
+export interface SelectDocumentsProps<DocStoreParams> {
   /**
    * The name of the document type that is targeted by the request.
    */

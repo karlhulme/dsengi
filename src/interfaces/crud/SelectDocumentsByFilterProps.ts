@@ -3,7 +3,6 @@
  * document collection using a filter.
  */
 export interface SelectDocumentsByFilterProps<
-  Doc,
   Filter,
   FilterParams,
   DocStoreParams,

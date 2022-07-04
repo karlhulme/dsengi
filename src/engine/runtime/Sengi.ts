@@ -1,3 +1,4 @@
+import { TtlCache } from "../../../deps.ts";
 import {
   ConstructDocumentProps,
   ConstructDocumentResult,
@@ -80,6 +81,12 @@ export interface SengiConstructorProps<
    * A function that returns a validation error if the given user id is not valid.
    */
   validateUserId?: (userId: string) => string | void;
+
+  /**
+   * The number of documents to store in the cache that have been
+   * retrieved by id.
+   */
+  cacheSize?: number;
 }
 
 /**
@@ -100,6 +107,7 @@ export class Sengi<
   private validateUserId: (userId: string) => string | void;
   private getMillisecondsSinceEpoch: () => number;
   private getNewDocVersion: () => string;
+  private cache: TtlCache<DocBase>;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -124,6 +132,10 @@ export class Sengi<
     }
 
     this.safeDocStore = new SafeDocStore(props.docStore);
+
+    this.cache = new TtlCache<DocBase>(
+      typeof props.cacheSize === "number" ? props.cacheSize : 500,
+    );
   }
 
   /**
@@ -526,7 +538,6 @@ export class Sengi<
    */
   async selectDocumentsByFilter<Doc extends DocBase, FilterParams>(
     props: SelectDocumentsByFilterProps<
-      Doc,
       Filter,
       FilterParams,
       DocStoreParams
@@ -557,24 +568,61 @@ export class Sengi<
 
   /**
    * Selects a set of documents using an array of document ids.
+   * Duplicate ids will be filtered out.
+   * If a value is specified for cacheSeconds then the cache
+   * will be checked for existing values.
    * @param props A property bag.
    */
   async selectDocumentsByIds<Doc extends DocBase>(
-    props: SelectDocumentsByIdsProps<Doc, DocStoreParams>,
+    props: SelectDocumentsByIdsProps<DocStoreParams>,
   ): Promise<SelectDocumentsByIdsResult<Doc>> {
     ensureUserId(
       props.userId,
       this.validateUserId,
     );
 
-    const selectResult = await this.safeDocStore.selectByIds(
-      props.docTypeName,
-      props.partition,
-      props.ids,
-      props.docStoreParams,
-    );
+    const uniqueIds = [...new Set(props.ids)];
 
-    return { docs: selectResult.docs as unknown as Doc[] };
+    const docs: Doc[] = [];
+    const docIdsToFetch: string[] = [];
+
+    // Attempt to pull values from the cache.
+    if (typeof props.cacheMilliseconds === "number") {
+      for (const id of uniqueIds) {
+        const cachedDoc = this.cache.get(id);
+
+        if (typeof cachedDoc === "undefined") {
+          docIdsToFetch.push(id);
+        } else {
+          docs.push(cachedDoc as Doc);
+        }
+      }
+    } else {
+      docIdsToFetch.push(...props.ids);
+    }
+
+    if (docIdsToFetch.length > 0) {
+      const selectResult = await this.safeDocStore.selectByIds(
+        props.docTypeName,
+        props.partition,
+        docIdsToFetch,
+        props.docStoreParams,
+      );
+
+      for (const storedRecord of selectResult.docs) {
+        const doc = storedRecord as unknown as Doc;
+
+        docs.push(doc);
+
+        if (typeof props.cacheMilliseconds === "number") {
+          this.cache.set(doc.id, doc, props.cacheMilliseconds);
+        }
+      }
+    }
+
+    return {
+      docs,
+    };
   }
 
   /**
@@ -582,7 +630,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocuments<Doc extends DocBase>(
-    props: SelectDocumentsProps<Doc, DocStoreParams>,
+    props: SelectDocumentsProps<DocStoreParams>,
   ): Promise<SelectDocumentsResult<Doc>> {
     ensureUserId(
       props.userId,

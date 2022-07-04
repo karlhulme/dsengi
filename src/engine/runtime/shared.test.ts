@@ -103,6 +103,12 @@ interface SengiTestObjects {
   carDocType: DocType;
 }
 
+/**
+ * Creates a new doc store with mocked functions so we can control
+ * the output, and specify all the parameters explicitly.
+ * @param docStoreOverrides Overrides for the doc store funcions.
+ * @param sengiCtorOverrides Overrides for the sengi constructor.
+ */
 export const createSengiWithMockStore = (
   docStoreOverrides?: Record<string, unknown>,
   sengiCtorOverrides?: Record<string, unknown>,
@@ -121,6 +127,7 @@ export const createSengiWithMockStore = (
     },
     getMillisecondsSinceEpoch: () => 1629881470000,
     getNewDocVersion: () => "1111-2222",
+    cacheSize: 100,
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     TestDocStoreParams,
     string,
@@ -154,3 +161,11 @@ Deno.test("createSengiWithMockStore creates a valid sengi object.", async () => 
   assertEquals(typeof objects.sengiCtorProps, "object");
   assertEquals(typeof objects.docStore, "object");
 });
+
+export function sleep(seconds: number) {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({});
+    }, seconds);
+  });
+}
