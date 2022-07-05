@@ -26,13 +26,14 @@ export function executePatch<Doc extends DocBase>(
 ): void {
   let validationErrorMessage;
 
-  // Clone the patch and them remove any null properties.
+  // Clone the patch and then replace any missing or null
+  // properties with the values from the original document.
   // This allows us to use validateDoc to check the patch fields.
   const patchUpdate = structuredClone(patch);
 
   for (const key of Object.keys(patchUpdate)) {
-    if (patchUpdate[key] === null) {
-      delete patchUpdate[key];
+    if (typeof patchUpdate[key] === "undefined" || patchUpdate[key] === null) {
+      patchUpdate[key] = (doc as Record<string, unknown>)[key];
     }
   }
 
