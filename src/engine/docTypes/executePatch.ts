@@ -31,7 +31,7 @@ export function executePatch<Doc extends DocBase>(
   // This allows us to use validateDoc to check the patch fields.
   const patchUpdate = structuredClone(patch);
 
-  for (const key of Object.keys(patchUpdate)) {
+  for (const key of Object.keys(doc)) {
     if (typeof patchUpdate[key] === "undefined" || patchUpdate[key] === null) {
       patchUpdate[key] = (doc as Record<string, unknown>)[key];
     }
