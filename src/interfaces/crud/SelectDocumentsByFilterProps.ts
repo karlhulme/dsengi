@@ -18,21 +18,9 @@ export interface SelectDocumentsByFilterProps<
   partition: string;
 
   /**
-   * A function that validates the filter parameters.
+   * A filter object that the document store knows how to apply.
    */
-  // deno-lint-ignore no-explicit-any
-  validateParams: (params: any) => string | void;
-
-  /**
-   * A function that converts the filter parameters into a filter
-   * that the document store can interpret.
-   */
-  implementation: (params: FilterParams, userId: string) => Filter;
-
-  /**
-   * The parameters to be passed to the filter.
-   */
-  filterParams: FilterParams;
+  filter: Filter;
 
   /**
    * The parameters to be passed to the document store.

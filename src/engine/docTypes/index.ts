@@ -13,6 +13,5 @@ export * from "./executeOperation.ts";
 export * from "./executePatch.ts";
 export * from "./executeValidateDoc.ts";
 export * from "./isOpIdInDocument.ts";
-export * from "./parseFilterParams.ts";
 export * from "./parseQueryParams.ts";
 export * from "./selectDocTypeFromArray.ts";

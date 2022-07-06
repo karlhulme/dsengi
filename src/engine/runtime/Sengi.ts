@@ -44,7 +44,6 @@ import {
   executePatch,
   executeValidateDoc,
   isOpIdInDocument,
-  parseFilterParams,
   parseQueryParams,
   selectDocTypeFromArray,
 } from "../docTypes/index.ts";
@@ -548,18 +547,10 @@ export class Sengi<
       this.validateUserId,
     );
 
-    const filter = parseFilterParams<Filter, FilterParams>(
-      props.docTypeName,
-      props.validateParams,
-      props.implementation,
-      props.filterParams,
-      props.userId,
-    );
-
     const selectResult = await this.safeDocStore.selectByFilter(
       props.docTypeName,
       props.partition,
-      filter,
+      props.filter,
       props.docStoreParams,
     );
 

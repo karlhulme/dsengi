@@ -37,32 +37,6 @@ export class SengiConstructorNonObjectResponseError extends SengiEngineError {
   }
 }
 
-export class SengiFilterParseFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The parse function of filter on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
-export class SengiFilterValidateParametersFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The validateParameters function of filter on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiOperationFailedError extends SengiEngineError {
   constructor(
     readonly docTypeName: string,

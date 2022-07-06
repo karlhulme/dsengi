@@ -51,19 +51,6 @@ export class SengiDocNotFoundError extends SengiRequestError { // HTTP 404
   }
 }
 
-export class SengiFilterParamsValidationFailedError extends SengiRequestError {
-  constructor(
-    readonly docTypeName: string,
-    readonly validationError: string,
-  ) {
-    super(
-      `The parameters supplied to filter for doc type '${docTypeName}' were not valid.\n${validationError}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiDocIdMissing extends SengiRequestError {
   constructor() {
     super(
