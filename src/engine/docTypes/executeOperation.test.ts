@@ -1,10 +1,5 @@
 import { assertEquals, assertThrows } from "../../../deps.ts";
-import {
-  DocBase,
-  SengiOperationFailedError,
-  SengiOperationParamsValidationFailedError,
-  SengiOperationValidateParametersFailedError,
-} from "../../interfaces/index.ts";
+import { DocBase, SengiOperationFailedError } from "../../interfaces/index.ts";
 import { executeOperation } from "./executeOperation.ts";
 
 interface ExampleDoc extends DocBase {
@@ -35,74 +30,15 @@ Deno.test("Accept valid operation request.", () => {
     propA: "foo",
   };
 
-  executeOperation<ExampleDoc, ExampleOperationParams>(
+  executeOperation<ExampleDoc>(
     "test",
-    () => {},
-    (doc, params) => {
-      doc.propA = params.opPropA;
+    (doc) => {
+      doc.propA = "bar";
     },
     doc,
-    {
-      opPropA: "bar",
-    },
-    "me",
   );
 
   assertEquals(doc.propA, "bar");
-});
-
-Deno.test("Reject operation request with invalid parameters.", () => {
-  const doc: ExampleDoc = {
-    ...createDoc(),
-    propA: "foo",
-  };
-
-  assertThrows(
-    () =>
-      executeOperation<ExampleDoc, ExampleOperationParams>(
-        "test",
-        () => {
-          return "invalid params";
-        },
-        (doc, params) => {
-          doc.propA = params.opPropA;
-        },
-        doc,
-        {
-          opPropA: "bar",
-        },
-        "me",
-      ),
-    SengiOperationParamsValidationFailedError,
-    "invalid params",
-  );
-});
-
-Deno.test("Reject operation request if validateParameters function raises error.", () => {
-  const doc: ExampleDoc = {
-    ...createDoc(),
-    propA: "foo",
-  };
-
-  assertThrows(
-    () =>
-      executeOperation<ExampleDoc, ExampleOperationParams>(
-        "test",
-        () => {
-          throw new Error("func threw");
-        },
-        (doc, params) => {
-          doc.propA = params.opPropA;
-        },
-        doc,
-        {
-          opPropA: "bar",
-        },
-        "me",
-      ),
-    SengiOperationValidateParametersFailedError,
-    "func threw",
-  );
 });
 
 Deno.test("Reject operation request if operation raises error.", () => {
@@ -113,17 +49,12 @@ Deno.test("Reject operation request if operation raises error.", () => {
 
   assertThrows(
     () =>
-      executeOperation<ExampleDoc, ExampleOperationParams>(
+      executeOperation<ExampleDoc>(
         "test",
-        () => {},
         () => {
           throw new Error("op threw");
         },
         doc,
-        {
-          opPropA: "bar",
-        },
-        "me",
       ),
     SengiOperationFailedError,
     "op threw",

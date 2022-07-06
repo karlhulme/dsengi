@@ -5,7 +5,6 @@ import { DocBase } from "../doc/index.ts";
  */
 export interface OperateOnDocumentProps<
   Doc extends DocBase,
-  OperationParams,
   DocStoreParams,
 > {
   /**
@@ -24,25 +23,14 @@ export interface OperateOnDocumentProps<
   id: string;
 
   /**
-   * A function that validates a given set of parameters.
+   * A function that updates a document.
    */
-  // deno-lint-ignore no-explicit-any
-  validateParams: (params: any) => string | void;
-
-  /**
-   * A function that updates a document using the given parameters.
-   */
-  implementation: (doc: Doc, params: OperationParams, userId: string) => void;
+  operation: (doc: Doc) => void;
 
   /**
    * The id of the operation to carry out.
    */
   operationId: string;
-
-  /**
-   * The parameters to be passed to the operation.
-   */
-  operationParams: OperationParams;
 
   /**
    * The parameters to be passed to the document store.

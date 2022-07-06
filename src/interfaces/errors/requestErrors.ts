@@ -48,20 +48,6 @@ export class SengiDocIdMissing extends SengiRequestError {
   }
 }
 
-export class SengiOperationParamsValidationFailedError
-  extends SengiRequestError {
-  constructor(
-    readonly docTypeName: string,
-    readonly validationError: string,
-  ) {
-    super(
-      `The parameters supplied to operation for doc type '${docTypeName}' were not valid.\n${validationError}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiPatchValidationFailedError extends SengiRequestError {
   constructor(readonly docTypeName: string, readonly validationError: string) {
     super(

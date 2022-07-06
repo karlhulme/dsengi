@@ -1,46 +1,18 @@
-import {
-  DocBase,
-  SengiOperationFailedError,
-  SengiOperationParamsValidationFailedError,
-  SengiOperationValidateParametersFailedError,
-} from "../../interfaces/index.ts";
+import { DocBase, SengiOperationFailedError } from "../../interfaces/index.ts";
 
 /**
  * Operates on the given document using the given operation.
  * @param docTypeName The name of the document type.
- * @param validateParams A function that validates the parameters.
- * @param implementation A function that operates on a document.
+ * @param operation A function that operates on a document.
  * @param doc The document to be operated upon.
- * @param operationParams The parameters to be passed to the implementation function.
  */
-export function executeOperation<Doc extends DocBase, OperationParams>(
+export function executeOperation<Doc extends DocBase>(
   docTypeName: string,
-  validateParams: (params: unknown) => string | void,
-  implementation: (doc: Doc, params: OperationParams, userId: string) => void,
+  operation: (doc: Doc) => void,
   doc: Doc,
-  operationParams: OperationParams,
-  userId: string,
 ): void {
-  let validationErrorMessage;
-
   try {
-    validationErrorMessage = validateParams(operationParams);
-  } catch (err) {
-    throw new SengiOperationValidateParametersFailedError(
-      docTypeName,
-      err,
-    );
-  }
-
-  if (validationErrorMessage) {
-    throw new SengiOperationParamsValidationFailedError(
-      docTypeName,
-      validationErrorMessage,
-    );
-  }
-
-  try {
-    implementation(doc, operationParams, userId);
+    operation(doc);
   } catch (err) {
     throw new SengiOperationFailedError(
       docTypeName,

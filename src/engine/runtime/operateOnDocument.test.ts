@@ -40,8 +40,8 @@ const createSengiForTest = (
   }, sengiCtorOverrides);
 };
 
-function defaultImplementation(doc: Car, params: number) {
-  doc.model = doc.model + params.toString();
+function defaultImplementation(doc: Car) {
+  doc.model = doc.model + "2";
 }
 
 Deno.test("Operate on document should call fetch and upsert on doc store while retaining existing properties.", async () => {
@@ -68,13 +68,11 @@ Deno.test("Operate on document should call fetch and upsert on doc store while r
   };
 
   assertEquals(
-    await sengi.operateOnDocument<Car, number>({
+    await sengi.operateOnDocument<Car>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      operationParams: 2,
+      operation: defaultImplementation,
     }),
     {
       isUpdated: true,
@@ -107,13 +105,11 @@ Deno.test("Operating on a document with a recognised operation id should only ca
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  const result = await sengi.operateOnDocument<Car, number>({
+  const result = await sengi.operateOnDocument<Car>({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
-    validateParams: () => {},
-    implementation: defaultImplementation,
-    operationParams: 2,
+    operation: defaultImplementation,
   });
 
   assertEquals(result.isUpdated, false);
@@ -136,13 +132,11 @@ Deno.test("Operating on a document using a required version should cause require
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
-  const result = await sengi.operateOnDocument<Car, number>({
+  const result = await sengi.operateOnDocument<Car>({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-    validateParams: () => {},
-    implementation: defaultImplementation,
-    operationParams: 2,
+    operation: defaultImplementation,
     reqVersion: "aaaa",
   });
 
@@ -173,13 +167,11 @@ Deno.test("Fail to operate on document when required version is not available.",
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument<Car, number>({
+    await sengi.operateOnDocument<Car>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      operationParams: 2,
+      operation: defaultImplementation,
       reqVersion: "bbbb", // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is specified then VersionNotAvailable error is raised
     });
   }, SengiRequiredVersionNotAvailableError);
@@ -191,13 +183,11 @@ Deno.test("Fail to operate on document if it changes between fetch and upsert.",
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument<Car, number>({
+    await sengi.operateOnDocument<Car>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      operationParams: 2,
+      operation: defaultImplementation,
       // if upsert yields VERSION_NOT_AVAILABLE and reqVersion is NOT specified then conflictOnSave error is raised
     });
   }, SengiConflictOnSaveError);
@@ -209,13 +199,11 @@ Deno.test("Fail to operate on document if it does not exist.", async () => {
   });
 
   await assertRejects(async () => {
-    await sengi.operateOnDocument<Car, number>({
+    await sengi.operateOnDocument<Car>({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
       operationId: "db93acbc-bc8a-4cf0-a5c9-ffaafcb54028",
-      validateParams: () => {},
-      implementation: defaultImplementation,
-      operationParams: 2,
+      operation: defaultImplementation,
     });
   }, SengiDocNotFoundError);
 });

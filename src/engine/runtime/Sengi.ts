@@ -230,8 +230,8 @@ export class Sengi<
    * Operates on an existing document.
    * @param props A property bag.
    */
-  async operateOnDocument<Doc extends DocBase, OperationParams>(
-    props: OperateOnDocumentProps<Doc, OperationParams, DocStoreParams>,
+  async operateOnDocument<Doc extends DocBase>(
+    props: OperateOnDocumentProps<Doc, DocStoreParams>,
   ): Promise<OperateOnDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -256,13 +256,10 @@ export class Sengi<
     const opIdAlreadyExists = isOpIdInDocument(doc, props.operationId);
 
     if (!opIdAlreadyExists) {
-      executeOperation<Doc, OperationParams>(
+      executeOperation<Doc>(
         props.docTypeName,
-        props.validateParams,
-        props.implementation,
+        props.operation,
         doc as Doc,
-        props.operationParams,
-        props.userId,
       );
       appendDocOpId(docType, doc, props.operationId);
 

@@ -13,20 +13,6 @@ export class SengiOperationFailedError extends SengiEngineError {
   }
 }
 
-export class SengiOperationValidateParametersFailedError
-  extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The validateParameters function of operation on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiQueryCoerceFailedError extends SengiEngineError {
   constructor(
     readonly docTypeName: string,
