@@ -4,7 +4,6 @@
  */
 export interface SelectDocumentsByFilterProps<
   Filter,
-  FilterParams,
   DocStoreParams,
 > {
   /**

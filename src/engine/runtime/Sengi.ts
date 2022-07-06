@@ -535,10 +535,9 @@ export class Sengi<
    * Selects a set of documents using a filter.
    * @param props A property bag.
    */
-  async selectDocumentsByFilter<Doc extends DocBase, FilterParams>(
+  async selectDocumentsByFilter<Doc extends DocBase>(
     props: SelectDocumentsByFilterProps<
       Filter,
-      FilterParams,
       DocStoreParams
     >,
   ): Promise<SelectDocumentsByFilterResult<Doc>> {

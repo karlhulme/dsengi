@@ -21,7 +21,7 @@ Deno.test("Select documents using a filter.", async () => {
   const spySelectByFilter = spy(docStore, "selectByFilter");
 
   assertEquals(
-    await sengi.selectDocumentsByFilter<Car, string>({
+    await sengi.selectDocumentsByFilter<Car>({
       ...defaultRequestProps,
       filter: "MODEL=ka",
     }),
