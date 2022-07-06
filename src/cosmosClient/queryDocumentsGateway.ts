@@ -4,6 +4,9 @@ import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
 import { formatPartitionKeyValue } from "./formatPartitionKeyValue.ts";
 
+/**
+ * A parameter that is substituted into a Cosmos query.
+ */
 interface CosmosQueryParameter {
   /**
    * The name of a parameter, e.g. @city.
@@ -16,6 +19,20 @@ interface CosmosQueryParameter {
   value: unknown;
 }
 
+/**
+ * Executes the given query against the gateway.  You should use
+ * this function to select sets of documents (modelled as
+ * DocStoreRecords) and not use any aggregates such as SUM or TOTAL.
+ * To execute a query involving aggregates use queryDocumentsContainersDirect.
+ * @param cryptoKey The crypto key.
+ * @param cosmosUrl The cosmos url.
+ * @param databaseName The database name.
+ * @param collectionName The collection name.
+ * @param partition The name of a partition.  This is specified to
+ * ensure the query can be satisfied by a single container.
+ * @param query The query to execute.
+ * @param parameters The parameter to substitute into the query.
+ */
 export async function queryDocumentsGateway(
   cryptoKey: CryptoKey,
   cosmosUrl: string,

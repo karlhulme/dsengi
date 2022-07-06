@@ -1,3 +1,4 @@
+// deno-lint-ignore-file no-explicit-any
 import { assertEquals, assertObjectMatch } from "../../deps.ts";
 import {
   convertCosmosKeyToCryptoKey,
@@ -37,10 +38,8 @@ async function initDb(): Promise<void> {
     "trees",
     "SELECT * FROM Docs d",
     [],
-    {
-      transform: (docs) => docs,
-    },
-  );
+    "concatArrays",
+  ) as any[];
 
   if (treeDocs.length > MAX_ITEMS_TO_DELETE) {
     throw new Error(
@@ -68,10 +67,8 @@ async function initDb(): Promise<void> {
     "treePacks",
     "SELECT * FROM Docs d",
     [],
-    {
-      transform: (docs) => docs,
-    },
-  );
+    "concatArrays",
+  ) as any[];
 
   if (treePackDocs.length > MAX_ITEMS_TO_DELETE) {
     throw new Error(
@@ -197,10 +194,8 @@ async function readContainer(
     containerName,
     "SELECT * FROM Docs d",
     [],
-    {
-      transform: (docs) => docs,
-    },
-  );
+    "concatArrays",
+  ) as any[];
 
   return docs;
 }
@@ -382,7 +377,7 @@ Deno.test("A non-existent document cannot be fetched from a container that uses 
   assertEquals(fetchResult.doc, null);
 });
 
-Deno.test("A sql query can be executed.", async () => {
+Deno.test("A sql query can be executed that returns individual records.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();
@@ -392,7 +387,7 @@ Deno.test("A sql query can be executed.", async () => {
     {
       queryStatement: "SELECT * FROM Docs d WHERE d.id = @id",
       parameters: [{ name: "@id", value: "01" }],
-      transform: (docs) => docs,
+      transform: "concatArrays",
     },
     { databaseName: "sengi", collectionName: "trees" },
   );
@@ -405,6 +400,24 @@ Deno.test("A sql query can be executed.", async () => {
     name: "ash",
     heightInCms: 210,
   });
+});
+
+Deno.test("A sql query can be executed that returns an aggregated value.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const queryResult = await docStore.query(
+    "tree",
+    {
+      queryStatement: "SELECT VALUE COUNT(1) FROM Docs",
+      parameters: [],
+      transform: "sum",
+    },
+    { databaseName: "sengi", collectionName: "trees" },
+  );
+
+  assertEquals(queryResult.data, 3);
 });
 
 Deno.test("All documents of a type can be selected from a single partition.", async () => {

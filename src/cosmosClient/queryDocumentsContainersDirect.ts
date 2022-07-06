@@ -1,23 +1,17 @@
-import { DocStoreRecord } from "../interfaces/index.ts";
 import { generateCosmosReqHeaders } from "./generateCosmosReqHeaders.ts";
 import { cosmosRetryable } from "./cosmosRetryable.ts";
 import { handleCosmosTransitoryErrors } from "./handleCosmosTransitoryErrors.ts";
 
-interface QueryDocumentsDirectOptions {
-  /**
-   * If the query includes SUM, AVG, COUNT, OFFSET, LIMIT or ORDER BY then
-   * the gateway cannot process the query and we need to
-   * execute the query on each of the containers individually.
-   * As a result, we may retrieve more results that the client would like.
-   * To bypass the gateway, provide a transform function that will convert
-   * the combined results of the queries into an array to be returned
-   * to the client.  By providing this function, cosmos will be queried
-   * first for the applicable pkranges and then queried again for the results
-   * from each container.
-   */
-  transform: (docs: DocStoreRecord[]) => DocStoreRecord[];
-}
+// Any query that requires state across continuations cannot be served by the gateway.
+// This means cross-partition queries that require use of TOP, ORDER BY, OFFSET LIMIT,
+// Aggregates, DISTINCT or GROUP BY.  In this circumstance we must issue the query
+// against each logical container (based on pkrange) and combine the results ourselves.
+// More information at this link:
+// https://docs.microsoft.com/en-us/rest/api/cosmos-db/querying-cosmosdb-resources-using-the-rest-api
 
+/**
+ * A parameter that is substituted into a Cosmos query.
+ */
 interface CosmosQueryParameter {
   /**
    * The name of a parameter, e.g. @city.
@@ -30,6 +24,28 @@ interface CosmosQueryParameter {
   value: unknown;
 }
 
+/**
+ * Executes the given query on each of the containers.  Each
+ * container will return an array of unknown values, whereby
+ * each value could be doc store record or a simple value.
+ * This function will be combine all the results in a single array
+ * and then the given transform function should produce a final set.
+ * If transform is not supplied then an array of all results retrived
+ * from Cosmos will be returned.
+ * @param cryptoKey The crypto key.
+ * @param cosmosUrl The cosmos url.
+ * @param databaseName The database name.
+ * @param collectionName The collection name.
+ * @param query The query to execute.
+ * @param parameters The parameter to substitute into the query.
+ * @param transform A function that is given the results retrieved
+ * from each of the logical containers where the query was executed.
+ * This function would typically order the result records or for
+ * aggregates it would sum/avg the values held in each result element.
+ * Although this transform could cull the result set to meet a
+ * specific limit, this is rarely useful since the documents have
+ * already been retrieved.
+ */
 export async function queryDocumentsContainersDirect(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
@@ -37,8 +53,8 @@ export async function queryDocumentsContainersDirect(
   collectionName: string,
   query: string,
   parameters: CosmosQueryParameter[],
-  options: QueryDocumentsDirectOptions,
-): Promise<DocStoreRecord[]> {
+  transform: "concatArrays" | "sum",
+): Promise<unknown> {
   // Retrieve the pk ranges for the collection.  This can change at
   // any time so we perform this lookup on each query.
   // There is potential performance uplift by only doing this once
@@ -59,7 +75,7 @@ export async function queryDocumentsContainersDirect(
    * require a cross-partition (i.e. logical partitions) query.
    */
   const promises = pkRanges.map((pkr) =>
-    getDocumentsForPkRange(
+    getValueArrayForPkRange(
       cryptoKey,
       cosmosUrl,
       databaseName,
@@ -67,22 +83,24 @@ export async function queryDocumentsContainersDirect(
       pkr,
       query,
       parameters,
-      options,
     )
   );
 
-  const recordsArray = await Promise.all(promises);
+  // Wait for the promises to resolve.
+  const arrayOfValueArray = await Promise.all(promises);
 
   // Combine the arrays.  Using push may be faster than concat:
   // https://dev.to/uilicious/javascript-array-push-is-945x-faster-than-array-concat-1oki
-  const records = recordsArray.reduce((agg, cur) => {
+  const combinedValueArray = arrayOfValueArray.reduce((agg, cur) => {
     agg.push(...cur);
     return agg;
   }, []);
 
-  const transformedRecords = options.transform(records);
+  const queryRawResult = transform === "sum"
+    ? combinedValueArray.reduce((agg: number, cur) => agg + (cur as number), 0)
+    : combinedValueArray;
 
-  return transformedRecords;
+  return queryRawResult;
 }
 
 async function getPkRangesForContainer(
@@ -134,7 +152,7 @@ async function getPkRangesForContainer(
   return pkRanges;
 }
 
-async function getDocumentsForPkRange(
+async function getValueArrayForPkRange(
   cryptoKey: CryptoKey,
   cosmosUrl: string,
   databaseName: string,
@@ -142,7 +160,6 @@ async function getDocumentsForPkRange(
   pkRange: string,
   query: string,
   parameters: CosmosQueryParameter[],
-  _options: QueryDocumentsDirectOptions,
 ) {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
@@ -151,7 +168,7 @@ async function getDocumentsForPkRange(
     resourceLink: `dbs/${databaseName}/colls/${collectionName}`,
   });
 
-  const records: DocStoreRecord[] = [];
+  const records: unknown[] = [];
 
   let continuationToken: string | null = null;
   let isAllRecordsLoaded = false;

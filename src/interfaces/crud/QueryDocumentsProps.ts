@@ -21,7 +21,7 @@ export interface QueryDocumentsProps<
    * A function that converts the object returned from the query
    * into a known result form.
    */
-  coerceResult: (queryResult: unknown) => QueryResult;
+  coerceResult: (queryRawResult: unknown) => QueryResult;
 
   /**
    * The parameters to be passed to the document store.

@@ -93,6 +93,9 @@ export interface CosmosDbDocStoreFilter {
   limit?: number;
 }
 
+/**
+ * Represents a field that is used to order the results of a query.
+ */
 export interface CosmosDbDocStoreFilterOrderByField {
   /**
    * The name of a field.
@@ -121,13 +124,11 @@ export interface CosmosDbDocStoreQuery {
   parameters: CosmosDbDocStoreQueryParameter[];
 
   /**
-   * Queries are executed across all partitions.  The gateway cannot determine
-   * aggregate values () across multiple partitions and will fail.  So instead,
-   * all queries are executed against the individual physical containers via
-   * the pk-range that each one supports.  This transform function then determines
-   * which of the complete result set should be returned to the client.
+   * Queries are executed across all logical containers and the array of values
+   * returned by each logical container are then combined.  This property
+   * dictates how these arrays of results are combined.
    */
-  transform: (docs: DocStoreRecord[]) => DocStoreRecord[];
+  transform: "concatArrays" | "sum";
 }
 
 /**
@@ -362,19 +363,17 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreQueryResult> {
     await this.ensureCryptoKey();
 
-    const docs = await queryDocumentsContainersDirect(
+    const data = await queryDocumentsContainersDirect(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
       docStoreParams.collectionName,
       query.queryStatement,
       query.parameters,
-      {
-        transform: query.transform,
-      },
+      query.transform,
     );
 
-    return { data: docs };
+    return { data };
   }
 
   /**
