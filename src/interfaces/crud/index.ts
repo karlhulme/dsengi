@@ -1,5 +1,3 @@
-export * from "./ConstructDocumentProps.ts";
-export * from "./ConstructDocumentResult.ts";
 export * from "./DeleteDocumentProps.ts";
 export * from "./DeleteDocumentResult.ts";
 export * from "./NewDocumentProps.ts";

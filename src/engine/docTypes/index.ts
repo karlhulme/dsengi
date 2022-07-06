@@ -8,7 +8,6 @@ export * from "./ensureDocId.ts";
 export * from "./ensureDocWasFound.ts";
 export * from "./ensureDocSystemFields.ts";
 export * from "./ensureUserId.ts";
-export * from "./executeConstructor.ts";
 export * from "./executeOperation.ts";
 export * from "./executePatch.ts";
 export * from "./executeValidateDoc.ts";

@@ -18,19 +18,6 @@ export class SengiConflictOnSaveError extends SengiRequestError { // HTTP 409
   }
 }
 
-export class SengiCtorParamsValidationFailedError extends SengiRequestError {
-  constructor(
-    readonly docTypeName: string,
-    readonly validationError: string,
-  ) {
-    super(
-      `The parameters supplied to constructor for doc type '${docTypeName}' were not valid.\n${validationError}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiDocValidationFailedError extends SengiRequestError {
   constructor(readonly docTypeName: string, readonly validationError: string) {
     super(

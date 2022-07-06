@@ -1,7 +1,5 @@
 import { TtlCache } from "../../../deps.ts";
 import {
-  ConstructDocumentProps,
-  ConstructDocumentResult,
   DeleteDocumentProps,
   DeleteDocumentResult,
   DocBase,
@@ -39,7 +37,6 @@ import {
   ensureDocSystemFields,
   ensureDocWasFound,
   ensureUserId,
-  executeConstructor,
   executeOperation,
   executePatch,
   executeValidateDoc,
@@ -134,75 +131,6 @@ export class Sengi<
     this.cache = new TtlCache<DocBase>(
       typeof props.cacheSize === "number" ? props.cacheSize : 500,
     );
-  }
-
-  /**
-   * Creates a new document by invoking a constructor.
-   * @param props A property bag.
-   */
-  async createDocument<Doc extends DocBase, ConstructorParams>(
-    props: ConstructDocumentProps<Doc, ConstructorParams, DocStoreParams>,
-  ): Promise<ConstructDocumentResult<Doc>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
-    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
-
-    const existingDocResult = await this.safeDocStore.fetch(
-      props.docTypeName,
-      props.partition,
-      props.id,
-      props.docStoreParams,
-    );
-
-    if (existingDocResult.doc) {
-      return {
-        isNew: false,
-        doc: existingDocResult.doc as unknown as Doc,
-      };
-    } else {
-      const doc = executeConstructor<Doc, ConstructorParams>(
-        props.docTypeName,
-        props.validateParams,
-        props.implementation,
-        props.constructorParams,
-        props.userId,
-      );
-
-      doc.id = props.id;
-      doc.docType = props.docTypeName;
-      doc.docOpIds = [];
-
-      applyCommonFieldValuesToDoc(
-        doc,
-        this.getMillisecondsSinceEpoch(),
-        props.userId,
-        this.getNewDocVersion(),
-      );
-
-      executeValidateDoc<Doc>(
-        props.docTypeName,
-        docType.validateFields,
-        docType.validateDoc,
-        doc as Doc,
-      );
-      ensureDocSystemFields(props.docTypeName, doc as Doc);
-
-      await this.safeDocStore.upsert(
-        props.docTypeName,
-        props.partition,
-        doc as unknown as DocStoreRecord,
-        null,
-        props.docStoreParams,
-      );
-
-      return {
-        isNew: true,
-        doc: doc as Doc,
-      };
-    }
   }
 
   /**
