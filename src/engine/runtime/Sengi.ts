@@ -462,7 +462,7 @@ export class Sengi<
     const data = coerceQueryResult(
       props.docTypeName,
       props.coerceResult,
-      rawResultData,
+      rawResultData.data,
     );
 
     return { data };

@@ -7,7 +7,7 @@ import {
 
 const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
   return createSengiWithMockStore({
-    query: async () => 5,
+    query: async () => ({ data: 5 }),
   }, sengiCtorOverrides);
 };
 
