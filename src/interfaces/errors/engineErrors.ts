@@ -77,60 +77,6 @@ export class SengiQueryCoerceFailedError extends SengiEngineError {
   }
 }
 
-export class SengiQueryResponseValidationFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly validationError: string,
-  ) {
-    super(
-      `The resulting object from executing a query for doc type '${docTypeName}' did not match the response schema.\n${validationError}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
-export class SengiQueryParseFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The parse function of query on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
-export class SengiQueryValidateParametersFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The validateParameters function of query on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-    this.docTypeName = docTypeName;
-    this.innerErr = innerErr;
-  }
-}
-
-export class SengiQueryValidateResponseFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `The validateResponse function of query on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiValidateDocFailedError extends SengiEngineError {
   constructor(readonly docTypeName: string, readonly innerErr: Error) {
     super(

@@ -44,7 +44,6 @@ import {
   executePatch,
   executeValidateDoc,
   isOpIdInDocument,
-  parseQueryParams,
   selectDocTypeFromArray,
 } from "../docTypes/index.ts";
 
@@ -446,35 +445,23 @@ export class Sengi<
    * Executes a query across a set of documents.
    * @param props A property bag.
    */
-  async queryDocuments<QueryParams, QueryResult>(
-    props: QueryDocumentsProps<Query, QueryParams, QueryResult, DocStoreParams>,
+  async queryDocuments<QueryResult>(
+    props: QueryDocumentsProps<Query, QueryResult, DocStoreParams>,
   ): Promise<QueryDocumentsResult<QueryResult>> {
     ensureUserId(
       props.userId,
       this.validateUserId,
     );
 
-    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
-
-    // The parseQuery function includes the authorise step.
-    const query = parseQueryParams<Query, QueryParams>(
-      docType.name,
-      props.validateParams,
-      props.parseParams,
-      props.queryParams,
-      props.userId,
-    );
-
     const rawResultData = await this.safeDocStore.query(
       props.docTypeName,
-      query,
+      props.query,
       props.docStoreParams,
     );
 
     const data = coerceQueryResult(
       props.docTypeName,
       props.coerceResult,
-      props.validateResult,
       rawResultData,
     );
 

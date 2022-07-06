@@ -4,7 +4,7 @@
  */
 export interface QueryDocumentsResult<QueryResult> {
   /**
-   * A document containing the result of the query.
+   * The result of executing the query.
    */
   data: QueryResult;
 }

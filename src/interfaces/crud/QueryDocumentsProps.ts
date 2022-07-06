@@ -4,7 +4,6 @@
  */
 export interface QueryDocumentsProps<
   Query,
-  QueryParams,
   QueryResult,
   DocStoreParams,
 > {
@@ -14,33 +13,15 @@ export interface QueryDocumentsProps<
   docTypeName: string;
 
   /**
-   * A function that validates a given set of parameters.
+   * A query that can be executed by the document store.
    */
-  // deno-lint-ignore no-explicit-any
-  validateParams: (params: any) => string | void;
-
-  /**
-   * A function that converts the query parameters into a query
-   * that the document store can issue.
-   */
-  parseParams: (params: QueryParams, userId: string) => Query;
+  query: Query;
 
   /**
    * A function that converts the object returned from the query
    * into a known result form.
    */
   coerceResult: (queryResult: unknown) => QueryResult;
-
-  /**
-   * A function that validates the coerced result.
-   */
-  // deno-lint-ignore no-explicit-any
-  validateResult: (params: any) => string | void;
-
-  /**
-   * The parameters to be passed to the query.
-   */
-  queryParams: QueryParams;
 
   /**
    * The parameters to be passed to the document store.

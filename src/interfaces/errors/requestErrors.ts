@@ -85,19 +85,6 @@ export class SengiPatchValidationFailedError extends SengiRequestError {
   }
 }
 
-export class SengiQueryParamsValidationFailedError extends SengiRequestError {
-  constructor(
-    readonly docTypeName: string,
-    readonly validationError: string,
-  ) {
-    super(
-      `The parameters supplied to query for doc type '${docTypeName}' were not valid.\n${validationError}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiRequiredVersionNotAvailableError extends SengiRequestError { // HTTP 412
   constructor() {
     super("Required version of document is not available in the doc store.");
