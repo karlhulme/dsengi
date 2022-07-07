@@ -193,6 +193,7 @@ export class CosmosDbDocStore implements
       SELECT TOP ${top} *
       FROM Docs d
       WHERE d.partitionKey = @partitionKey
+        AND d.docType = @docType
     `;
 
     // Determine the additional where clause if required.
@@ -278,13 +279,13 @@ export class CosmosDbDocStore implements
 
   /**
    * Determines if a document with the given id is in the datastore.
-   * @param _docTypeName The name of a doc type.
+   * @param docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param docStoreParams The parameters for the document store.
    */
   async exists(
-    _docTypeName: string,
+    docTypeName: string,
     partition: string,
     id: string,
     docStoreParams: CosmosDbDocStoreParams,
@@ -297,9 +298,14 @@ export class CosmosDbDocStore implements
       docStoreParams.databaseName,
       docStoreParams.collectionName,
       partition,
-      "SELECT VALUE COUNT(1) FROM Docs d WHERE d.partitionKey = @partitionKey AND d.id = @id",
+      `SELECT VALUE COUNT(1)
+      FROM Docs d
+      WHERE d.partitionKey = @partitionKey AND
+        d.docType = @docType AND
+        d.id = @id`,
       [
         { name: "@partitionKey", value: partition },
+        { name: "@docType", value: docTypeName },
         { name: "@id", value: id },
       ],
     );
@@ -378,12 +384,12 @@ export class CosmosDbDocStore implements
 
   /**
    * Select all documents of a specified type.
-   * @param _docTypeName The name of a doc type.
+   * @param docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
-    _docTypeName: string,
+    docTypeName: string,
     partition: string,
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
@@ -400,6 +406,7 @@ export class CosmosDbDocStore implements
       queryCmd,
       [
         { name: "@partitionKey", value: partition },
+        { name: "@docType", value: docTypeName },
       ],
     );
 
@@ -408,14 +415,14 @@ export class CosmosDbDocStore implements
 
   /**
    * Select documents of a specified type that also match a filter.
-   * @param _docTypeName The name of a doc type.
+   * @param docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByFilter(
-    _docTypeName: string,
+    docTypeName: string,
     partition: string,
     filter: CosmosDbDocStoreFilter,
     docStoreParams: CosmosDbDocStoreParams,
@@ -437,6 +444,7 @@ export class CosmosDbDocStore implements
       queryCmd,
       [
         { name: "@partitionKey", value: partition },
+        { name: "@docType", value: docTypeName },
         ...(filter.parameters || []),
       ],
     );
@@ -446,13 +454,13 @@ export class CosmosDbDocStore implements
 
   /**
    * Select documents of a specified type that also have one of the given ids.
-   * @param _docTypeName The name of a doc type.
+   * @param docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param ids An array of document ids.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByIds(
-    _docTypeName: string,
+    docTypeName: string,
     partition: string,
     ids: string[],
     docStoreParams: CosmosDbDocStoreParams,
@@ -472,6 +480,7 @@ export class CosmosDbDocStore implements
       queryCmd,
       [
         { name: "@partitionKey", value: partition },
+        { name: "@docType", value: docTypeName },
       ],
     );
 
