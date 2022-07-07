@@ -31,7 +31,7 @@ async function initDb(): Promise<void> {
 
   // empty trees container
 
-  const treeDocs = await queryDocumentsContainersDirect(
+  const treeDocs = (await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -39,7 +39,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
-  ) as any[];
+  )).data as any[];
 
   if (treeDocs.length > MAX_ITEMS_TO_DELETE) {
     throw new Error(
@@ -60,7 +60,7 @@ async function initDb(): Promise<void> {
 
   // empty treePacks container
 
-  const treePackDocs = await queryDocumentsContainersDirect(
+  const treePackDocs = (await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -68,7 +68,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
-  ) as any[];
+  )).data as any[];
 
   if (treePackDocs.length > MAX_ITEMS_TO_DELETE) {
     throw new Error(
@@ -187,7 +187,7 @@ async function readContainer(
 ): Promise<Record<string, unknown>[]> {
   const cryptoKey = await convertCosmosKeyToCryptoKey(TEST_COSMOS_KEY);
 
-  const docs = await queryDocumentsContainersDirect(
+  const docs = (await queryDocumentsContainersDirect(
     cryptoKey,
     TEST_COSMOS_URL,
     "sengi",
@@ -195,7 +195,7 @@ async function readContainer(
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
-  ) as any[];
+  )).data as any[];
 
   return docs;
 }

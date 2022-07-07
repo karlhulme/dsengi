@@ -88,6 +88,7 @@ export class MemDocStore implements
   ): DocStoreSelectResult {
     return {
       docs: docs.map((doc) => structuredClone(doc)),
+      queryCharge: 0,
     };
   }
 
@@ -183,6 +184,7 @@ export class MemDocStore implements
 
     return {
       data: filteredDocs.reduce(query.reducer, query.initialValue),
+      queryCharge: 0,
     };
   }
 

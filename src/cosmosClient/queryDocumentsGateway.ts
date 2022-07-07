@@ -20,6 +20,22 @@ interface CosmosQueryParameter {
 }
 
 /**
+ * The result of querying documents against a gateway that
+ * manages the connection to multiple containers.
+ */
+interface QueryDocumentsGatewayResult {
+  /**
+   * An array of records.
+   */
+  records: DocStoreRecord[];
+
+  /**
+   * The resultant cost of the query.
+   */
+  queryCharge: number;
+}
+
+/**
  * Executes the given query against the gateway.  You should use
  * this function to select sets of documents (modelled as
  * DocStoreRecords) and not use any aggregates such as SUM or TOTAL.
@@ -41,7 +57,7 @@ export async function queryDocumentsGateway(
   partition: string,
   query: string,
   parameters: CosmosQueryParameter[],
-): Promise<DocStoreRecord[]> {
+): Promise<QueryDocumentsGatewayResult> {
   const reqHeaders = await generateCosmosReqHeaders({
     key: cryptoKey,
     method: "POST",
@@ -52,6 +68,7 @@ export async function queryDocumentsGateway(
   const records: DocStoreRecord[] = [];
 
   let continuationToken: string | null = null;
+  let queryCharge = 0.0;
   let isAllRecordsLoaded = false;
 
   while (!isAllRecordsLoaded) {
@@ -100,11 +117,18 @@ export async function queryDocumentsGateway(
         isAllRecordsLoaded = true;
       }
 
+      queryCharge += parseFloat(
+        response.headers.get("x-ms-request-charge") as string,
+      );
+
       const result = await response.json();
 
       records.push(...result.Documents);
     });
   }
 
-  return records;
+  return {
+    records,
+    queryCharge,
+  };
 }

@@ -16,10 +16,10 @@ function createTestDocStore(): DocStore<unknown, unknown, unknown> {
     fetch: async () => ({
       doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
     }),
-    query: async () => ({ data: null }),
-    selectAll: async () => ({ docs: [] }),
-    selectByFilter: async () => ({ docs: [] }),
-    selectByIds: async () => ({ docs: [] }),
+    query: async () => ({ data: null, queryCharge: 0 }),
+    selectAll: async () => ({ docs: [], queryCharge: 0 }),
+    selectByFilter: async () => ({ docs: [], queryCharge: 0 }),
+    selectByIds: async () => ({ docs: [], queryCharge: 0 }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   };
 }
@@ -47,15 +47,21 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   assertEquals(await safeDocStore.fetch("", "", "", {}), {
     doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
   });
-  assertEquals(await safeDocStore.query("", "", {}), { data: null });
+  assertEquals(await safeDocStore.query("", "", {}), {
+    data: null,
+    queryCharge: 0,
+  });
   assertEquals(await safeDocStore.selectAll("", "", {}), {
     docs: [],
+    queryCharge: 0,
   });
   assertEquals(await safeDocStore.selectByFilter("", "", {}, {}), {
     docs: [],
+    queryCharge: 0,
   });
   assertEquals(await safeDocStore.selectByIds("", "", [], {}), {
     docs: [],
+    queryCharge: 0,
   });
   assertEquals(await safeDocStore.upsert("", "", {}, null, {}), {
     code: DocStoreUpsertResultCode.CREATED,

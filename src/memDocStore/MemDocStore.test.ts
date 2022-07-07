@@ -176,7 +176,7 @@ Deno.test("A count query can be executed.", async () => {
     { reducer: (agg) => (agg as number) + 1, initialValue: 0 },
     {},
   );
-  assertEquals(result, { data: 3 });
+  assertEquals(result, { data: 3, queryCharge: 0 });
 });
 
 Deno.test("All documents of a type can be selected.", async () => {
@@ -211,7 +211,7 @@ Deno.test("All documents of a recognised type can selected.", async () => {
     "_central",
     {},
   );
-  assertEquals(result, { docs: [] });
+  assertEquals(result, { docs: [], queryCharge: 0 });
 });
 
 Deno.test("Select documents using a filter.", async () => {

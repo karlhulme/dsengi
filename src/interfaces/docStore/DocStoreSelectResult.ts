@@ -8,4 +8,9 @@ export interface DocStoreSelectResult {
    * A collection of document fragments.
    */
   docs: DocStoreRecord[];
+
+  /**
+   * The relative cost of performing the query.
+   */
+  queryCharge: number;
 }

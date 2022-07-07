@@ -10,4 +10,9 @@ export interface DocStoreQueryResult {
    * supplied to convert the array of values into a single value.
    */
   data: unknown;
+
+  /**
+   * The relative cost of performing the query.
+   */
+  queryCharge: number;
 }

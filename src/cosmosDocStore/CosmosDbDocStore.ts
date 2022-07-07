@@ -292,7 +292,7 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreExistsResult> {
     await this.ensureCryptoKey();
 
-    const docs = await queryDocumentsGateway(
+    const gatewayResult = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
@@ -312,7 +312,7 @@ export class CosmosDbDocStore implements
 
     // Usually queryDocuments returns an array of documents, but using
     // the VALUE COUNT(1) syntax we retrieve a scalar value.
-    const scalars = docs as unknown as number[];
+    const scalars = gatewayResult.records as unknown as number[];
 
     return { found: scalars[0] === 1 };
   }
@@ -369,7 +369,7 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreQueryResult> {
     await this.ensureCryptoKey();
 
-    const data = await queryDocumentsContainersDirect(
+    const containerDirectResult = await queryDocumentsContainersDirect(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
@@ -379,7 +379,10 @@ export class CosmosDbDocStore implements
       query.transform,
     );
 
-    return { data };
+    return {
+      data: containerDirectResult.data,
+      queryCharge: containerDirectResult.queryCharge,
+    };
   }
 
   /**
@@ -397,7 +400,7 @@ export class CosmosDbDocStore implements
 
     await this.ensureCryptoKey();
 
-    const docs = await queryDocumentsGateway(
+    const gatewayResult = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
@@ -410,7 +413,10 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: docs.map(this.cleanDoc) };
+    return {
+      docs: gatewayResult.records.map(this.cleanDoc),
+      queryCharge: gatewayResult.queryCharge,
+    };
   }
 
   /**
@@ -435,7 +441,7 @@ export class CosmosDbDocStore implements
 
     await this.ensureCryptoKey();
 
-    const docs = await queryDocumentsGateway(
+    const gatewayResult = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
@@ -449,7 +455,10 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: docs.map(this.cleanDoc) };
+    return {
+      docs: gatewayResult.records.map(this.cleanDoc),
+      queryCharge: gatewayResult.queryCharge,
+    };
   }
 
   /**
@@ -471,7 +480,7 @@ export class CosmosDbDocStore implements
 
     await this.ensureCryptoKey();
 
-    const docs = await queryDocumentsGateway(
+    const gatewayResult = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
@@ -484,7 +493,10 @@ export class CosmosDbDocStore implements
       ],
     );
 
-    return { docs: docs.map(this.cleanDoc) };
+    return {
+      docs: gatewayResult.records.map(this.cleanDoc),
+      queryCharge: gatewayResult.queryCharge,
+    };
   }
 
   /**

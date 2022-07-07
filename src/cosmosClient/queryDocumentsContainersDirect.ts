@@ -25,6 +25,21 @@ interface CosmosQueryParameter {
 }
 
 /**
+ * The result of querying a set of containers directly.
+ */
+interface QueryDocumentsContainerDirectResult {
+  /**
+   * An array of values.
+   */
+  data: unknown;
+
+  /**
+   * The resultant cost of the query.
+   */
+  queryCharge: number;
+}
+
+/**
  * Executes the given query on each of the containers.  Each
  * container will return an array of unknown values, whereby
  * each value could be doc store record or a simple value.
@@ -54,7 +69,7 @@ export async function queryDocumentsContainersDirect(
   query: string,
   parameters: CosmosQueryParameter[],
   transform: "concatArrays" | "sum",
-): Promise<unknown> {
+): Promise<QueryDocumentsContainerDirectResult> {
   // Retrieve the pk ranges for the collection.  This can change at
   // any time so we perform this lookup on each query.
   // There is potential performance uplift by only doing this once
@@ -87,20 +102,29 @@ export async function queryDocumentsContainersDirect(
   );
 
   // Wait for the promises to resolve.
-  const arrayOfValueArray = await Promise.all(promises);
+  const arrayOfContainerResults = await Promise.all(promises);
 
   // Combine the arrays.  Using push may be faster than concat:
   // https://dev.to/uilicious/javascript-array-push-is-945x-faster-than-array-concat-1oki
-  const combinedValueArray = arrayOfValueArray.reduce((agg, cur) => {
-    agg.push(...cur);
-    return agg;
-  }, []);
+  let queryCharge = 0.0;
+  const combinedValueArray: unknown[] = [];
 
-  const queryRawResult = transform === "sum"
-    ? combinedValueArray.reduce((agg: number, cur) => agg + (cur as number), 0)
+  for (const containerResult of arrayOfContainerResults) {
+    combinedValueArray.push(...containerResult.records);
+    queryCharge += containerResult.queryCharge;
+  }
+
+  const data = transform === "sum"
+    ? combinedValueArray.reduce(
+      (agg, cur) => (agg as number) + (cur as number),
+      0,
+    )
     : combinedValueArray;
 
-  return queryRawResult;
+  return {
+    data,
+    queryCharge,
+  };
 }
 
 async function getPkRangesForContainer(
@@ -171,6 +195,7 @@ async function getValueArrayForPkRange(
   const records: unknown[] = [];
 
   let continuationToken: string | null = null;
+  let queryCharge = 0.0;
   let isAllRecordsLoaded = false;
 
   while (!isAllRecordsLoaded) {
@@ -218,11 +243,18 @@ async function getValueArrayForPkRange(
         isAllRecordsLoaded = true;
       }
 
+      queryCharge += parseFloat(
+        response.headers.get("x-ms-request-charge") as string,
+      );
+
       const result = await response.json();
 
       records.push(...result.Documents);
     });
   }
 
-  return records;
+  return {
+    records,
+    queryCharge,
+  };
 }
