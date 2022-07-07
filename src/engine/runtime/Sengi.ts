@@ -8,6 +8,8 @@ import {
   DocStoreRecord,
   DocStoreUpsertResultCode,
   DocType,
+  GetDocumentByIdProps,
+  GetDocumentByIdResult,
   NewDocumentProps,
   NewDocumentResult,
   PatchDocumentProps,
@@ -16,12 +18,15 @@ import {
   QueryDocumentsResult,
   ReplaceDocumentProps,
   ReplaceDocumentResult,
+  SelectDocumentByIdProps,
+  SelectDocumentByIdResult,
   SelectDocumentsByFilterProps,
   SelectDocumentsByFilterResult,
   SelectDocumentsByIdsProps,
   SelectDocumentsByIdsResult,
   SelectDocumentsProps,
   SelectDocumentsResult,
+  SengiDocNotFoundError,
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
 import {
@@ -477,5 +482,56 @@ export class Sengi<
     );
 
     return { docs: selectResult.docs as unknown as Doc[] };
+  }
+
+  /**
+   * Selects a document of a specified doc type by id.  If
+   * the document is not found then null is returned.
+   * @param props A property bag.
+   */
+  async selectDocumentById<Doc extends DocBase>(
+    props: SelectDocumentByIdProps<DocStoreParams>,
+  ): Promise<SelectDocumentByIdResult<Doc>> {
+    const result = await this.selectDocumentsByIds({
+      docStoreParams: props.docStoreParams,
+      docTypeName: props.docTypeName,
+      ids: [props.id],
+      partition: props.partition,
+      userId: props.userId,
+      cacheMilliseconds: props.cacheMilliseconds,
+    });
+
+    return {
+      doc: result.docs.length === 1 ? result.docs[0] as Doc : null,
+    };
+  }
+
+  /**
+   * Retrieves a document of a specified doc type by id.  If
+   * the document is not found then an error is raised.
+   * @param props A property bag.
+   */
+  async getDocumentById<Doc extends DocBase>(
+    props: GetDocumentByIdProps<DocStoreParams>,
+  ): Promise<GetDocumentByIdResult<Doc>> {
+    const result = await this.selectDocumentsByIds({
+      docStoreParams: props.docStoreParams,
+      docTypeName: props.docTypeName,
+      ids: [props.id],
+      partition: props.partition,
+      userId: props.userId,
+      cacheMilliseconds: props.cacheMilliseconds,
+    });
+
+    if (result.docs.length !== 1) {
+      throw new SengiDocNotFoundError(
+        props.docTypeName,
+        props.id,
+      );
+    }
+
+    return {
+      doc: result.docs[0] as Doc,
+    };
   }
 }
