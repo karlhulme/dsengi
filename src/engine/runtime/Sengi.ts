@@ -10,8 +10,6 @@ import {
   DocType,
   NewDocumentProps,
   NewDocumentResult,
-  OperateOnDocumentProps,
-  OperateOnDocumentResult,
   PatchDocumentProps,
   PatchDocumentResult,
   QueryDocumentsProps,
@@ -37,7 +35,6 @@ import {
   ensureDocSystemFields,
   ensureDocWasFound,
   ensureUserId,
-  executeOperation,
   executePatch,
   executeValidateDoc,
   isOpIdInDocument,
@@ -224,75 +221,6 @@ export class Sengi<
         doc: doc as Doc,
       };
     }
-  }
-
-  /**
-   * Operates on an existing document.
-   * @param props A property bag.
-   */
-  async operateOnDocument<Doc extends DocBase>(
-    props: OperateOnDocumentProps<Doc, DocStoreParams>,
-  ): Promise<OperateOnDocumentResult<Doc>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
-    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
-
-    const fetchResult = await this.safeDocStore.fetch(
-      props.docTypeName,
-      props.partition,
-      props.id,
-      props.docStoreParams,
-    );
-
-    const doc = ensureDocWasFound(
-      props.docTypeName,
-      props.id,
-      fetchResult.doc as unknown as Doc,
-    );
-
-    const opIdAlreadyExists = isOpIdInDocument(doc, props.operationId);
-
-    if (!opIdAlreadyExists) {
-      executeOperation<Doc>(
-        props.docTypeName,
-        props.operation,
-        doc as Doc,
-      );
-      appendDocOpId(docType, doc, props.operationId);
-
-      applyCommonFieldValuesToDoc(
-        doc,
-        this.getMillisecondsSinceEpoch(),
-        props.userId,
-        this.getNewDocVersion(),
-      );
-
-      executeValidateDoc(
-        props.docTypeName,
-        docType.validateFields,
-        docType.validateDoc,
-        doc as Doc,
-      );
-      ensureDocSystemFields(props.docTypeName, doc as Doc);
-
-      const upsertResult = await this.safeDocStore.upsert(
-        props.docTypeName,
-        props.partition,
-        doc as unknown as DocStoreRecord,
-        props.reqVersion || null,
-        props.docStoreParams,
-      );
-
-      ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
-    }
-
-    return {
-      isUpdated: !opIdAlreadyExists,
-      doc: doc as Doc,
-    };
   }
 
   /**

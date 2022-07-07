@@ -1,18 +1,5 @@
 import { SengiEngineError } from "./baseErrors.ts";
 
-export class SengiOperationFailedError extends SengiEngineError {
-  constructor(
-    readonly docTypeName: string,
-    readonly innerErr: Error,
-  ) {
-    super(
-      `Operation on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiQueryCoerceFailedError extends SengiEngineError {
   constructor(
     readonly docTypeName: string,

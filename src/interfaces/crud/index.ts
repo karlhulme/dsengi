@@ -2,8 +2,6 @@ export * from "./DeleteDocumentProps.ts";
 export * from "./DeleteDocumentResult.ts";
 export * from "./NewDocumentProps.ts";
 export * from "./NewDocumentResult.ts";
-export * from "./OperateOnDocumentProps.ts";
-export * from "./OperateOnDocumentResult.ts";
 export * from "./PatchDocumentProps.ts";
 export * from "./PatchDocumentResult.ts";
 export * from "./SelectDocumentsByFilterProps.ts";
