@@ -79,7 +79,7 @@ export function executePatch<Doc extends DocBase>(
 
     if (patchValue === null) {
       delete docRecord[patchKey];
-    } else {
+    } else if (typeof patchValue !== "undefined") {
       docRecord[patchKey] = patchValue;
     }
   }
