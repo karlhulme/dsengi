@@ -312,6 +312,8 @@ export class Sengi<
       fetchResult.doc as unknown as Partial<Doc>,
     );
 
+    const loadedDocVersion = doc.docVersion as string;
+
     const opIdAlreadyExists = isOpIdInDocument(doc, props.operationId);
 
     if (!opIdAlreadyExists) {
@@ -343,7 +345,7 @@ export class Sengi<
         props.docTypeName,
         props.partition,
         doc as unknown as DocStoreRecord,
-        props.reqVersion || doc.docVersion as string,
+        props.reqVersion || loadedDocVersion,
         props.docStoreParams,
       );
 
