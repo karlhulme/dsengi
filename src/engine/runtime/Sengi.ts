@@ -163,6 +163,8 @@ export class Sengi<
       fetchResult.doc as unknown as Partial<DocBase>,
     );
 
+    const loadedDocVersion = doc.docVersion as string;
+
     const isAlreadyArchived = doc.docStatus === DocStatuses.Archived &&
       Boolean(doc.docArchivedByUserId) &&
       Boolean(doc.docArchivedMillisecondsSinceEpoch);
@@ -183,7 +185,7 @@ export class Sengi<
         props.docTypeName,
         props.partition,
         doc as unknown as DocStoreRecord,
-        doc.docVersion as string,
+        loadedDocVersion,
         props.docStoreParams,
       );
 
