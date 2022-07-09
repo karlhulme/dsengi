@@ -1,4 +1,4 @@
-import { DocBase } from '../../interfaces/index.ts';
+import { DocBase } from "../../interfaces/index.ts";
 
 /**
  * Defines the shape of the response following a request to archive a document.

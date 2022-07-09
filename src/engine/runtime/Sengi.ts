@@ -172,8 +172,8 @@ export class Sengi<
         doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
-        this.getNewDocVersion()
-      )
+        this.getNewDocVersion(),
+      );
 
       doc.docStatus = DocStatuses.Archived;
       doc.docArchivedByUserId = props.userId;

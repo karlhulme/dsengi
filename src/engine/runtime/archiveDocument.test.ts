@@ -1,10 +1,5 @@
 // deno-lint-ignore-file require-await
-import {
-  assert,
-  assertEquals,
-  assertRejects,
-  spy,
-} from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
