@@ -83,7 +83,7 @@ Deno.test("Archiving a document should call fetch and upsert on doc store.", asy
     "car",
     "_central",
     resultDoc,
-    "1111-2222",
+    "aaaa",
     { custom: "prop" },
   ));
 });
