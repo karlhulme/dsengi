@@ -95,7 +95,7 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
     "car",
     "_central",
     resultDoc,
-    null,
+    "1111-2222",
     { custom: "prop" },
   ));
 });

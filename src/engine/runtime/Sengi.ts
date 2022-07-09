@@ -1,5 +1,7 @@
 import { TtlCache } from "../../../deps.ts";
 import {
+  ArchiveDocumentProps,
+  ArchiveDocumentResult,
   DeleteDocumentProps,
   DeleteDocumentResult,
   DocBase,
@@ -137,6 +139,64 @@ export class Sengi<
   }
 
   /**
+   * Archives an existing document.
+   * @param props A property bag.
+   */
+  async archiveDocument<Doc extends DocBase>(
+    props: ArchiveDocumentProps<DocStoreParams>,
+  ): Promise<ArchiveDocumentResult<Doc>> {
+    ensureUserId(
+      props.userId,
+      this.validateUserId,
+    );
+
+    const fetchResult = await this.safeDocStore.fetch(
+      props.docTypeName,
+      props.partition,
+      props.id,
+      props.docStoreParams,
+    );
+
+    const doc = ensureDocWasFound(
+      props.docTypeName,
+      props.id,
+      fetchResult.doc as unknown as Partial<DocBase>,
+    );
+
+    const isAlreadyArchived = doc.docStatus === DocStatuses.Archived &&
+      Boolean(doc.docArchivedByUserId) &&
+      Boolean(doc.docArchivedMillisecondsSinceEpoch);
+
+    if (!isAlreadyArchived) {
+      applyCommonFieldValuesToDoc(
+        doc,
+        this.getMillisecondsSinceEpoch(),
+        props.userId,
+        this.getNewDocVersion()
+      )
+
+      doc.docStatus = DocStatuses.Archived;
+      doc.docArchivedByUserId = props.userId;
+      doc.docArchivedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
+
+      const result = await this.safeDocStore.upsert(
+        props.docTypeName,
+        props.partition,
+        doc as unknown as DocStoreRecord,
+        doc.docVersion as string,
+        props.docStoreParams,
+      );
+
+      ensureUpsertSuccessful(result, false);
+    }
+
+    return {
+      isArchived: !isAlreadyArchived,
+      doc: doc as Doc,
+    };
+  }
+
+  /**
    * Deletes an existing document.
    * If the document does not exist then the call succeeds but indicates that a document was not actually deleted.
    * @param props A property bag.
@@ -144,11 +204,6 @@ export class Sengi<
   async deleteDocument(
     props: DeleteDocumentProps<DocStoreParams>,
   ): Promise<DeleteDocumentResult> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
     ensureCanDeleteDocuments(docType);
@@ -288,7 +343,7 @@ export class Sengi<
         props.docTypeName,
         props.partition,
         doc as unknown as DocStoreRecord,
-        props.reqVersion || null,
+        props.reqVersion || doc.docVersion as string,
         props.docStoreParams,
       );
 
@@ -308,11 +363,6 @@ export class Sengi<
   async queryDocuments<QueryResult>(
     props: QueryDocumentsProps<Query, QueryResult, DocStoreParams>,
   ): Promise<QueryDocumentsResult<QueryResult>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
     const rawResultData = await this.safeDocStore.query(
       props.docTypeName,
       props.query,
@@ -388,11 +438,6 @@ export class Sengi<
       DocStoreParams
     >,
   ): Promise<SelectDocumentsByFilterResult<Doc>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
     const selectResult = await this.safeDocStore.selectByFilter(
       props.docTypeName,
       props.partition,
@@ -413,11 +458,6 @@ export class Sengi<
   async selectDocumentsByIds<Doc extends DocBase>(
     props: SelectDocumentsByIdsProps<DocStoreParams>,
   ): Promise<SelectDocumentsByIdsResult<Doc>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
     const uniqueIds = [...new Set(props.ids)];
 
     const docs: Doc[] = [];
@@ -469,11 +509,6 @@ export class Sengi<
   async selectDocuments<Doc extends DocBase>(
     props: SelectDocumentsProps<DocStoreParams>,
   ): Promise<SelectDocumentsResult<Doc>> {
-    ensureUserId(
-      props.userId,
-      this.validateUserId,
-    );
-
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     ensureCanFetchWholeCollection(docType);
 
@@ -499,7 +534,6 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      userId: props.userId,
       cacheMilliseconds: props.cacheMilliseconds,
     });
 
@@ -521,7 +555,6 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      userId: props.userId,
       cacheMilliseconds: props.cacheMilliseconds,
     });
 

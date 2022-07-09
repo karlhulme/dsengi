@@ -48,4 +48,15 @@ export interface DocBase {
    * The id of the user that last updated the document.
    */
   docLastUpdatedByUserId: string;
+
+  /**
+   * The number of milliseconds that have elapsed between the unix epoch
+   * and the document being archived.
+   */
+  docArchivedMillisecondsSinceEpoch?: number;
+
+  /**
+   * The id of the user that archived the document.
+   */
+  docArchivedByUserId?: string;
 }

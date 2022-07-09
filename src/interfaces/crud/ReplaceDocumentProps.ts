@@ -1,6 +1,14 @@
 import { DocBase } from "../doc/index.ts";
 
-type OmittedDocFieldNames = "id" | "docType";
+type OmittedDocFieldNames =
+  | "docVersion"
+  | "docOpIds"
+  | "docCreatedByUserId"
+  | "docCreatedMillisecondsSinceEpoch"
+  | "docLastUpdatedByUserId"
+  | "docLastUpdatedMillisecondsSinceEpoch"
+  | "docArchivedByUserId"
+  | "docArchivedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to replace a document.

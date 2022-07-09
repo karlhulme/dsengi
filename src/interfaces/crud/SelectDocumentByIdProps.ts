@@ -24,11 +24,6 @@ export interface SelectDocumentByIdProps<DocStoreParams> {
   docStoreParams: DocStoreParams;
 
   /**
-   * The id of the user that is making the request.
-   */
-  userId: string;
-
-  /**
    * If specified, attempt will be made to load the documents
    * from a cache.  If that fails, any fetched documents will
    * be cached for the given number of milliseconds.

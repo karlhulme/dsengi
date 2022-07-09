@@ -1,3 +1,5 @@
+export * from "./ArchiveDocumentProps.ts";
+export * from "./ArchiveDocumentResult.ts";
 export * from "./DeleteDocumentProps.ts";
 export * from "./DeleteDocumentResult.ts";
 export * from "./GetDocumentByIdProps.ts";

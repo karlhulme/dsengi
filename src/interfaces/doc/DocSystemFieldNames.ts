@@ -61,4 +61,15 @@ export const DocSystemFieldNames = [
    * the unix epoch when the document was last updated.
    */
   "docLastUpdatedMillisecondsSinceEpoch",
+
+  /**
+   * 'docArchivedByUserId' stores the id of the user that archived the document.
+   */
+  "docArchivedByUserId",
+
+  /**
+   * 'docArchivedMillisecondsSinceEpoch' stores the number of milliseconds since
+   * the unix epoch when the document was archived.
+   */
+  "docArchivedMillisecondsSinceEpoch",
 ];
