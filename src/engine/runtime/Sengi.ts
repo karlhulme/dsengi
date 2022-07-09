@@ -3,6 +3,7 @@ import {
   DeleteDocumentProps,
   DeleteDocumentResult,
   DocBase,
+  DocStatuses,
   DocStore,
   DocStoreDeleteByIdResultCode,
   DocStoreRecord,
@@ -197,6 +198,7 @@ export class Sengi<
       const doc = props.doc as Partial<Doc>;
 
       doc.docType = props.docTypeName;
+      doc.docStatus = DocStatuses.Active;
       doc.docOpIds = [];
       applyCommonFieldValuesToDoc(
         doc,
@@ -344,7 +346,7 @@ export class Sengi<
 
     ensureCanReplaceDocuments(docType);
 
-    const doc = props.doc;
+    const doc = props.doc as Doc;
 
     applyCommonFieldValuesToDoc(
       doc,

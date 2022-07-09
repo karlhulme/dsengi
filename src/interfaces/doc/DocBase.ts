@@ -13,6 +13,11 @@ export interface DocBase {
   docType: string;
 
   /**
+   * The status of the document.  Values of 'active' and 'archived' are supported.
+   */
+  docStatus: string;
+
+  /**
    * The version of the document
    */
   docVersion: string;

@@ -1,5 +1,15 @@
-import { DocSystemFieldNamesUnion } from "../doc/index.ts";
 import { PartialNullable } from "../generic/index.ts";
+
+type OmittedDocFieldNames =
+  | "id"
+  | "docType"
+  | "docStatus"
+  | "docVersion"
+  | "docOpIds"
+  | "docCreatedByUserId"
+  | "docCreatedMillisecondsSinceEpoch"
+  | "docLastUpdatedByUserId"
+  | "docLastUpdatedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to patch a document.
@@ -28,7 +38,7 @@ export interface PatchDocumentProps<Doc, DocStoreParams> {
   /**
    * The patch to be applied.
    */
-  patch: Omit<PartialNullable<Doc>, "id" | DocSystemFieldNamesUnion>;
+  patch: Omit<PartialNullable<Doc>, OmittedDocFieldNames>;
 
   /**
    * The parameters to be passed to the document store.

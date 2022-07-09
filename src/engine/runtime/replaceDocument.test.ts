@@ -15,7 +15,7 @@ function createNewDocument(): Partial<Car> {
   return {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
-    docOpIds: [],
+    docStatus: "active",
     manufacturer: "ford",
     model: "ka",
     registration: "HG12 3AB",
@@ -32,6 +32,7 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
+    docStatus: "active",
     docVersion: "1111-2222",
     docCreatedByUserId: "user-0001",
     docCreatedMillisecondsSinceEpoch: 1629881470000,

@@ -15,16 +15,18 @@ interface ExampleDoc extends DocBase {
 
 function createDoc(): ExampleDoc {
   return {
-    propA: "",
-    propB: "",
     id: "123",
     docType: "test",
+    docStatus: "active",
     docOpIds: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
+
+    propA: "",
+    propB: "",
   };
 }
 
@@ -51,6 +53,7 @@ Deno.test("A valid patch changes a value is applied.", () => {
     propA: "AAA",
     propB: "bbb",
     docType: "test",
+    docStatus: "active",
     docOpIds: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
@@ -84,6 +87,7 @@ Deno.test("A valid patch that removes a value is applied.", () => {
     propA: "aaa",
     propB: "bbb",
     docType: "test",
+    docStatus: "active",
     docOpIds: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,

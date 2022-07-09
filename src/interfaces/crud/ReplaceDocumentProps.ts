@@ -1,5 +1,7 @@
 import { DocBase } from "../doc/index.ts";
 
+type OmittedDocFieldNames = "id" | "docType";
+
 /**
  * Defines the properties that are required to replace a document.
  */
@@ -17,7 +19,7 @@ export interface ReplaceDocumentProps<Doc extends DocBase, DocStoreParams> {
   /**
    * A new document to be used in place of any existing document.
    */
-  doc: Doc;
+  doc: Omit<Doc, OmittedDocFieldNames>;
 
   /**
    * The parameters to be passed to the document store.

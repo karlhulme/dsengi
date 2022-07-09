@@ -1,4 +1,4 @@
-import { DocBase } from "../../interfaces/index.ts";
+import { DocBase, DocStatuses } from "../../interfaces/index.ts";
 
 /**
  * Ensures the given doc has a docOpIds array and values for the audit fields
@@ -13,6 +13,11 @@ export function applyCommonFieldValuesToDoc(
   userId: string,
   docVersion: string,
 ): void {
+  // Ensure we have a doc status and assume active.
+  if (!doc.docStatus) {
+    doc.docStatus = DocStatuses.Active;
+  }
+
   // We assign a new docVersion so that the document validates before
   // it is sent to the document store, whereby a new docVersion be assigned.
   doc.docVersion = docVersion;

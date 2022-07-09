@@ -30,6 +30,7 @@ const createSengiForTest = (
       doc: {
         id: "06151119-065a-4691-a7c8-2d84ec746ba9",
         docType: "car",
+        docStatus: "active",
         docVersion: "aaaa",
         docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
         manufacturer: "ford",
@@ -51,6 +52,7 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
   const resultDoc = {
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     docType: "car",
+    docStatus: "active",
     docVersion: "1111-2222",
     docOpIds: [
       "50e02b33-b22c-4207-8785-5a8aa529ec84",

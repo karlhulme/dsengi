@@ -9,6 +9,7 @@ function createDoc(): DocBase {
   return {
     id: "1111",
     docType: "test",
+    docStatus: "active",
     docOpIds: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
@@ -40,6 +41,16 @@ Deno.test("A doc with an invalid docType is rejected.", () => {
     () => ensureDocSystemFields("test", doc),
     SengiDocValidationFailedError,
     "must have docType",
+  );
+});
+
+Deno.test("A doc with an invalid docStatus is rejected.", () => {
+  const doc = createDoc();
+  doc.docStatus = "invalid";
+  assertThrows(
+    () => ensureDocSystemFields("test", doc),
+    SengiDocValidationFailedError,
+    "must have docStatus with value of",
   );
 });
 

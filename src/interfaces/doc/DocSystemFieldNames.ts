@@ -1,22 +1,9 @@
 /**
- * Exports the system field names as a string union.
- */
-export type DocSystemFieldNamesUnion =
-  | "docType"
-  | "docVersion"
-  | "docOpIds"
-  | "docCreatedByUserId"
-  | "docCreatedMillisecondsSinceEpoch"
-  | "docLastUpdatedByUserId"
-  | "docLastUpdatedMillisecondsSinceEpoch";
-
-/**
  * Defines the field names that must be defined on all document types.
  */
 export const DocSystemFieldNames = [
   /**
-   * 'id' must be provided for the document to save.  The id must also
-   * be provided by the doc store when it returns a document.
+   * 'id' is required for the document to save.
    */
   "id",
 
@@ -25,6 +12,12 @@ export const DocSystemFieldNames = [
    * Similar to id, this field is mandatory.
    */
   "docType",
+
+  /**
+   * 'docStatus' must be provided for the document to save and query.
+   * It takes a value of 'active' or 'archived'.
+   */
+  "docStatus",
 
   /**
    * 'docVersion' is required when retrieving a document so the doc store
@@ -49,8 +42,6 @@ export const DocSystemFieldNames = [
 
   /**
    * 'docCreatedByUserId' stores the id of the user that created the document.
-   * A function passed to the Sengi constructor informs the engine how to
-   * extract the user id from a user object.
    */
   "docCreatedByUserId",
 
@@ -62,8 +53,6 @@ export const DocSystemFieldNames = [
 
   /**
    * 'docLastUpdatedByUserId' stores the id of the user that last updated the document.
-   * A function passed to the Sengi constructor informs the engine how to
-   * extract the user id from a user object.
    */
   "docLastUpdatedByUserId",
 

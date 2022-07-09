@@ -5,6 +5,7 @@ import { isOpIdInDocument } from "./isOpIdInDocument.ts";
 const doc: DocBase = {
   id: "123",
   docType: "test",
+  docStatus: "active",
   docOpIds: ["aaa", "bbb"],
   docVersion: "1234",
   docCreatedMillisecondsSinceEpoch: 1234,

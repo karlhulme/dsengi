@@ -1,5 +1,6 @@
 import {
   DocBase,
+  DocStatuses,
   SengiDocValidationFailedError,
 } from "../../interfaces/index.ts";
 
@@ -21,6 +22,16 @@ export function ensureDocSystemFields(docTypeName: string, doc: DocBase): void {
     throw new SengiDocValidationFailedError(
       docTypeName,
       `Document must have docType equal to ${docTypeName}.`,
+    );
+  }
+
+  if (
+    doc.docStatus !== DocStatuses.Active &&
+    doc.docStatus !== DocStatuses.Archived
+  ) {
+    throw new SengiDocValidationFailedError(
+      docTypeName,
+      `Document must have docStatus with value of 'active' or 'archived'.`,
     );
   }
 

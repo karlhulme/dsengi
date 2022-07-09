@@ -15,6 +15,7 @@ function createDoc(): ExampleDoc {
     propA: "",
     id: "123",
     docType: "test",
+    docStatus: "active",
     docOpIds: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,

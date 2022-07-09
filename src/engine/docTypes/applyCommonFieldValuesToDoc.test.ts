@@ -6,6 +6,7 @@ function createDoc(): DocBase {
   return {
     id: "123",
     docType: "test",
+    docStatus: "active",
     docOpIds: ["abcd"],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
