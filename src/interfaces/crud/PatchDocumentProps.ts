@@ -48,6 +48,12 @@ export interface PatchDocumentProps<Doc, DocStoreParams> {
   docStoreParams: DocStoreParams;
 
   /**
+   * True if the patch should be written to the changes container
+   * of the document store.
+   */
+  storePatch?: boolean;
+
+  /**
    * The required version of the document.  If specified, then this
    * property defines the version of the document that must be
    * found in the collection otherwise the operation will not be applied.

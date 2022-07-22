@@ -50,9 +50,14 @@ import {
 } from "../docTypes/index.ts";
 
 /**
- * The number of documents to cache that have been retrieved by id.
+ * The default number of documents to cache that have been retrieved by id.
  */
 const DEFAULT_CACHE_SIZE = 500;
+
+/**
+ * The default name of a doc type that stores a patch.
+ */
+const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
 
 /**
  * The properties that are used to manage the construction of a Sengi.
@@ -92,6 +97,17 @@ export interface SengiConstructorProps<
    * retrieved by id.
    */
   cacheSize?: number;
+
+  /**
+   * The name of the doc type that stores patches.
+   */
+  patchDocTypeName?: string;
+
+  /**
+   * The params to be passed to the document store when attempting
+   * to store a patch.
+   */
+  patchDocStoreParams?: DocStoreParams;
 }
 
 /**
@@ -113,6 +129,8 @@ export class Sengi<
   private getMillisecondsSinceEpoch: () => number;
   private getNewDocVersion: () => string;
   private cache: TtlCache<DocBase>;
+  private patchDocTypeName: string;
+  private patchDocStoreParams: DocStoreParams;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -143,6 +161,15 @@ export class Sengi<
         ? props.cacheSize
         : DEFAULT_CACHE_SIZE,
     );
+
+    this.patchDocTypeName = props.patchDocTypeName ||
+      DEFAULT_PATCH_DOC_TYPE_NAME;
+
+    if (!props.patchDocStoreParams) {
+      throw new Error("Must supply doc store params for the patch documents.");
+    }
+
+    this.patchDocStoreParams = props.patchDocStoreParams;
   }
 
   /**
@@ -359,6 +386,33 @@ export class Sengi<
       );
 
       ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
+
+      if (props.storePatch) {
+        try {
+          const patchDoc = {
+            id: props.operationId,
+            docType: this.patchDocTypeName,
+            patch: props.patch,
+          };
+
+          applyCommonFieldValuesToDoc(
+            patchDoc,
+            this.getMillisecondsSinceEpoch(),
+            props.userId,
+            this.getNewDocVersion(),
+          );
+
+          await this.safeDocStore.upsert(
+            this.patchDocTypeName,
+            props.partition,
+            patchDoc,
+            null,
+            this.patchDocStoreParams,
+          );
+        } catch (err) {
+          console.error(err);
+        }
+      }
     }
 
     return {

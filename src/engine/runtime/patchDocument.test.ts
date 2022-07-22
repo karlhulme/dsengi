@@ -100,6 +100,52 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
   ));
 });
 
+Deno.test("Patching a document should should cause the patch itself to be saved.", async () => {
+  const { sengi, docStore } = createSengiForTest();
+
+  const spyFetch = spy(docStore, "fetch");
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    patch: {
+      model: "fiesta",
+    },
+    storePatch: true
+  })
+
+  assertEquals(spyFetch.callCount, 1);
+  assert(spyFetch.calledWith(
+    "car",
+    "_central",
+    "06151119-065a-4691-a7c8-2d84ec746ba9",
+    { custom: "prop" },
+  ));
+
+  assertEquals(spyUpsert.callCount, 2);
+
+  assert(spyUpsert.calledWith(
+    "patch",
+    "_central",
+    {
+      id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+      docType: "patch",
+      patch: { model: "fiesta" },
+      docStatus: "active",
+      docVersion: "1111-2222",
+      docOpIds: [],
+      docCreatedMillisecondsSinceEpoch: 1629881470000,
+      docCreatedByUserId: "user-0001",
+      docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+      docLastUpdatedByUserId: "user-0001"
+    },
+    null,
+    { custom: "patch-props" },
+  ));
+});
+
 Deno.test("Patching a document with a known operation id should only call fetch on doc store.", async () => {
   const { sengi, docStore } = createSengiForTest();
 
