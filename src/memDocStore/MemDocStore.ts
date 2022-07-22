@@ -1,6 +1,7 @@
 // deno-lint-ignore-file require-await
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {
+  DocStatuses,
   DocStore,
   DocStoreDeleteByIdResult,
   DocStoreDeleteByIdResultCode,
@@ -192,15 +193,18 @@ export class MemDocStore implements
    * Selects all documents of a specified type.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
+   * @param includeArchived True if the selection should include archived documents.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
+    includeArchived: boolean,
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && d.partitionKey === partition
+      d.docType === docTypeName && d.partitionKey === partition &&
+      (includeArchived || d.docStatus === DocStatuses.Active)
     );
     return this.buildSelectResult(matchedDocs);
   }
@@ -210,16 +214,19 @@ export class MemDocStore implements
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
    * @param filter A filter.
+   * @param includeArchived True if the selection should include archived documents.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
     filter: MemDocStoreFilter,
+    includeArchived: boolean,
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && d.partitionKey === partition && filter(d)
+      d.docType === docTypeName && d.partitionKey === partition && filter(d) &&
+      (includeArchived || d.docStatus === DocStatuses.Active)
     );
     return this.buildSelectResult(matchedDocs);
   }
@@ -245,7 +252,8 @@ export class MemDocStore implements
   }
 
   /**
-   * Store a single document in the store, overwriting an existing if necessary.
+   * Store a single document in the store, overwriting an existing
+   * one if necessary.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
    * @param doc The document to store.

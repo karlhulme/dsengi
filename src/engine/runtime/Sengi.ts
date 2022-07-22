@@ -50,6 +50,11 @@ import {
 } from "../docTypes/index.ts";
 
 /**
+ * The number of documents to cache that have been retrieved by id.
+ */
+const DEFAULT_CACHE_SIZE = 500;
+
+/**
  * The properties that are used to manage the construction of a Sengi.
  */
 export interface SengiConstructorProps<
@@ -134,7 +139,9 @@ export class Sengi<
     this.safeDocStore = new SafeDocStore(props.docStore);
 
     this.cache = new TtlCache<DocBase>(
-      typeof props.cacheSize === "number" ? props.cacheSize : 500,
+      typeof props.cacheSize === "number"
+        ? props.cacheSize
+        : DEFAULT_CACHE_SIZE,
     );
   }
 
@@ -446,6 +453,7 @@ export class Sengi<
       props.docTypeName,
       props.partition,
       props.filter,
+      props.includeArchived,
       props.docStoreParams,
     );
 
@@ -519,6 +527,7 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
       props.partition,
+      props.includeArchived,
       props.docStoreParams,
     );
 
@@ -538,6 +547,7 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
+      includeArchived: true,
       cacheMilliseconds: props.cacheMilliseconds,
     });
 
@@ -559,6 +569,7 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
+      includeArchived: true,
       cacheMilliseconds: props.cacheMilliseconds,
     });
 

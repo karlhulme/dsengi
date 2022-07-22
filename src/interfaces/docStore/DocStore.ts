@@ -55,6 +55,7 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   selectAll: (
     docTypeName: string,
     partition: string,
+    includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
@@ -66,6 +67,7 @@ export interface DocStore<DocStoreParams, Filter, Query> {
     docTypeName: string,
     partition: string,
     filter: Filter,
+    includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 

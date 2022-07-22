@@ -22,6 +22,11 @@ export interface SelectDocumentsByFilterProps<
   filter: Filter;
 
   /**
+   * True if archived documents should be included in the response.
+   */
+  includeArchived: boolean;
+
+  /**
    * The parameters to be passed to the document store.
    */
   docStoreParams: DocStoreParams;

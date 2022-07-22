@@ -51,11 +51,11 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
     data: null,
     queryCharge: 0,
   });
-  assertEquals(await safeDocStore.selectAll("", "", {}), {
+  assertEquals(await safeDocStore.selectAll("", "", true, {}), {
     docs: [],
     queryCharge: 0,
   });
-  assertEquals(await safeDocStore.selectByFilter("", "", {}, {}), {
+  assertEquals(await safeDocStore.selectByFilter("", "", {}, true, {}), {
     docs: [],
     queryCharge: 0,
   });
@@ -150,11 +150,11 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.selectAll("", "", {}),
+    () => safeDocStore.selectAll("", "", true, {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(
-    () => safeDocStore.selectByFilter("", "", {}, {}),
+    () => safeDocStore.selectByFilter("", "", {}, true, {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(

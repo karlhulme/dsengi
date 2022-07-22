@@ -93,6 +93,7 @@ async function initDb(): Promise<void> {
     {
       id: "01",
       docType: "tree",
+      docStatus: "active",
       name: "ash",
       heightInCms: 210,
       docVersion: "not_used",
@@ -101,6 +102,7 @@ async function initDb(): Promise<void> {
     {
       id: "02",
       docType: "tree",
+      docStatus: "active",
       name: "beech",
       heightInCms: 225,
       docVersion: "not_used",
@@ -109,6 +111,7 @@ async function initDb(): Promise<void> {
     {
       id: "03",
       docType: "tree",
+      docStatus: "active",
       name: "pine",
       heightInCms: 180,
       docVersion: "not_used",
@@ -134,6 +137,7 @@ async function initDb(): Promise<void> {
     {
       id: "01",
       docType: "treePack",
+      docStatus: "archived",
       name: "ash",
       environment: "forest",
       heightInCms: 210,
@@ -143,6 +147,7 @@ async function initDb(): Promise<void> {
     {
       id: "02",
       docType: "treePack",
+      docStatus: "active",
       name: "beech",
       environment: "forest",
       heightInCms: 225,
@@ -152,6 +157,7 @@ async function initDb(): Promise<void> {
     {
       id: "03",
       docType: "treePack",
+      docStatus: "active",
       name: "palm",
       environment: "tropical",
       heightInCms: 180,
@@ -161,6 +167,7 @@ async function initDb(): Promise<void> {
     {
       id: "04",
       docType: "treePack",
+      docStatus: "active",
       name: "coconut",
       environment: "tropical",
       heightInCms: 175,
@@ -319,6 +326,7 @@ Deno.test("A document can be fetched.", async () => {
   assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
     id: "02",
     docType: "tree",
+    docStatus: "active",
     name: "beech",
     heightInCms: 225,
     docOpIds: [],
@@ -355,6 +363,7 @@ Deno.test("A document can be fetched from a container that uses a partition key 
   assertObjectMatch(fetchResult.doc as Record<string, unknown>, {
     id: "02",
     docType: "treePack",
+    docStatus: "active",
     name: "beech",
     environment: "forest",
     heightInCms: 225,
@@ -397,6 +406,7 @@ Deno.test("A sql query can be executed that returns individual records.", async 
   assertObjectMatch((queryResult.data as Record<string, unknown>[])[0], {
     id: "01",
     docType: "tree",
+    docStatus: "active",
     name: "ash",
     heightInCms: 210,
   });
@@ -428,6 +438,7 @@ Deno.test("All documents of a type can be selected from a single partition.", as
   const result = await docStore.selectAll(
     "tree",
     TestPartition,
+    true,
     { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
@@ -448,6 +459,26 @@ Deno.test("Select documents using a filter.", async () => {
     "treePack",
     "forest",
     { whereClause: "d.heightInCms > 215" },
+    true,
+    { databaseName: "sengi", collectionName: "treePacks" },
+  );
+
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "02" }],
+  );
+});
+
+Deno.test("Select documents using a filter that are not archived.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByFilter(
+    "treePack",
+    "forest",
+    { whereClause: "d.heightInCms > 200" },
+    false,
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -470,6 +501,7 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
       orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
       limit: 1,
     },
+    true,
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -492,6 +524,7 @@ Deno.test("Select documents using a filter, descending order by clause and limit
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
       limit: 1,
     },
+    true,
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -512,6 +545,7 @@ Deno.test("Select documents using an ordering clause with multiple results.", as
     {
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
     },
+    true,
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -590,6 +624,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   const doc: DocStoreRecord = {
     id: "04",
     docType: "tree",
+    docStatus: "active",
     name: "oak",
     heightInCms: 150,
     docVersion: "ignore_me",
@@ -612,6 +647,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   assertObjectMatch(newDoc, {
     id: "04",
     docType: "tree",
+    docStatus: "active",
     name: "oak",
     heightInCms: 150,
   });
@@ -626,6 +662,7 @@ Deno.test("Update an existing document.", async () => {
   const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "palm",
     heightInCms: 123,
     docVersion: "not_used",
@@ -648,6 +685,7 @@ Deno.test("Update an existing document.", async () => {
   assertObjectMatch(newDoc, {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "palm",
     heightInCms: 123,
   });
@@ -666,6 +704,7 @@ Deno.test("Update an existing document with a required version.", async () => {
   const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "palm",
     heightInCms: 123,
     docVersion: "not_used",
@@ -686,6 +725,7 @@ Deno.test("Update an existing document with a required version.", async () => {
   assertObjectMatch(newDoc, {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "palm",
     heightInCms: 123,
   });
@@ -700,6 +740,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
   const doc: DocStoreRecord = {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "palm",
     heightInCms: 123,
     docVersion: "not_used",
@@ -720,6 +761,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
   assertObjectMatch(newDoc, {
     id: "03",
     docType: "tree",
+    docStatus: "active",
     name: "pine",
     heightInCms: 180,
   });

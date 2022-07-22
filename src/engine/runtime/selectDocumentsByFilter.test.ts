@@ -42,6 +42,7 @@ Deno.test("Select documents using a filter.", async () => {
     "car",
     "_central",
     "MODEL=ka",
+    true,
     { custom: "prop" },
   ));
 });

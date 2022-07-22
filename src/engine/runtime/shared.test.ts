@@ -152,6 +152,7 @@ export const defaultRequestProps = {
   docTypeName: "car",
   partition: "_central",
   docStoreParams: { custom: "prop" },
+  includeArchived: true,
   userId: "user-0001",
 };
 

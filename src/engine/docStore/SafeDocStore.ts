@@ -150,17 +150,20 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
+   * @param includeArchived True if the selection should include archived documents.
    * @param docStoreParams The params for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
+    includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
       const result = await this.docStore.selectAll(
         docTypeName,
         partition,
+        includeArchived,
         docStoreParams,
       );
       return result;
@@ -174,12 +177,14 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
    * @param filter A filter.
+   * @param includeArchived True if the selection should include archived documents.
    * @param docStoreParams The params for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
     filter: Filter,
+    includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     try {
@@ -187,6 +192,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
         docTypeName,
         partition,
         filter,
+        includeArchived,
         docStoreParams,
       );
       return result;

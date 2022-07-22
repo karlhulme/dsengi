@@ -9,6 +9,7 @@ import {
   replaceDocument,
 } from "../cosmosClient/index.ts";
 import {
+  DocStatuses,
   DocStore,
   DocStoreDeleteByIdResult,
   DocStoreDeleteByIdResultCode,
@@ -174,11 +175,13 @@ export class CosmosDbDocStore implements
 
   /**
    * Returns a select query based on the given inputs.
+   * @param includeArchived True if archived documents should be included in the result.
    * @param whereClause A Cosmos WHERE clause.
    * @param orderByFields An array of fields that will appear in the ORDER BY clause.
    * @param limit The maximum number of documents to select.
    */
   private buildSelectCommand(
+    includeArchived?: boolean,
     whereClause?: string,
     orderByFields?: CosmosDbDocStoreFilterOrderByField[],
     limit?: number,
@@ -196,9 +199,14 @@ export class CosmosDbDocStore implements
         AND d.docType = @docType
     `;
 
+    // Determine if we're only including live documents.
+    if (!includeArchived) {
+      sql += `  AND d.docStatus = "${DocStatuses.Active}"`;
+    }
+
     // Determine the additional where clause if required.
     if (typeof whereClause === "string") {
-      sql += ` AND (${whereClause})`;
+      sql += `  AND (${whereClause})`;
     }
 
     // Determine the order by clause.
@@ -389,14 +397,16 @@ export class CosmosDbDocStore implements
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
+   * @param includeArchived True if the selection should include archived documents.
    * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
+    includeArchived: boolean,
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
-    const queryCmd = this.buildSelectCommand();
+    const queryCmd = this.buildSelectCommand(includeArchived);
 
     await this.ensureCryptoKey();
 
@@ -425,15 +435,18 @@ export class CosmosDbDocStore implements
    * @param partition The name of a partition where documents are stored.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
+   * @param includeArchived True if the selection should include archived documents.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
     filter: CosmosDbDocStoreFilter,
+    includeArchived: boolean,
     docStoreParams: CosmosDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const queryCmd = this.buildSelectCommand(
+      includeArchived,
       filter.whereClause,
       filter.orderByFields,
       filter.limit,
@@ -476,7 +489,7 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreSelectResult> {
     const whereClause = `d.id IN (${ids.map((i) => `"${i}"`).join(", ")})`;
 
-    const queryCmd = this.buildSelectCommand(whereClause);
+    const queryCmd = this.buildSelectCommand(true, whereClause);
 
     await this.ensureCryptoKey();
 

@@ -11,6 +11,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "001",
       docType: "test",
+      docStatus: "active",
       fruit: "apple",
       docVersion: "aaa1",
       docOpIds: [],
@@ -19,6 +20,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "002",
       docType: "test",
+      docStatus: "active",
       fruit: "banana",
       docVersion: "aaa2",
       docOpIds: [],
@@ -27,6 +29,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "003",
       docType: "test",
+      docStatus: "active",
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
@@ -35,6 +38,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "101",
       docType: "test2",
+      docStatus: "active",
       vehicle: "car",
       docVersion: "a101",
       docOpIds: [],
@@ -43,6 +47,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "102",
       docType: "test2",
+      docStatus: "archived",
       vehicle: "cargoBoat",
       docVersion: "a102",
       docOpIds: [],
@@ -51,6 +56,7 @@ function createDocs(): DocStoreRecord[] {
     {
       id: "103",
       docType: "test2",
+      docStatus: "active",
       vehicle: "plane",
       docVersion: "a103",
       docOpIds: [],
@@ -148,6 +154,7 @@ Deno.test("A document can be fetched.", async () => {
     doc: {
       id: "003",
       docType: "test",
+      docStatus: "active",
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
@@ -185,6 +192,7 @@ Deno.test("All documents of a type can be selected.", async () => {
   const result = await docStore.selectAll(
     "test",
     "_central",
+    true,
     {},
   );
   assertEquals(
@@ -195,6 +203,7 @@ Deno.test("All documents of a type can be selected.", async () => {
   const result2 = await docStore.selectAll(
     "test2",
     "_central",
+    true,
     {},
   );
   assertEquals(
@@ -203,12 +212,29 @@ Deno.test("All documents of a type can be selected.", async () => {
   );
 });
 
-Deno.test("All documents of a recognised type can selected.", async () => {
+Deno.test("All documents of a type that are not archived can be selected.", async () => {
+  const docs = createDocs();
+  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
+
+  const result = await docStore.selectAll(
+    "test2",
+    "_central",
+    false,
+    {},
+  );
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["vehicle"])),
+    [{ vehicle: "car" }, { vehicle: "plane" }],
+  );
+});
+
+Deno.test("All documents of an unrecognised type can be selected.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
   const result = await docStore.selectAll(
     "test3",
     "_central",
+    true,
     {},
   );
   assertEquals(result, { docs: [], queryCharge: 0 });
@@ -221,11 +247,28 @@ Deno.test("Select documents using a filter.", async () => {
     "test2",
     "_central",
     (d) => (d.vehicle as string).startsWith("c"),
+    true,
     {},
   );
   assertEquals(
     result.docs.map((doc) => subsetDoc(doc, ["id", "vehicle"])),
     [{ id: "101", vehicle: "car" }, { id: "102", vehicle: "cargoBoat" }],
+  );
+});
+
+Deno.test("Select documents using a filter that are not archived.", async () => {
+  const docs = createDocs();
+  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
+  const result = await docStore.selectByFilter(
+    "test2",
+    "_central",
+    (d) => (d.vehicle as string).startsWith("c"),
+    false,
+    {},
+  );
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id", "vehicle"])),
+    [{ id: "101", vehicle: "car" }],
   );
 });
 
@@ -268,6 +311,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     {
       id: "004",
       docType: "test",
+      docStatus: "active",
       fruit: "kiwi",
       docVersion: "000",
       docOpIds: [],
@@ -289,6 +333,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
   assertEquals(docs[6], {
     id: "004",
     docType: "test",
+    docStatus: "active",
     fruit: "kiwi",
     docVersion: "xxxx",
     docOpIds: [],
@@ -305,6 +350,7 @@ Deno.test("Update an existing document.", async () => {
     {
       id: "102",
       docType: "test2",
+      docStatus: "active",
       vehicle: "tank",
       docVersion: "000",
       docOpIds: [],
@@ -325,6 +371,7 @@ Deno.test("Update an existing document.", async () => {
   assertEquals(docs[4], {
     id: "102",
     docType: "test2",
+    docStatus: "active",
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
@@ -341,6 +388,7 @@ Deno.test("Update an existing document with a required version.", async () => {
     {
       id: "102",
       docType: "test2",
+      docStatus: "active",
       vehicle: "tank",
       docVersion: "000",
       docOpIds: [],
@@ -361,6 +409,7 @@ Deno.test("Update an existing document with a required version.", async () => {
   assertEquals(docs[4], {
     id: "102",
     docType: "test2",
+    docStatus: "active",
     vehicle: "tank",
     docVersion: "xxxx",
     docOpIds: [],
@@ -377,6 +426,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
     {
       id: "102",
       docType: "test2",
+      docStatus: "archived",
       vehicle: "tank",
       docVersion: "000",
       docOpIds: [],
@@ -391,6 +441,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
   assertEquals(docs[4], {
     id: "102",
     docType: "test2",
+    docStatus: "archived",
     vehicle: "cargoBoat",
     docVersion: "a102",
     docOpIds: [],
