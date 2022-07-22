@@ -132,6 +132,8 @@ Deno.test("Patching a document should should cause the patch itself to be saved.
     {
       id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
       docType: "patch",
+      patchedDocId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      patchedDocType: "car",
       patch: { model: "fiesta" },
       docStatus: "active",
       docVersion: "1111-2222",

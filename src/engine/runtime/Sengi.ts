@@ -396,6 +396,8 @@ export class Sengi<
       const patchDoc = {
         id: props.operationId,
         docType: this.patchDocTypeName,
+        patchedDocId: props.id,
+        patchedDocType: props.docTypeName,
         patch: props.patch,
       };
 
