@@ -323,6 +323,10 @@ export class Sengi<
 
   /**
    * Patches an existing document with a merge patch.
+   * Although very unlikely, it's possible that a patch is successfully
+   * applied but an error is encountered when trying to write the patch
+   * to te patches container.  If this circumstance it is safe to try
+   * applying the patch again.
    * @param props A property bag.
    */
   async patchDocument<Doc extends DocBase>(
@@ -386,33 +390,29 @@ export class Sengi<
       );
 
       ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
+    }
 
-      if (props.storePatch) {
-        try {
-          const patchDoc = {
-            id: props.operationId,
-            docType: this.patchDocTypeName,
-            patch: props.patch,
-          };
+    if (props.storePatch) {
+      const patchDoc = {
+        id: props.operationId,
+        docType: this.patchDocTypeName,
+        patch: props.patch,
+      };
 
-          applyCommonFieldValuesToDoc(
-            patchDoc,
-            this.getMillisecondsSinceEpoch(),
-            props.userId,
-            this.getNewDocVersion(),
-          );
+      applyCommonFieldValuesToDoc(
+        patchDoc,
+        this.getMillisecondsSinceEpoch(),
+        props.userId,
+        this.getNewDocVersion(),
+      );
 
-          await this.safeDocStore.upsert(
-            this.patchDocTypeName,
-            props.partition,
-            patchDoc,
-            null,
-            this.patchDocStoreParams,
-          );
-        } catch (err) {
-          console.error(err);
-        }
-      }
+      await this.safeDocStore.upsert(
+        this.patchDocTypeName,
+        props.partition,
+        patchDoc,
+        null,
+        this.patchDocStoreParams,
+      );
     }
 
     return {
