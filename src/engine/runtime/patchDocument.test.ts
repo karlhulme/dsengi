@@ -113,8 +113,8 @@ Deno.test("Patching a document should should cause the patch itself to be saved.
     patch: {
       model: "fiesta",
     },
-    storePatch: true
-  })
+    storePatch: true,
+  });
 
   assertEquals(spyFetch.callCount, 1);
   assert(spyFetch.calledWith(
@@ -139,7 +139,7 @@ Deno.test("Patching a document should should cause the patch itself to be saved.
       docCreatedMillisecondsSinceEpoch: 1629881470000,
       docCreatedByUserId: "user-0001",
       docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
-      docLastUpdatedByUserId: "user-0001"
+      docLastUpdatedByUserId: "user-0001",
     },
     null,
     { custom: "patch-props" },
