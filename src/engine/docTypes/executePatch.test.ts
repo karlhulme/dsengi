@@ -2,7 +2,6 @@ import { assertEquals, assertThrows } from "../../../deps.ts";
 import {
   DocBase,
   SengiPatchValidationFailedError,
-  SengiValidatePatchFailedError,
 } from "../../interfaces/index.ts";
 import { executePatch } from "./executePatch.ts";
 
@@ -41,7 +40,6 @@ Deno.test("A valid patch changes a value is applied.", () => {
   executePatch<ExampleDoc>(
     "test",
     [],
-    () => {},
     doc,
     {
       propA: "AAA",
@@ -75,7 +73,6 @@ Deno.test("A valid patch that removes a value is applied.", () => {
   executePatch<ExampleDoc>(
     "test",
     [],
-    () => {},
     doc,
     {
       propC: null,
@@ -97,51 +94,12 @@ Deno.test("A valid patch that removes a value is applied.", () => {
   });
 });
 
-Deno.test("Reject patch with invalid parameters.", () => {
-  assertThrows(
-    () =>
-      executePatch<ExampleDoc>(
-        "test",
-        [],
-        () => {
-          return "invalid params";
-        },
-        createDoc(),
-        {
-          id: "321",
-        },
-      ),
-    SengiPatchValidationFailedError,
-    "invalid params",
-  );
-});
-
-Deno.test("Reject patch if validation function fails.", () => {
-  assertThrows(
-    () =>
-      executePatch<ExampleDoc>(
-        "test",
-        [],
-        () => {
-          throw new Error("validation threw");
-        },
-        createDoc(),
-        {
-          id: "321",
-        },
-      ),
-    SengiValidatePatchFailedError,
-    "validation threw",
-  );
-});
-
 Deno.test("A patch that attempts to change a system field is rejected.", () => {
   assertThrows(
     () =>
       executePatch<ExampleDoc>(
         "test",
         [],
-        () => {},
         createDoc(),
         {
           id: "321",
@@ -158,7 +116,6 @@ Deno.test("A patch that attempts to change a readonly field is rejected.", () =>
       executePatch<ExampleDoc>(
         "test",
         ["propA"],
-        () => {},
         createDoc(),
         {
           propA: "321",

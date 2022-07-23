@@ -100,7 +100,7 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
   ));
 });
 
-Deno.test("Patching a document should should cause the patch itself to be saved.", async () => {
+Deno.test("Patching a document should cause the patch itself to be saved.", async () => {
   const { sengi, docStore } = createSengiForTest();
 
   const spyFetch = spy(docStore, "fetch");
@@ -283,7 +283,7 @@ Deno.test("Reject a patch to any field that is marked as readonly.", async () =>
   );
 });
 
-Deno.test("Reject a patch with a field value that is given an invalid type.", async () => {
+Deno.test("Reject a patch that would leave the document in an invalid state.", async () => {
   const { sengi } = createSengiForTest();
 
   await assertRejects(
@@ -296,7 +296,7 @@ Deno.test("Reject a patch with a field value that is given an invalid type.", as
           model: 123 as unknown as string,
         },
       }),
-    SengiPatchValidationFailedError,
+    SengiDocValidationFailedError,
     "model",
   );
 });

@@ -22,15 +22,6 @@ export class SengiValidateDocFailedError extends SengiEngineError {
   }
 }
 
-export class SengiValidatePatchFailedError extends SengiEngineError {
-  constructor(readonly docTypeName: string, readonly innerErr: Error) {
-    super(
-      `The validatePatch function on document type '${docTypeName}' raised an error.\n${innerErr.toString()}`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-  }
-}
-
 export class SengiValidateUserIdFunctionError extends SengiEngineError {
   constructor(readonly innerErr: Error) {
     super(

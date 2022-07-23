@@ -3,7 +3,6 @@ import {
   DocSystemFieldNames,
   PartialNullable,
   SengiPatchValidationFailedError,
-  SengiValidatePatchFailedError,
 } from "../../interfaces/index.ts";
 
 /**
@@ -20,41 +19,9 @@ import {
 export function executePatch<Doc extends DocBase>(
   docTypeName: string,
   readOnlyFieldNames: string[],
-  validateFields: (patch: unknown) => string | void,
   doc: Doc,
   patch: PartialNullable<Doc>,
 ): void {
-  let validationErrorMessage;
-
-  // Clone the patch and then replace any missing or null
-  // properties with the values from the original document.
-  // This allows us to use validateDoc to check the patch fields.
-  const patchUpdate = structuredClone(patch);
-
-  for (const key of Object.keys(doc)) {
-    if (typeof patchUpdate[key] === "undefined" || patchUpdate[key] === null) {
-      patchUpdate[key] = (doc as Record<string, unknown>)[key];
-    }
-  }
-
-  try {
-    validationErrorMessage = validateFields(patchUpdate);
-  } catch (err) {
-    throw new SengiValidatePatchFailedError(
-      docTypeName,
-      err,
-    );
-  }
-
-  if (validationErrorMessage) {
-    throw new SengiPatchValidationFailedError(
-      docTypeName,
-      validationErrorMessage,
-    );
-  }
-
-  // Use the original patch for the patching process,
-  // do not use the update-only patch we created for validation.
   const patchKeys = Object.keys(patch);
 
   for (const patchKey of patchKeys) {

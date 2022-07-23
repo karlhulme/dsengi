@@ -360,7 +360,6 @@ export class Sengi<
       executePatch(
         props.docTypeName,
         docType.readOnlyFieldNames,
-        docType.validateFields,
         doc as Doc,
         props.patch,
       );
