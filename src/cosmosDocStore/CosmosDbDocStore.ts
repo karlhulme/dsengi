@@ -210,7 +210,7 @@ export class CosmosDbDocStore implements
     }
 
     // Determine the order by clause.
-    if (Array.isArray(orderByFields)) {
+    if (Array.isArray(orderByFields) && orderByFields.length > 0) {
       const orderSnippets = orderByFields.map((f) =>
         `d.${f.fieldName} ${f.direction === "descending" ? "DESC" : "ASC"}`
       );
