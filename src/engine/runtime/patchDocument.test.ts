@@ -148,6 +148,46 @@ Deno.test("Patching a document should cause the patch itself to be saved.", asyn
   ));
 });
 
+Deno.test("Patching a document with an overriden storePatchPartition will be honoured.", async () => {
+  const { sengi, docStore } = createSengiForTest();
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    patch: {
+      model: "fiesta",
+    },
+    storePatch: true,
+    storePatchPartition: "_override",
+  });
+
+  console.log(spyUpsert.getCalls());
+
+  assert(spyUpsert.calledWith(
+    "patch",
+    "_override",
+    {
+      id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+      docType: "patch",
+      patchedDocId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+      patchedDocType: "car",
+      patch: { model: "fiesta" },
+      docStatus: "active",
+      docVersion: "1111-2222",
+      docOpIds: [],
+      docCreatedMillisecondsSinceEpoch: 1629881470000,
+      docCreatedByUserId: "user-0001",
+      docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+      docLastUpdatedByUserId: "user-0001",
+    },
+    null,
+    { custom: "patch-props" },
+  ));
+});
+
 Deno.test("Patching a document with a known operation id should only call fetch on doc store.", async () => {
   const { sengi, docStore } = createSengiForTest();
 

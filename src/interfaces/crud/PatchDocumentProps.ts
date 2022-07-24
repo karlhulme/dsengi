@@ -54,6 +54,13 @@ export interface PatchDocumentProps<Doc, DocStoreParams> {
   storePatch?: boolean;
 
   /**
+   * The name of the partition where the patch should be stored.
+   * If storePatch is true, but this value is omitted, then the
+   * partition field is used instead.
+   */
+  storePatchPartition?: string;
+
+  /**
    * The required version of the document.  If specified, then this
    * property defines the version of the document that must be
    * found in the collection otherwise the operation will not be applied.

@@ -409,7 +409,7 @@ export class Sengi<
 
       await this.safeDocStore.upsert(
         this.patchDocTypeName,
-        props.partition,
+        props.storePatchPartition || props.partition,
         patchDoc,
         null,
         this.patchDocStoreParams,
