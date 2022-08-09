@@ -7,6 +7,7 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreExistsResult,
   DocStoreFetchResult,
+  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -185,6 +186,29 @@ export class MemDocStore implements
 
     return {
       data: filteredDocs.reduce(query.reducer, query.initialValue),
+      queryCharge: 0,
+    };
+  }
+
+  /**
+   * Selects all documents that are pending synchronisation
+   * @param docTypeName The type of document.
+   * @param _docStoreParams The parameters for the document store.
+   */
+  async selectPendingSync(
+    docTypeName: string,
+    _docStoreParams: MemDocStoreParams,
+  ): Promise<DocStorePendingSyncResult> {
+    const matchedDocs = this.docs.filter((d) =>
+      d.docType === docTypeName && d.lastSyncedMillisecondsSinceEpoch === 0
+    );
+    return {
+      docHeaders: matchedDocs.map((d) => ({
+        id: d.id as string,
+        docType: docTypeName as string,
+        docVersion: d.docVersion as string,
+        partition: d.partitionKey as string,
+      })),
       queryCharge: 0,
     };
   }

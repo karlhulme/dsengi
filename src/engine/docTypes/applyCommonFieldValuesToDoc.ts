@@ -39,4 +39,8 @@ export function applyCommonFieldValuesToDoc(
 
   doc.docLastUpdatedMillisecondsSinceEpoch = millisecondsSinceEpoch;
   doc.docLastUpdatedByUserId = userId;
+
+  // Any new/changed record needs to be synchronised and this
+  // is expressed with a zero timestamp.
+  doc.docLastSyncedMillisecondsSinceEpoch = 0;
 }

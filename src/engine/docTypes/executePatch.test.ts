@@ -14,22 +14,12 @@ interface ExampleDoc extends DocBase {
 
 function createDoc(): ExampleDoc {
   return {
-    id: "123",
-    docType: "test",
-    docStatus: "active",
-    docOpIds: [],
-    docVersion: "1234",
-    docCreatedMillisecondsSinceEpoch: 1234,
-    docCreatedByUserId: "anon",
-    docLastUpdatedMillisecondsSinceEpoch: 1234,
-    docLastUpdatedByUserId: "anon",
-
     propA: "",
     propB: "",
-  };
+  } as unknown as ExampleDoc;
 }
 
-Deno.test("A valid patch changes a value is applied.", () => {
+Deno.test("A valid patch that changes a value is applied.", () => {
   const doc: ExampleDoc = {
     ...createDoc(),
     id: "123",
@@ -50,14 +40,6 @@ Deno.test("A valid patch changes a value is applied.", () => {
     id: "123",
     propA: "AAA",
     propB: "bbb",
-    docType: "test",
-    docStatus: "active",
-    docOpIds: [],
-    docVersion: "1234",
-    docCreatedMillisecondsSinceEpoch: 1234,
-    docCreatedByUserId: "anon",
-    docLastUpdatedMillisecondsSinceEpoch: 1234,
-    docLastUpdatedByUserId: "anon",
   });
 });
 
@@ -83,14 +65,6 @@ Deno.test("A valid patch that removes a value is applied.", () => {
     id: "123",
     propA: "aaa",
     propB: "bbb",
-    docType: "test",
-    docStatus: "active",
-    docOpIds: [],
-    docVersion: "1234",
-    docCreatedMillisecondsSinceEpoch: 1234,
-    docCreatedByUserId: "anon",
-    docLastUpdatedMillisecondsSinceEpoch: 1234,
-    docLastUpdatedByUserId: "anon",
   });
 });
 

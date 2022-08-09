@@ -36,6 +36,7 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     docCreatedMillisecondsSinceEpoch: 1629881470000,
     docLastUpdatedByUserId: "user-0001",
     docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+    docLastSyncedMillisecondsSinceEpoch: 0,
 
     // fields
     manufacturer: "ford",

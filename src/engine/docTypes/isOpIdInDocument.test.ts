@@ -12,6 +12,7 @@ const doc: DocBase = {
   docCreatedByUserId: "anon",
   docLastUpdatedMillisecondsSinceEpoch: 1234,
   docLastUpdatedByUserId: "anon",
+  docLastSyncedMillisecondsSinceEpoch: 1234,
 };
 
 Deno.test("Recognise existing op ids on a document.", () => {

@@ -51,6 +51,12 @@ export interface DocBase {
 
   /**
    * The number of milliseconds that have elapsed between the unix epoch
+   * and the document being synchronised by a records service.
+   */
+  docLastSyncedMillisecondsSinceEpoch?: number;
+
+  /**
+   * The number of milliseconds that have elapsed between the unix epoch
    * and the document being archived.
    */
   docArchivedMillisecondsSinceEpoch?: number;

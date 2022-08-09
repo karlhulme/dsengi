@@ -96,6 +96,7 @@ async function initDb(): Promise<void> {
       docStatus: "active",
       name: "ash",
       heightInCms: 210,
+      lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -105,6 +106,7 @@ async function initDb(): Promise<void> {
       docStatus: "active",
       name: "beech",
       heightInCms: 225,
+      lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -114,6 +116,7 @@ async function initDb(): Promise<void> {
       docStatus: "active",
       name: "pine",
       heightInCms: 180,
+      lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -141,6 +144,7 @@ async function initDb(): Promise<void> {
       name: "ash",
       environment: "forest",
       heightInCms: 210,
+      lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -151,6 +155,7 @@ async function initDb(): Promise<void> {
       name: "beech",
       environment: "forest",
       heightInCms: 225,
+      lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -161,6 +166,7 @@ async function initDb(): Promise<void> {
       name: "palm",
       environment: "tropical",
       heightInCms: 180,
+      lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -171,6 +177,7 @@ async function initDb(): Promise<void> {
       name: "coconut",
       environment: "tropical",
       heightInCms: 175,
+      lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
     },
@@ -430,7 +437,43 @@ Deno.test("A sql query can be executed that returns an aggregated value.", async
   assertEquals(queryResult.data, 3);
 });
 
-Deno.test("All documents of a type can be selected from a single partition.", async () => {
+Deno.test("Select all documents of a type that are pending sync in a single partition.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectPendingSync(
+    "tree",
+    { databaseName: "sengi", collectionName: "trees" },
+  );
+  const sortedDocs = result.docHeaders.sort((a, b) =>
+    (a.id as string).localeCompare(b.id as string)
+  );
+  assertEquals(
+    sortedDocs.map((doc) => doc.id),
+    ["03"],
+  );
+});
+
+Deno.test("Select all documents of a type that are pending sync in multiple partitions.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectPendingSync(
+    "treePack",
+    { databaseName: "sengi", collectionName: "treePacks" },
+  );
+  const sortedDocs = result.docHeaders.sort((a, b) =>
+    (a.id as string).localeCompare(b.id as string)
+  );
+  assertEquals(
+    sortedDocs.map((doc) => doc.id + doc.partition),
+    ["02forest", "04tropical"],
+  );
+});
+
+Deno.test("Select all documents of a type from a single partition.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();

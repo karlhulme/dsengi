@@ -13,6 +13,7 @@ function createDoc(): DocBase {
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
+    docLastSyncedMillisecondsSinceEpoch: 1234,
   };
 }
 
@@ -25,6 +26,7 @@ Deno.test("The creation properties are set if not already populated.", () => {
   assertEquals(doc.docLastUpdatedMillisecondsSinceEpoch, 5678);
   assertEquals(doc.docLastUpdatedByUserId, "aUser");
   assertEquals(doc.docVersion, "new-doc-version");
+  assertEquals(doc.docLastSyncedMillisecondsSinceEpoch, 0);
 });
 
 Deno.test("The creation properties are ignored if already set, and just lastUpdated properties are added.", () => {
@@ -36,4 +38,5 @@ Deno.test("The creation properties are ignored if already set, and just lastUpda
   assertEquals(doc.docLastUpdatedMillisecondsSinceEpoch, 5678);
   assertEquals(doc.docLastUpdatedByUserId, "aUser");
   assertEquals(doc.docVersion, "new-doc-version");
+  assertEquals(doc.docLastSyncedMillisecondsSinceEpoch, 0);
 });

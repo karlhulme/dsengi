@@ -27,6 +27,8 @@ import {
   SelectDocumentsByFilterResult,
   SelectDocumentsByIdsProps,
   SelectDocumentsByIdsResult,
+  SelectDocumentsPendingSyncProps,
+  SelectDocumentsPendingSyncResult,
   SelectDocumentsProps,
   SelectDocumentsResult,
   SengiDocNotFoundError,
@@ -491,6 +493,29 @@ export class Sengi<
     return {
       isNew,
       doc,
+    };
+  }
+
+  /**
+   * Selects the identifying keys of the documents that need
+   * to be synchronised.
+   * @param props A property bag.
+   */
+  async selectDocumentsPendingSync(
+    props: SelectDocumentsPendingSyncProps<DocStoreParams>,
+  ): Promise<SelectDocumentsPendingSyncResult> {
+    const pendingSyncResult = await this.safeDocStore.selectPendingSync(
+      props.docTypeName,
+      props.docStoreParams,
+    );
+
+    return {
+      docHeaders: pendingSyncResult.docHeaders.map((r) => ({
+        id: r.id,
+        docType: props.docTypeName,
+        partition: r.partition,
+        docVersion: r.docVersion,
+      })),
     };
   }
 

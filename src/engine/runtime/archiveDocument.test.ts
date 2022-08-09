@@ -54,6 +54,7 @@ Deno.test("Archiving a document should call fetch and upsert on doc store.", asy
     docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
     docArchivedByUserId: "user-0001",
     docArchivedMillisecondsSinceEpoch: 1629881470000,
+    docLastSyncedMillisecondsSinceEpoch: 0,
     manufacturer: "ford",
     model: "ka",
     registration: "HG12 3AB",

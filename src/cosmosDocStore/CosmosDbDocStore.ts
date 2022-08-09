@@ -15,6 +15,7 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreExistsResult,
   DocStoreFetchResult,
+  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -230,7 +231,7 @@ export class CosmosDbDocStore implements
 
     return {
       ...others,
-      docVersion: _etag,
+      docVersion: (_etag as string).replaceAll('"', ""),
     };
   }
 
@@ -389,6 +390,46 @@ export class CosmosDbDocStore implements
 
     return {
       data: containerDirectResult.data,
+      queryCharge: containerDirectResult.queryCharge,
+    };
+  }
+
+  /**
+   * Select the documents that are waiting for synchronisation.
+   * @param docTypeName The name of a doc type.
+   * @param docStoreParams The parameters for the document store.
+   */
+  async selectPendingSync(
+    docTypeName: string,
+    docStoreParams: CosmosDbDocStoreParams,
+  ): Promise<DocStorePendingSyncResult> {
+    await this.ensureCryptoKey();
+
+    const containerDirectResult = await queryDocumentsContainersDirect(
+      this.cryptoKey as CryptoKey,
+      this.cosmosUrl,
+      docStoreParams.databaseName,
+      docStoreParams.collectionName,
+      `SELECT d.id, d.partitionKey as partition, d._etag as docVersion
+       FROM Docs d
+       WHERE d.docType = @docTypeName 
+         AND d.lastSyncedMillisecondsSinceEpoch = @zero`,
+      [
+        { name: "@docTypeName", value: docTypeName },
+        { name: "@zero", value: 0 },
+      ],
+      "concatArrays",
+    );
+
+    return {
+      docHeaders:
+        (containerDirectResult.data as Array<
+          { id: string; partition: string; docVersion: string }
+        >).map((r) => ({
+          id: r.id,
+          partition: r.partition,
+          docVersion: r.docVersion.replaceAll('"', ""),
+        })),
       queryCharge: containerDirectResult.queryCharge,
     };
   }

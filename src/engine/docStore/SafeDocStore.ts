@@ -3,6 +3,7 @@ import {
   DocStoreDeleteByIdResult,
   DocStoreExistsResult,
   DocStoreFetchResult,
+  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -30,6 +31,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       "exists",
       "fetch",
       "query",
+      "selectPendingSync",
       "selectAll",
       "selectByFilter",
       "selectByIds",
@@ -143,6 +145,26 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("query", err as Error);
+    }
+  }
+
+  /**
+   * Select the documents that are waiting for synchronisation.
+   * @param docTypeName The name of a doc type.
+   * @param docStoreParams The parameters for the document store.
+   */
+  async selectPendingSync(
+    docTypeName: string,
+    docStoreParams: DocStoreParams,
+  ): Promise<DocStorePendingSyncResult> {
+    try {
+      const result = await this.docStore.selectPendingSync(
+        docTypeName,
+        docStoreParams,
+      );
+      return result;
+    } catch (err) {
+      throw new UnexpectedDocStoreError("selectPendingSync", err as Error);
     }
   }
 

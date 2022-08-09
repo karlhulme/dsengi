@@ -38,6 +38,7 @@ Deno.test("Replacing a document should call upsert on the doc store.", async () 
     docCreatedMillisecondsSinceEpoch: 1629881470000,
     docLastUpdatedByUserId: "user-0001",
     docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+    docLastSyncedMillisecondsSinceEpoch: 0,
     docOpIds: [],
     manufacturer: "ford",
     model: "ka",

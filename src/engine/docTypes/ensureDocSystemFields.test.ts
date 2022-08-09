@@ -16,6 +16,7 @@ function createDoc(): DocBase {
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
+    docLastSyncedMillisecondsSinceEpoch: 1234,
   };
 }
 
@@ -65,6 +66,17 @@ Deno.test("A doc with an invalid docOpIds array is rejected.", () => {
   );
 });
 
+Deno.test("A doc with an invalid docCreatedByUserId property is rejected.", () => {
+  const doc = createDoc();
+  const docRecord = doc as unknown as Record<string, unknown>;
+  delete docRecord.docCreatedByUserId;
+  assertThrows(
+    () => ensureDocSystemFields("test", doc),
+    SengiDocValidationFailedError,
+    "docCreatedByUserId property",
+  );
+});
+
 Deno.test("A doc with an invalid docCreatedMillisecondsSinceEpoch property is rejected.", () => {
   const doc = createDoc();
   const docRecord = doc as unknown as Record<string, unknown>;
@@ -76,14 +88,14 @@ Deno.test("A doc with an invalid docCreatedMillisecondsSinceEpoch property is re
   );
 });
 
-Deno.test("A doc with an invalid docCreatedByUserId property is rejected.", () => {
+Deno.test("A doc with an invalid docLastUpdatedByUserId property is rejected.", () => {
   const doc = createDoc();
   const docRecord = doc as unknown as Record<string, unknown>;
-  delete docRecord.docCreatedByUserId;
+  delete docRecord.docLastUpdatedByUserId;
   assertThrows(
     () => ensureDocSystemFields("test", doc),
     SengiDocValidationFailedError,
-    "docCreatedByUserId property",
+    "docLastUpdatedByUserId property",
   );
 });
 
@@ -98,13 +110,13 @@ Deno.test("A doc with an invalid docLastUpdatedMillisecondsSinceEpoch property i
   );
 });
 
-Deno.test("A doc with an invalid docLastUpdatedByUserId property is rejected.", () => {
+Deno.test("A doc with an invalid docLastSyncedMillisecondsSinceEpoch property is rejected.", () => {
   const doc = createDoc();
   const docRecord = doc as unknown as Record<string, unknown>;
-  delete docRecord.docLastUpdatedByUserId;
+  delete docRecord.docLastSyncedMillisecondsSinceEpoch;
   assertThrows(
     () => ensureDocSystemFields("test", doc),
     SengiDocValidationFailedError,
-    "docLastUpdatedByUserId property",
+    "docLastSyncedMillisecondsSinceEpoch property",
   );
 });

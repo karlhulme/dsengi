@@ -16,6 +16,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "aaa1",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "002",
@@ -25,6 +26,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "aaa2",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "003",
@@ -34,6 +36,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "aaa3",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 0,
     },
     {
       id: "101",
@@ -43,6 +46,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "a101",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "102",
@@ -52,6 +56,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "a102",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "103",
@@ -61,6 +66,7 @@ function createDocs(): DocStoreRecord[] {
       docVersion: "a103",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 1234,
     },
   ];
 }
@@ -159,6 +165,7 @@ Deno.test("A document can be fetched.", async () => {
       docVersion: "aaa3",
       docOpIds: [],
       partitionKey: "_central",
+      lastSyncedMillisecondsSinceEpoch: 0,
     },
   });
 });
@@ -184,6 +191,19 @@ Deno.test("A count query can be executed.", async () => {
     {},
   );
   assertEquals(result, { data: 3, queryCharge: 0 });
+});
+
+Deno.test("Select documents that are pending synchronisation.", async () => {
+  const docs = createDocs();
+  const docStore = new MemDocStore({ docs, generateDocVersionFunc });
+  const result = await docStore.selectPendingSync(
+    "test",
+    {},
+  );
+  assertEquals(
+    result.docHeaders.map((dh) => dh.id + dh.partition),
+    ["003_central"],
+  );
 });
 
 Deno.test("All documents of a type can be selected.", async () => {
@@ -446,5 +466,6 @@ Deno.test("Fail to update an existing document if the required version is unavai
     docVersion: "a102",
     docOpIds: [],
     partitionKey: "_central",
+    lastSyncedMillisecondsSinceEpoch: 1234,
   });
 });

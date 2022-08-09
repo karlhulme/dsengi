@@ -69,4 +69,10 @@ export function ensureDocSystemFields(docTypeName: string, doc: DocBase): void {
       "Document must have docLastUpdatedByUserId property of type string.",
     );
   }
+  if (typeof doc.docLastSyncedMillisecondsSinceEpoch !== "number") {
+    throw new SengiDocValidationFailedError(
+      docTypeName,
+      "Document must have docLastSyncedMillisecondsSinceEpoch property of type number.",
+    );
+  }
 }

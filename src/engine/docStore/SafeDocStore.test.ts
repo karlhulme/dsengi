@@ -17,6 +17,7 @@ function createTestDocStore(): DocStore<unknown, unknown, unknown> {
       doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
     }),
     query: async () => ({ data: null, queryCharge: 0 }),
+    selectPendingSync: async () => ({ docHeaders: [], queryCharge: 0 }),
     selectAll: async () => ({ docs: [], queryCharge: 0 }),
     selectByFilter: async () => ({ docs: [], queryCharge: 0 }),
     selectByIds: async () => ({ docs: [], queryCharge: 0 }),
@@ -49,6 +50,10 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   });
   assertEquals(await safeDocStore.query("", "", {}), {
     data: null,
+    queryCharge: 0,
+  });
+  assertEquals(await safeDocStore.selectPendingSync("", {}), {
+    docHeaders: [],
     queryCharge: 0,
   });
   assertEquals(await safeDocStore.selectAll("", "", true, {}), {
@@ -87,6 +92,10 @@ Deno.test("A safe doc store detects missing methods.", () => {
     })), MissingDocStoreFunctionError);
   assertThrows(() =>
     new SafeDocStore(createBespokeDocStore((ds) => {
+      delete ds.selectPendingSync;
+    })), MissingDocStoreFunctionError);
+  assertThrows(() =>
+    new SafeDocStore(createBespokeDocStore((ds) => {
       delete ds.selectAll;
     })), MissingDocStoreFunctionError);
   assertThrows(() =>
@@ -115,6 +124,9 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
       throw new Error("fail");
     };
     ds.query = async () => {
+      throw new Error("fail");
+    };
+    ds.selectPendingSync = async () => {
       throw new Error("fail");
     };
     ds.selectAll = async () => {
@@ -147,6 +159,10 @@ Deno.test("A safe doc store wraps underlying errors.", async () => {
   );
   await assertRejects(
     () => safeDocStore.query("", "", {}),
+    UnexpectedDocStoreError,
+  );
+  await assertRejects(
+    () => safeDocStore.selectPendingSync("", {}),
     UnexpectedDocStoreError,
   );
   await assertRejects(

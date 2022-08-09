@@ -22,6 +22,7 @@ function createDoc(): ExampleDoc {
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
+    docLastSyncedMillisecondsSinceEpoch: 1234,
   };
 }
 

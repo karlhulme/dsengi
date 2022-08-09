@@ -11,7 +11,8 @@ type OmittedDocFieldNames =
   | "docLastUpdatedByUserId"
   | "docLastUpdatedMillisecondsSinceEpoch"
   | "docArchivedByUserId"
-  | "docArchivedMillisecondsSinceEpoch";
+  | "docArchivedMillisecondsSinceEpoch"
+  | "docLastSyncedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to patch a document.

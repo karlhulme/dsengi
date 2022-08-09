@@ -72,4 +72,10 @@ export const DocSystemFieldNames = [
    * the unix epoch when the document was archived.
    */
   "docArchivedMillisecondsSinceEpoch",
+
+  /**
+   * 'docLastSyncedMillisecondsSinceEpoch' stores the number of milliseconds since
+   * the unix epoch and when the document was last synchronised by a record service..
+   */
+  "docLastSyncedMillisecondsSinceEpoch",
 ];

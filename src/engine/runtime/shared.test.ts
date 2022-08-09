@@ -75,6 +75,7 @@ export function createMockStore(
     exists: async () => ({ found: false }),
     fetch: async () => ({ doc: null }),
     query: async () => ({ data: 0 }),
+    selectPendingSync: async () => ({ docHeaders: [] }),
     selectAll: async () => ({ docs: [] }),
     selectByFilter: async () => ({ docs: [] }),
     selectByIds: async () => ({ docs: [] }),
