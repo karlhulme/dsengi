@@ -1,10 +1,5 @@
 // deno-lint-ignore-file require-await
-import {
-  assert,
-  assertEquals,
-  assertRejects,
-  spy,
-} from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
@@ -93,8 +88,6 @@ Deno.test("Fail to mark document synced when required version is not available."
     sengi.markDocumentSynced({
       ...defaultRequestProps,
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      reqVersion: 'not_available'
-    }),
-    SengiRequiredVersionNotAvailableError
-  );
+      reqVersion: "not_available",
+    }), SengiRequiredVersionNotAvailableError);
 });
