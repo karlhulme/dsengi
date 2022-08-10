@@ -13,6 +13,7 @@ import {
   DocType,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
+  MarkDocumentSyncedProps,
   NewDocumentProps,
   NewDocumentResult,
   PatchDocumentProps,
@@ -512,11 +513,44 @@ export class Sengi<
     return {
       docHeaders: pendingSyncResult.docHeaders.map((r) => ({
         id: r.id,
-        docType: props.docTypeName,
+        docTypeName: props.docTypeName,
         partition: r.partition,
         docVersion: r.docVersion,
       })),
     };
+  }
+
+  /**
+   * Marks the specified document as being synchronised.
+   * @param props A property bag.
+   */
+  async markDocumentSynced(
+    props: MarkDocumentSyncedProps<DocStoreParams>,
+  ): Promise<void> {
+    const fetchResult = await this.safeDocStore.fetch(
+      props.docTypeName,
+      props.partition,
+      props.id,
+      props.docStoreParams,
+    );
+
+    const doc = ensureDocWasFound(
+      props.docTypeName,
+      props.id,
+      fetchResult.doc as Partial<DocBase>,
+    );
+
+    doc.docLastSyncedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
+
+    const upsertResult = await this.safeDocStore.upsert(
+      props.docTypeName,
+      props.partition,
+      doc as unknown as DocStoreRecord,
+      props.reqVersion,
+      props.docStoreParams,
+    );
+
+    ensureUpsertSuccessful(upsertResult, true);
   }
 
   /**

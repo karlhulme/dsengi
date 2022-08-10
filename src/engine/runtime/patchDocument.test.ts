@@ -166,8 +166,6 @@ Deno.test("Patching a document with an overriden storePatchPartition will be hon
     storePatchPartition: "_override",
   });
 
-  console.log(spyUpsert.getCalls());
-
   assert(spyUpsert.calledWith(
     "patch",
     "_override",

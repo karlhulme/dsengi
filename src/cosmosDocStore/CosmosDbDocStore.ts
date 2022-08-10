@@ -422,14 +422,13 @@ export class CosmosDbDocStore implements
     );
 
     return {
-      docHeaders:
-        (containerDirectResult.data as Array<
-          { id: string; partition: string; docVersion: string }
-        >).map((r) => ({
-          id: r.id,
-          partition: r.partition,
-          docVersion: r.docVersion.replaceAll('"', ""),
-        })),
+      docHeaders: (containerDirectResult.data as Array<
+        { id: string; partition: string; docVersion: string }
+      >).map((r) => ({
+        id: r.id,
+        partition: r.partition,
+        docVersion: r.docVersion.replaceAll('"', ""),
+      })),
       queryCharge: containerDirectResult.queryCharge,
     };
   }

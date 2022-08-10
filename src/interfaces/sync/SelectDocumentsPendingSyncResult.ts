@@ -25,9 +25,9 @@ export interface SelectDocumentsPendingSyncResultDocHeader {
   partition: string;
 
   /**
-   * The type of the document.
+   * The name of the document type.
    */
-  docType: string;
+  docTypeName: string;
 
   /**
    * The version of the document.
