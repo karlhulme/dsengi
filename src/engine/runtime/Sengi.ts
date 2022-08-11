@@ -505,18 +505,24 @@ export class Sengi<
   async selectDocumentsPendingSync(
     props: SelectDocumentsPendingSyncProps<DocStoreParams>,
   ): Promise<SelectDocumentsPendingSyncResult> {
-    const pendingSyncResult = await this.safeDocStore.selectPendingSync(
-      props.docTypeName,
-      props.docStoreParams,
+    const docHeaders = await Promise.all(
+      props.queries.map(async (query) => {
+        const pendingSyncResult = await this.safeDocStore.selectPendingSync(
+          query.docTypeName,
+          query.docStoreParams,
+        );
+
+        return pendingSyncResult.docHeaders.map((r) => ({
+          id: r.id,
+          docTypeName: query.docTypeName,
+          partition: r.partition,
+          docVersion: r.docVersion,
+        }));
+      }),
     );
 
     return {
-      docHeaders: pendingSyncResult.docHeaders.map((r) => ({
-        id: r.id,
-        docTypeName: props.docTypeName,
-        partition: r.partition,
-        docVersion: r.docVersion,
-      })),
+      docHeaders: docHeaders.flat(1),
     };
   }
 

@@ -4,6 +4,13 @@
  */
 export interface SelectDocumentsPendingSyncProps<DocStoreParams> {
   /**
+   * An array of queries to execute.
+   */
+  queries: SelectDocumentsPendingSyncPropsQuery<DocStoreParams>[];
+}
+
+export interface SelectDocumentsPendingSyncPropsQuery<DocStoreParams> {
+  /**
    * The name of the document type that is targeted by the request.
    */
   docTypeName: string;

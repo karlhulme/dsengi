@@ -1,9 +1,6 @@
 // deno-lint-ignore-file require-await
 import { assert, assertEquals, spy } from "../../../deps.ts";
-import {
-  createSengiWithMockStore,
-  defaultRequestProps,
-} from "./shared.test.ts";
+import { createSengiWithMockStore } from "./shared.test.ts";
 
 const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
   return createSengiWithMockStore({
@@ -33,7 +30,12 @@ Deno.test("Select document headers for documents pending synchronization.", asyn
 
   assertEquals(
     await sengi.selectDocumentsPendingSync({
-      ...defaultRequestProps,
+      queries: [{
+        docTypeName: "car",
+        docStoreParams: {
+          custom: "prop",
+        },
+      }],
     }),
     {
       docHeaders: [

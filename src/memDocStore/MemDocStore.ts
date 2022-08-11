@@ -205,7 +205,6 @@ export class MemDocStore implements
     return {
       docHeaders: matchedDocs.map((d) => ({
         id: d.id as string,
-        docType: docTypeName as string,
         docVersion: d.docVersion as string,
         partition: d.partitionKey as string,
       })),
