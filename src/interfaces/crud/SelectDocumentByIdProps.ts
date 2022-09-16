@@ -4,7 +4,6 @@
  */
 export interface SelectDocumentByIdProps<
   DocTypeNames extends string,
-  DocStoreParams,
 > {
   /**
    * The name of the document type that is targeted by the request.
@@ -20,11 +19,6 @@ export interface SelectDocumentByIdProps<
    * A document id.
    */
   id: string;
-
-  /**
-   * The parameters to be passed to the document store.
-   */
-  docStoreParams: DocStoreParams;
 
   /**
    * If specified, attempt will be made to load the documents

@@ -89,7 +89,7 @@ export interface SengiConstructorProps<
   /**
    * An array of document types that are managed by the engine.
    */
-  docTypes?: DocType<DocTypeNames>[];
+  docTypes?: DocType<DocTypeNames, DocStoreParams>[];
 
   /**
    * A function that returns a validation error if the given user id is not valid.
@@ -124,7 +124,7 @@ export class Sengi<
   Filter,
   Query,
 > {
-  private docTypes: DocType<DocTypeNames>[];
+  private docTypes: DocType<DocTypeNames, DocStoreParams>[];
   private safeDocStore: SafeDocStore<
     DocStoreParams,
     Filter,
@@ -183,18 +183,20 @@ export class Sengi<
    * @param props A property bag.
    */
   async archiveDocument<Doc extends DocBase>(
-    props: ArchiveDocumentProps<DocTypeNames, DocStoreParams>,
+    props: ArchiveDocumentProps<DocTypeNames>,
   ): Promise<ArchiveDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
       this.validateUserId,
     );
 
+    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
       props.partition,
       props.id,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const doc = ensureDocWasFound(
@@ -226,7 +228,7 @@ export class Sengi<
         props.partition,
         doc as unknown as DocStoreRecord,
         loadedDocVersion,
-        props.docStoreParams,
+        docType.docStoreParams,
       );
 
       ensureUpsertSuccessful(result, false);
@@ -244,7 +246,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async deleteDocument(
-    props: DeleteDocumentProps<DocTypeNames, DocStoreParams>,
+    props: DeleteDocumentProps<DocTypeNames>,
   ): Promise<DeleteDocumentResult> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
@@ -254,7 +256,7 @@ export class Sengi<
       props.docTypeName,
       props.partition,
       props.id,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const isDeleted =
@@ -268,7 +270,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async newDocument<Doc extends DocBase>(
-    props: NewDocumentProps<DocTypeNames, Doc, DocStoreParams>,
+    props: NewDocumentProps<DocTypeNames, Doc>,
   ): Promise<NewDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -283,7 +285,7 @@ export class Sengi<
       docType.name,
       props.partition,
       props.doc.id as string,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     if (fetchResult.doc) {
@@ -317,7 +319,7 @@ export class Sengi<
         props.partition,
         doc as unknown as DocStoreRecord,
         null,
-        props.docStoreParams,
+        docType.docStoreParams,
       );
 
       return {
@@ -336,7 +338,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async patchDocument<Doc extends DocBase>(
-    props: PatchDocumentProps<DocTypeNames, Doc, DocStoreParams>,
+    props: PatchDocumentProps<DocTypeNames, Doc>,
   ): Promise<PatchDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -349,7 +351,7 @@ export class Sengi<
       props.docTypeName,
       props.partition,
       props.id,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const doc = ensureDocWasFound(
@@ -391,7 +393,7 @@ export class Sengi<
         props.partition,
         doc as unknown as DocStoreRecord,
         props.reqVersion || loadedDocVersion,
-        props.docStoreParams,
+        docType.docStoreParams,
       );
 
       ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
@@ -436,14 +438,15 @@ export class Sengi<
     props: QueryDocumentsProps<
       DocTypeNames,
       Query,
-      QueryResult,
-      DocStoreParams
+      QueryResult
     >,
   ): Promise<QueryDocumentsResult<QueryResult>> {
+    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
     const rawResultData = await this.safeDocStore.query(
       props.docTypeName,
       props.query,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const data = coerceQueryResult(
@@ -462,7 +465,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async replaceDocument<Doc extends DocBase>(
-    props: ReplaceDocumentProps<DocTypeNames, Doc, DocStoreParams>,
+    props: ReplaceDocumentProps<DocTypeNames, Doc>,
   ): Promise<ReplaceDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -494,7 +497,7 @@ export class Sengi<
       props.partition,
       doc as unknown as DocStoreRecord,
       null,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const isNew = upsertResult.code === DocStoreUpsertResultCode.CREATED;
@@ -511,13 +514,18 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentsPendingSync(
-    props: SelectDocumentsPendingSyncProps<DocTypeNames, DocStoreParams>,
+    props: SelectDocumentsPendingSyncProps<DocTypeNames>,
   ): Promise<SelectDocumentsPendingSyncResult> {
     const docHeaders = await Promise.all(
       props.queries.map(async (query) => {
+        const docType = selectDocTypeFromArray(
+          this.docTypes,
+          query.docTypeName,
+        );
+
         const pendingSyncResult = await this.safeDocStore.selectPendingSync(
           query.docTypeName,
-          query.docStoreParams,
+          docType.docStoreParams,
         );
 
         return pendingSyncResult.docHeaders.map((r) => ({
@@ -539,13 +547,15 @@ export class Sengi<
    * @param props A property bag.
    */
   async markDocumentSynced(
-    props: MarkDocumentSyncedProps<DocTypeNames, DocStoreParams>,
+    props: MarkDocumentSyncedProps<DocTypeNames>,
   ): Promise<void> {
+    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
       props.partition,
       props.id,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     const doc = ensureDocWasFound(
@@ -561,7 +571,7 @@ export class Sengi<
       props.partition,
       doc as unknown as DocStoreRecord,
       props.reqVersion,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     ensureUpsertSuccessful(upsertResult, true);
@@ -574,16 +584,17 @@ export class Sengi<
   async selectDocumentsByFilter<Doc extends DocBase>(
     props: SelectDocumentsByFilterProps<
       DocTypeNames,
-      Filter,
-      DocStoreParams
+      Filter
     >,
   ): Promise<SelectDocumentsByFilterResult<Doc>> {
+    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
     const selectResult = await this.safeDocStore.selectByFilter(
       props.docTypeName,
       props.partition,
       props.filter,
       props.includeArchived,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     return { docs: selectResult.docs as unknown as Doc[] };
@@ -597,7 +608,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentsByIds<Doc extends DocBase>(
-    props: SelectDocumentsByIdsProps<DocTypeNames, DocStoreParams>,
+    props: SelectDocumentsByIdsProps<DocTypeNames>,
   ): Promise<SelectDocumentsByIdsResult<Doc>> {
     const uniqueIds = [...new Set(props.ids)];
 
@@ -620,11 +631,13 @@ export class Sengi<
     }
 
     if (docIdsToFetch.length > 0) {
+      const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
       const selectResult = await this.safeDocStore.selectByIds(
         props.docTypeName,
         props.partition,
         docIdsToFetch,
-        props.docStoreParams,
+        docType.docStoreParams,
       );
 
       for (const storedRecord of selectResult.docs) {
@@ -648,16 +661,17 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocuments<Doc extends DocBase>(
-    props: SelectDocumentsProps<DocTypeNames, DocStoreParams>,
+    props: SelectDocumentsProps<DocTypeNames>,
   ): Promise<SelectDocumentsResult<Doc>> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
     ensureCanFetchWholeCollection(docType);
 
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
       props.partition,
       props.includeArchived,
-      props.docStoreParams,
+      docType.docStoreParams,
     );
 
     return { docs: selectResult.docs as unknown as Doc[] };
@@ -669,10 +683,9 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentById<Doc extends DocBase>(
-    props: SelectDocumentByIdProps<DocTypeNames, DocStoreParams>,
+    props: SelectDocumentByIdProps<DocTypeNames>,
   ): Promise<SelectDocumentByIdResult<Doc>> {
     const result = await this.selectDocumentsByIds({
-      docStoreParams: props.docStoreParams,
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
@@ -691,10 +704,9 @@ export class Sengi<
    * @param props A property bag.
    */
   async getDocumentById<Doc extends DocBase>(
-    props: GetDocumentByIdProps<DocTypeNames, DocStoreParams>,
+    props: GetDocumentByIdProps<DocTypeNames>,
   ): Promise<GetDocumentByIdResult<Doc>> {
     const result = await this.selectDocumentsByIds({
-      docStoreParams: props.docStoreParams,
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,

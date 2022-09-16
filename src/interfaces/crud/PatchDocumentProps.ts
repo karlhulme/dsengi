@@ -20,7 +20,6 @@ type OmittedDocFieldNames =
 export interface PatchDocumentProps<
   DocTypeNames extends string,
   Doc,
-  DocStoreParams,
 > {
   /**
    * The name of the document type that is targeted by the request.
@@ -46,11 +45,6 @@ export interface PatchDocumentProps<
    * The patch to be applied.
    */
   patch: Omit<PartialNullable<Doc>, OmittedDocFieldNames>;
-
-  /**
-   * The parameters to be passed to the document store.
-   */
-  docStoreParams: DocStoreParams;
 
   /**
    * True if the patch should be written to the changes container

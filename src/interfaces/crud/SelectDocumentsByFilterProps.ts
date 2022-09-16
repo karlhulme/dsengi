@@ -5,7 +5,6 @@
 export interface SelectDocumentsByFilterProps<
   DocTypeNames extends string,
   Filter,
-  DocStoreParams,
 > {
   /**
    * The name of the document type that is targeted by the request.
@@ -26,9 +25,4 @@ export interface SelectDocumentsByFilterProps<
    * True if archived documents should be included in the response.
    */
   includeArchived: boolean;
-
-  /**
-   * The parameters to be passed to the document store.
-   */
-  docStoreParams: DocStoreParams;
 }

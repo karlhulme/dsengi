@@ -32,9 +32,6 @@ Deno.test("Select document headers for documents pending synchronization.", asyn
     await sengi.selectDocumentsPendingSync({
       queries: [{
         docTypeName: "car",
-        docStoreParams: {
-          custom: "prop",
-        },
       }],
     }),
     {

@@ -6,8 +6,9 @@ import {
 import { ensureCanReplaceDocuments } from "./ensureCanReplaceDocuments.ts";
 
 Deno.test("Remain silent if policy allows replace document action.", () => {
-  const docType: DocType<"test"> = {
+  const docType: DocType<"test", string> = {
     name: "test",
+    docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
@@ -20,8 +21,9 @@ Deno.test("Remain silent if policy allows replace document action.", () => {
 });
 
 Deno.test("Raise error if policy disallows replace document action.", () => {
-  const docType: DocType<"test"> = {
+  const docType: DocType<"test", string> = {
     name: "test",
+    docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
@@ -38,8 +40,9 @@ Deno.test("Raise error if policy disallows replace document action.", () => {
 });
 
 Deno.test("Raise error if policy not specified for replace document action.", () => {
-  const docType: DocType<"test"> = {
+  const docType: DocType<"test", string> = {
     name: "test",
+    docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},

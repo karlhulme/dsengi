@@ -3,11 +3,16 @@ import { DocTypePolicy } from "./DocTypePolicy.ts";
 /**
  * Represents a type of document that the engine can retrieve, save and mutate.
  */
-export interface DocType<DocTypeNames extends string> {
+export interface DocType<DocTypeNames extends string, DocStoreParams> {
   /**
    * The name of the document type.
    */
   name: DocTypeNames;
+
+  /**
+   * The parameters for the document store for this document type.
+   */
+  docStoreParams: DocStoreParams;
 
   /**
    * A validator function that returns a string describing the validation

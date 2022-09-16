@@ -6,13 +6,15 @@ import {
 import { selectDocTypeFromArray } from "./selectDocTypeFromArray.ts";
 
 function createDocTypes() {
-  const docTypes: DocType<"test" | "example">[] = [{
+  const docTypes: DocType<"test" | "example", string>[] = [{
     name: "test",
+    docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
   }, {
     name: "example",
+    docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},

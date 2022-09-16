@@ -6,7 +6,6 @@ export interface QueryDocumentsProps<
   DocTypeNames extends string,
   Query,
   QueryResult,
-  DocStoreParams,
 > {
   /**
    * The name of the document type that is targeted by the request.
@@ -23,9 +22,4 @@ export interface QueryDocumentsProps<
    * into a known result form.
    */
   coerceResult: (queryRawResult: unknown) => QueryResult;
-
-  /**
-   * The parameters to be passed to the document store.
-   */
-  docStoreParams: DocStoreParams;
 }

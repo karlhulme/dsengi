@@ -26,9 +26,10 @@ export interface Car extends DocBase {
   engineCode?: string;
 }
 
-export function createCarDocType(): DocType<DocTypeNames> {
+export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
   return {
     name: "car",
+    docStoreParams: { custom: "prop" },
     readOnlyFieldNames: ["manufacturer"],
     policy: {
       canDeleteDocuments: true,
@@ -105,7 +106,7 @@ interface SengiTestObjects {
     string
   >;
   docStore: DocStore<TestDocStoreParams, string, string>;
-  carDocType: DocType<DocTypeNames>;
+  carDocType: DocType<DocTypeNames, TestDocStoreParams>;
 }
 
 /**
@@ -159,7 +160,6 @@ export const createSengiWithMockStore = (
 export const defaultRequestProps = {
   docTypeName: "car" as DocTypeNames,
   partition: "_central",
-  docStoreParams: { custom: "prop" },
   includeArchived: true,
   userId: "user-0001",
 };
