@@ -37,6 +37,7 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
       canFetchWholeCollection: true,
       maxOpIds: 5,
     },
+    useSinglePartition: true,
     validateDoc: (doc: Car) => {
       if (doc.registration && !(doc.registration as string).startsWith("HG")) {
         return "Unrecognised vehicle registration prefix.";
@@ -159,7 +160,7 @@ export const createSengiWithMockStore = (
 
 export const defaultRequestProps = {
   docTypeName: "car" as DocTypeNames,
-  partition: "_central",
+  partition: null,
   includeArchived: true,
   userId: "user-0001",
 };

@@ -29,7 +29,7 @@ export interface PatchDocumentProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * The id of a document.

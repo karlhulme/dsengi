@@ -26,7 +26,7 @@ export interface ReplaceDocumentProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * A new document to be used in place of any existing document.

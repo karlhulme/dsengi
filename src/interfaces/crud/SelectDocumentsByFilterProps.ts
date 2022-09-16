@@ -14,7 +14,7 @@ export interface SelectDocumentsByFilterProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * A filter object that the document store knows how to apply.

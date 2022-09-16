@@ -29,7 +29,7 @@ export interface NewDocumentProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * The new document.  All of the system fields will be added automatically

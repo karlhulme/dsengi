@@ -15,6 +15,24 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   docStoreParams: DocStoreParams;
 
   /**
+   * A policy that governs how the document type can be accessed
+   * and mutated.
+   */
+  policy?: DocTypePolicy;
+
+  /**
+   * An array of field names that cannot be patched.
+   * System fields are always read-only and do not need to be specified.
+   */
+  readOnlyFieldNames: string[];
+
+  /**
+   * Indicates if documents of this type should be saved into a
+   * single central partition.
+   */
+  useSinglePartition?: boolean;
+
+  /**
    * A validator function that returns a string describing the validation
    * failure, or uses a void return if the given document is valid.
    * This function may alter the document to make it valid, such as
@@ -37,16 +55,4 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
    */
   // deno-lint-ignore no-explicit-any
   validateDoc: (doc: any) => string | void;
-
-  /**
-   * An array of field names that cannot be patched.
-   * System fields are always read-only and do not need to be specified.
-   */
-  readOnlyFieldNames: string[];
-
-  /**
-   * A policy that governs how the document type can be accessed
-   * and mutated.
-   */
-  policy?: DocTypePolicy;
 }

@@ -13,7 +13,7 @@ export interface SelectDocumentByIdProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * A document id.

@@ -14,7 +14,7 @@ export interface MarkDocumentSyncedProps<
   /**
    * The partition of the document.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * The required version of the document.

@@ -35,6 +35,7 @@ import {
   SengiDocNotFoundError,
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
+import { ensurePartition } from "../docTypes/ensurePartition.ts";
 import {
   appendDocOpId,
   applyCommonFieldValuesToDoc,
@@ -63,6 +64,11 @@ const DEFAULT_CACHE_SIZE = 500;
 const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
 
 /**
+ * The default central partition.
+ */
+const DEFAULT_CENTRAL_PARTITION_NAME = "_central";
+
+/**
  * The properties that are used to manage the construction of a Sengi.
  */
 export interface SengiConstructorProps<
@@ -75,6 +81,11 @@ export interface SengiConstructorProps<
    * The document store that provides long-term storage for the sengi engine.
    */
   docStore?: DocStore<DocStoreParams, Filter, Query>;
+
+  /**
+   * The name of the central partition.
+   */
+  centralPartitionName?: string;
 
   /**
    * A function that returns the number of milliseconds since the unix epoch.
@@ -130,6 +141,7 @@ export class Sengi<
     Filter,
     Query
   >;
+  private centralPartitionName: string;
   private validateUserId: (userId: string) => string | void;
   private getMillisecondsSinceEpoch: () => number;
   private getNewDocVersion: () => string;
@@ -150,6 +162,8 @@ export class Sengi<
     > = {},
   ) {
     this.docTypes = props.docTypes || [];
+    this.centralPartitionName = props.centralPartitionName ||
+      DEFAULT_CENTRAL_PARTITION_NAME;
     this.validateUserId = props.validateUserId || (() => {});
     this.getMillisecondsSinceEpoch = props.getMillisecondsSinceEpoch ||
       (() => Date.now());
@@ -192,9 +206,15 @@ export class Sengi<
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
-      props.partition,
+      partition,
       props.id,
       docType.docStoreParams,
     );
@@ -225,7 +245,7 @@ export class Sengi<
 
       const result = await this.safeDocStore.upsert(
         props.docTypeName,
-        props.partition,
+        partition,
         doc as unknown as DocStoreRecord,
         loadedDocVersion,
         docType.docStoreParams,
@@ -250,11 +270,17 @@ export class Sengi<
   ): Promise<DeleteDocumentResult> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     ensureCanDeleteDocuments(docType);
 
     const deleteByIdResult = await this.safeDocStore.deleteById(
       props.docTypeName,
-      props.partition,
+      partition,
       props.id,
       docType.docStoreParams,
     );
@@ -281,9 +307,15 @@ export class Sengi<
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     const fetchResult = await this.safeDocStore.fetch(
       docType.name,
-      props.partition,
+      partition,
       props.doc.id as string,
       docType.docStoreParams,
     );
@@ -316,7 +348,7 @@ export class Sengi<
 
       await this.safeDocStore.upsert(
         props.docTypeName,
-        props.partition,
+        partition,
         doc as unknown as DocStoreRecord,
         null,
         docType.docStoreParams,
@@ -347,9 +379,15 @@ export class Sengi<
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
-      props.partition,
+      partition,
       props.id,
       docType.docStoreParams,
     );
@@ -390,7 +428,7 @@ export class Sengi<
 
       const upsertResult = await this.safeDocStore.upsert(
         props.docTypeName,
-        props.partition,
+        partition,
         doc as unknown as DocStoreRecord,
         props.reqVersion || loadedDocVersion,
         docType.docStoreParams,
@@ -417,7 +455,7 @@ export class Sengi<
 
       await this.safeDocStore.upsert(
         this.patchDocTypeName,
-        props.storePatchPartition || props.partition,
+        props.storePatchPartition || partition,
         patchDoc,
         null,
         this.patchDocStoreParams,
@@ -474,6 +512,12 @@ export class Sengi<
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     ensureCanReplaceDocuments(docType);
 
     const doc = props.doc as Doc;
@@ -494,7 +538,7 @@ export class Sengi<
 
     const upsertResult = await this.safeDocStore.upsert(
       props.docTypeName,
-      props.partition,
+      partition,
       doc as unknown as DocStoreRecord,
       null,
       docType.docStoreParams,
@@ -551,9 +595,15 @@ export class Sengi<
   ): Promise<void> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
-      props.partition,
+      partition,
       props.id,
       docType.docStoreParams,
     );
@@ -568,7 +618,7 @@ export class Sengi<
 
     const upsertResult = await this.safeDocStore.upsert(
       props.docTypeName,
-      props.partition,
+      partition,
       doc as unknown as DocStoreRecord,
       props.reqVersion,
       docType.docStoreParams,
@@ -589,9 +639,15 @@ export class Sengi<
   ): Promise<SelectDocumentsByFilterResult<Doc>> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     const selectResult = await this.safeDocStore.selectByFilter(
       props.docTypeName,
-      props.partition,
+      partition,
       props.filter,
       props.includeArchived,
       docType.docStoreParams,
@@ -633,9 +689,15 @@ export class Sengi<
     if (docIdsToFetch.length > 0) {
       const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+      const partition = ensurePartition(
+        props.partition,
+        this.centralPartitionName,
+        docType.useSinglePartition,
+      );
+
       const selectResult = await this.safeDocStore.selectByIds(
         props.docTypeName,
-        props.partition,
+        partition,
         docIdsToFetch,
         docType.docStoreParams,
       );
@@ -665,11 +727,17 @@ export class Sengi<
   ): Promise<SelectDocumentsResult<Doc>> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
     ensureCanFetchWholeCollection(docType);
 
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
-      props.partition,
+      partition,
       props.includeArchived,
       docType.docStoreParams,
     );

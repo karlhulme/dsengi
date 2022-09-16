@@ -13,7 +13,7 @@ export interface SelectDocumentsProps<
   /**
    * The name of a document partition.
    */
-  partition: string;
+  partition: string | null;
 
   /**
    * True if archived documents should be included in the response.
