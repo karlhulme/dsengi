@@ -1,11 +1,14 @@
 /**
  * Defines the properties that are required to archive a document.
  */
-export interface ArchiveDocumentProps<DocStoreParams> {
+export interface ArchiveDocumentProps<
+  DocTypeNames extends string,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

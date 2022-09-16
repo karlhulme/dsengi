@@ -2,11 +2,14 @@
  * Defines the properties that are required to extract all
  * the documents from a collection.
  */
-export interface SelectDocumentsProps<DocStoreParams> {
+export interface SelectDocumentsProps<
+  DocTypeNames extends string,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

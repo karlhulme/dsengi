@@ -8,7 +8,9 @@ import {
  * the entire collection to be fetched in one go.
  * @param docType A document type.
  */
-export function ensureCanFetchWholeCollection(docType: DocType): void {
+export function ensureCanFetchWholeCollection<DocTypeNames extends string>(
+  docType: DocType<DocTypeNames>,
+): void {
   if (docType.policy?.canFetchWholeCollection !== true) {
     throw new SengiActionForbiddenByPolicyError(
       docType.name,

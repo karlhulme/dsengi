@@ -2,11 +2,14 @@
  * Defines the properties that are required to retrieve a
  * single document from a collection using a document id.
  */
-export interface SelectDocumentByIdProps<DocStoreParams> {
+export interface SelectDocumentByIdProps<
+  DocTypeNames extends string,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

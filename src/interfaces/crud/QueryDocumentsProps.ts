@@ -3,6 +3,7 @@
  * against the collection.
  */
 export interface QueryDocumentsProps<
+  DocTypeNames extends string,
   Query,
   QueryResult,
   DocStoreParams,
@@ -10,7 +11,7 @@ export interface QueryDocumentsProps<
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * A query that can be executed by the document store.

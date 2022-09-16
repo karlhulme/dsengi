@@ -8,7 +8,9 @@ import {
  * a document to be replaced.
  * @param docType A document type.
  */
-export function ensureCanReplaceDocuments(docType: DocType): void {
+export function ensureCanReplaceDocuments<DocTypeNames extends string>(
+  docType: DocType<DocTypeNames>,
+): void {
   if (docType.policy?.canReplaceDocuments !== true) {
     throw new SengiActionForbiddenByPolicyError(
       docType.name,

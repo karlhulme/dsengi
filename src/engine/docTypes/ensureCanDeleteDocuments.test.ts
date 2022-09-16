@@ -6,7 +6,7 @@ import {
 import { ensureCanDeleteDocuments } from "./ensureCanDeleteDocuments.ts";
 
 Deno.test("Remain silent if policy allows delete action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},
@@ -20,7 +20,7 @@ Deno.test("Remain silent if policy allows delete action.", () => {
 });
 
 Deno.test("Raise error if policy disallows delete action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},
@@ -38,7 +38,7 @@ Deno.test("Raise error if policy disallows delete action.", () => {
 });
 
 Deno.test("Raise error if policy not specified for delete action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},

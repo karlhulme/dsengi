@@ -17,11 +17,15 @@ type OmittedDocFieldNames =
  * Defines the properties that are required to create
  * a new document from a fragment.
  */
-export interface NewDocumentProps<Doc extends DocBase, DocStoreParams> {
+export interface NewDocumentProps<
+  DocTypeNames extends string,
+  Doc extends DocBase,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

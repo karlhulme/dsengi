@@ -1,22 +1,10 @@
 import { assertEquals } from "../../../deps.ts";
-import { DocBase, DocType } from "../../interfaces/index.ts";
+import { DocBase } from "../../interfaces/index.ts";
 import { appendDocOpId } from "./appendDocOpId.ts";
-
-function createDocType(): DocType {
-  return {
-    name: "test",
-    readOnlyFieldNames: [],
-    validateDoc: () => {},
-    validateFields: () => {},
-    policy: {
-      maxOpIds: 3,
-    },
-  };
-}
 
 Deno.test("Append operation id for doc with no historical doc op ids.", () => {
   const doc: Partial<DocBase> = {};
-  appendDocOpId(createDocType(), doc, "abc");
+  appendDocOpId(doc, "abc", 3);
   assertEquals(doc.docOpIds, ["abc"]);
 });
 
@@ -24,7 +12,7 @@ Deno.test("Append operation id at the limit of doc ops with an explicitly set ma
   const doc: Partial<DocBase> = {
     docOpIds: ["aaa", "bbb", "ccc"],
   };
-  appendDocOpId(createDocType(), doc, "ddd");
+  appendDocOpId(doc, "ddd", 3);
   assertEquals(doc.docOpIds, ["bbb", "ccc", "ddd"]);
 });
 
@@ -33,12 +21,7 @@ Deno.test("Append operation id at the limit of doc ops with a policy but no expl
     docOpIds: ["aaa", "bbb", "ccc", "ddd", "eee"],
   };
 
-  const docType = createDocType();
-  if (docType.policy) {
-    delete docType.policy.maxOpIds;
-  }
-
-  appendDocOpId(docType, doc, "fff");
+  appendDocOpId(doc, "fff");
   assertEquals(doc.docOpIds, ["bbb", "ccc", "ddd", "eee", "fff"]);
 });
 
@@ -47,9 +30,6 @@ Deno.test("Append operation id at the limit of doc ops with a default max-ops po
     docOpIds: ["aaa", "bbb", "ccc", "ddd", "eee"],
   };
 
-  const docType = createDocType();
-  delete docType.policy;
-
-  appendDocOpId(docType, doc, "fff");
+  appendDocOpId(doc, "fff");
   assertEquals(doc.docOpIds, ["bbb", "ccc", "ddd", "eee", "fff"]);
 });

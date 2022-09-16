@@ -66,6 +66,7 @@ const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
  * The properties that are used to manage the construction of a Sengi.
  */
 export interface SengiConstructorProps<
+  DocTypeNames extends string,
   DocStoreParams,
   Filter,
   Query,
@@ -88,7 +89,7 @@ export interface SengiConstructorProps<
   /**
    * An array of document types that are managed by the engine.
    */
-  docTypes?: DocType[];
+  docTypes?: DocType<DocTypeNames>[];
 
   /**
    * A function that returns a validation error if the given user id is not valid.
@@ -118,11 +119,12 @@ export interface SengiConstructorProps<
  * to a No-SQL, document based database or backing store.
  */
 export class Sengi<
+  DocTypeNames extends string,
   DocStoreParams,
   Filter,
   Query,
 > {
-  private docTypes: DocType[];
+  private docTypes: DocType<DocTypeNames>[];
   private safeDocStore: SafeDocStore<
     DocStoreParams,
     Filter,
@@ -141,6 +143,7 @@ export class Sengi<
    */
   constructor(
     props: SengiConstructorProps<
+      DocTypeNames,
       DocStoreParams,
       Filter,
       Query
@@ -180,7 +183,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async archiveDocument<Doc extends DocBase>(
-    props: ArchiveDocumentProps<DocStoreParams>,
+    props: ArchiveDocumentProps<DocTypeNames, DocStoreParams>,
   ): Promise<ArchiveDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -241,7 +244,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async deleteDocument(
-    props: DeleteDocumentProps<DocStoreParams>,
+    props: DeleteDocumentProps<DocTypeNames, DocStoreParams>,
   ): Promise<DeleteDocumentResult> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
@@ -265,7 +268,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async newDocument<Doc extends DocBase>(
-    props: NewDocumentProps<Doc, DocStoreParams>,
+    props: NewDocumentProps<DocTypeNames, Doc, DocStoreParams>,
   ): Promise<NewDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -333,7 +336,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async patchDocument<Doc extends DocBase>(
-    props: PatchDocumentProps<Doc, DocStoreParams>,
+    props: PatchDocumentProps<DocTypeNames, Doc, DocStoreParams>,
   ): Promise<PatchDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -366,7 +369,7 @@ export class Sengi<
         doc as Doc,
         props.patch,
       );
-      appendDocOpId(docType, doc, props.operationId);
+      appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
       applyCommonFieldValuesToDoc(
         doc,
@@ -430,7 +433,12 @@ export class Sengi<
    * @param props A property bag.
    */
   async queryDocuments<QueryResult>(
-    props: QueryDocumentsProps<Query, QueryResult, DocStoreParams>,
+    props: QueryDocumentsProps<
+      DocTypeNames,
+      Query,
+      QueryResult,
+      DocStoreParams
+    >,
   ): Promise<QueryDocumentsResult<QueryResult>> {
     const rawResultData = await this.safeDocStore.query(
       props.docTypeName,
@@ -454,7 +462,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async replaceDocument<Doc extends DocBase>(
-    props: ReplaceDocumentProps<Doc, DocStoreParams>,
+    props: ReplaceDocumentProps<DocTypeNames, Doc, DocStoreParams>,
   ): Promise<ReplaceDocumentResult<Doc>> {
     ensureUserId(
       props.userId,
@@ -503,7 +511,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentsPendingSync(
-    props: SelectDocumentsPendingSyncProps<DocStoreParams>,
+    props: SelectDocumentsPendingSyncProps<DocTypeNames, DocStoreParams>,
   ): Promise<SelectDocumentsPendingSyncResult> {
     const docHeaders = await Promise.all(
       props.queries.map(async (query) => {
@@ -531,7 +539,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async markDocumentSynced(
-    props: MarkDocumentSyncedProps<DocStoreParams>,
+    props: MarkDocumentSyncedProps<DocTypeNames, DocStoreParams>,
   ): Promise<void> {
     const fetchResult = await this.safeDocStore.fetch(
       props.docTypeName,
@@ -565,6 +573,7 @@ export class Sengi<
    */
   async selectDocumentsByFilter<Doc extends DocBase>(
     props: SelectDocumentsByFilterProps<
+      DocTypeNames,
       Filter,
       DocStoreParams
     >,
@@ -588,7 +597,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentsByIds<Doc extends DocBase>(
-    props: SelectDocumentsByIdsProps<DocStoreParams>,
+    props: SelectDocumentsByIdsProps<DocTypeNames, DocStoreParams>,
   ): Promise<SelectDocumentsByIdsResult<Doc>> {
     const uniqueIds = [...new Set(props.ids)];
 
@@ -639,7 +648,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocuments<Doc extends DocBase>(
-    props: SelectDocumentsProps<DocStoreParams>,
+    props: SelectDocumentsProps<DocTypeNames, DocStoreParams>,
   ): Promise<SelectDocumentsResult<Doc>> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
     ensureCanFetchWholeCollection(docType);
@@ -660,7 +669,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async selectDocumentById<Doc extends DocBase>(
-    props: SelectDocumentByIdProps<DocStoreParams>,
+    props: SelectDocumentByIdProps<DocTypeNames, DocStoreParams>,
   ): Promise<SelectDocumentByIdResult<Doc>> {
     const result = await this.selectDocumentsByIds({
       docStoreParams: props.docStoreParams,
@@ -682,7 +691,7 @@ export class Sengi<
    * @param props A property bag.
    */
   async getDocumentById<Doc extends DocBase>(
-    props: GetDocumentByIdProps<DocStoreParams>,
+    props: GetDocumentByIdProps<DocTypeNames, DocStoreParams>,
   ): Promise<GetDocumentByIdResult<Doc>> {
     const result = await this.selectDocumentsByIds({
       docStoreParams: props.docStoreParams,

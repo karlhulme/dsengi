@@ -6,7 +6,7 @@ import {
 import { ensureCanFetchWholeCollection } from "./ensureCanFetchWholeCollection.ts";
 
 Deno.test("Remain silent if policy allows fetch whole collection action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},
@@ -20,7 +20,7 @@ Deno.test("Remain silent if policy allows fetch whole collection action.", () =>
 });
 
 Deno.test("Raise error if policy disallows fetch whole collection action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},
@@ -38,7 +38,7 @@ Deno.test("Raise error if policy disallows fetch whole collection action.", () =
 });
 
 Deno.test("Raise error if policy not specified for fetch whole collection action.", () => {
-  const docType: DocType = {
+  const docType: DocType<"test"> = {
     name: "test",
     readOnlyFieldNames: [],
     validateDoc: () => {},

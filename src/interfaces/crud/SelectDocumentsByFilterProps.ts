@@ -3,13 +3,14 @@
  * document collection using a filter.
  */
 export interface SelectDocumentsByFilterProps<
+  DocTypeNames extends string,
   Filter,
   DocStoreParams,
 > {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

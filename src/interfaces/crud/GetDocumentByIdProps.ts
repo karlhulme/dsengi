@@ -2,11 +2,14 @@
  * Defines the properties that are required to get a
  * single document from a collection using a document id.
  */
-export interface GetDocumentByIdProps<DocStoreParams> {
+export interface GetDocumentByIdProps<
+  DocTypeNames extends string,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

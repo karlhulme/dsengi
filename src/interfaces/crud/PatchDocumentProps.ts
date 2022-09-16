@@ -17,11 +17,15 @@ type OmittedDocFieldNames =
 /**
  * Defines the properties that are required to patch a document.
  */
-export interface PatchDocumentProps<Doc, DocStoreParams> {
+export interface PatchDocumentProps<
+  DocTypeNames extends string,
+  Doc,
+  DocStoreParams,
+> {
   /**
    * The name of the document type that is targeted by the request.
    */
-  docTypeName: string;
+  docTypeName: DocTypeNames;
 
   /**
    * The name of a document partition.

@@ -8,10 +8,10 @@ import {
  * @param docTypes An array of doc types.
  * @param docTypeName The name of a doc type.
  */
-export function selectDocTypeFromArray(
-  docTypes: DocType[],
+export function selectDocTypeFromArray<DocTypeNames extends string>(
+  docTypes: DocType<DocTypeNames>[],
   docTypeName: string,
-): DocType {
+): DocType<DocTypeNames> {
   const docType = docTypes.find((dt) => dt.name === docTypeName);
 
   if (!docType) {

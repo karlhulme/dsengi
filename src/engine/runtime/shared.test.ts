@@ -9,6 +9,8 @@ import {
 } from "../../interfaces/index.ts";
 import { Sengi, SengiConstructorProps } from "./Sengi.ts";
 
+export type DocTypeNames = "car";
+
 export interface TestDocStoreParams {
   custom: string;
 }
@@ -24,7 +26,7 @@ export interface Car extends DocBase {
   engineCode?: string;
 }
 
-export function createCarDocType(): DocType {
+export function createCarDocType(): DocType<DocTypeNames> {
   return {
     name: "car",
     readOnlyFieldNames: ["manufacturer"],
@@ -91,17 +93,19 @@ export function createMockStore(
 
 interface SengiTestObjects {
   sengi: Sengi<
+    DocTypeNames,
     TestDocStoreParams,
     string,
     string
   >;
   sengiCtorProps: SengiConstructorProps<
+    DocTypeNames,
     TestDocStoreParams,
     string,
     string
   >;
   docStore: DocStore<TestDocStoreParams, string, string>;
-  carDocType: DocType;
+  carDocType: DocType<DocTypeNames>;
 }
 
 /**
@@ -131,12 +135,14 @@ export const createSengiWithMockStore = (
     cacheSize: 100,
     patchDocStoreParams: { custom: "patch-props" },
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
+    DocTypeNames,
     TestDocStoreParams,
     string,
     string
   >;
 
   const sengi = new Sengi<
+    DocTypeNames,
     TestDocStoreParams,
     string,
     string
@@ -151,7 +157,7 @@ export const createSengiWithMockStore = (
 };
 
 export const defaultRequestProps = {
-  docTypeName: "car",
+  docTypeName: "car" as DocTypeNames,
   partition: "_central",
   docStoreParams: { custom: "prop" },
   includeArchived: true,
