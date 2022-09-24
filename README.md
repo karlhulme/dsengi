@@ -52,40 +52,21 @@ updates can be issued again without harm:
 - CREATE instructions will leave new records in the database, therefore:
   - A single create instruction should be the final element of any atomic step
     (e.g. service request) before success is returned.
-  - The process should identify and remove previously created records first.
-
-To help with the later, an operationId is required for all mutation operations.
-
-To mitigate this, all database interactions must be forward only. Meaning that
-if a sequence of database mutations fail, it must be possible to repeat the full
-sequence of operations, from the beginning, and get a similar result.
-
-The result should be identical unless:
-
-- The processing is based upon logic which has since changed.
-- The processing is based on loaded data which has since changed.
-
-A PATCH mutation uses an operationId to ensure that it is only run once. A
-higher level service should create an operationId and use it for all changes.
-The service that is directly using sengi should require this as a header value
-and use it on all mutations for a given request.
-
-CREATE mutations are the hardest because a service may want to create multiple
-documents in response to a single request. If the request is re-run, then the
-same documents need to be created. This is achieved by supplying a
-
-DELETE and ARCHIVE mutations can be run multiple times and the output will
-always be the same, so an operationId is not required here.
+  - The process should identify and remove previously created records first.  This can be done by searching for records that include the operationId in the docOpIds array.
 
 ### Querying data across multiple collections
 
-Build concrete views with data pulled from isolated collected. This can be done
+Build concrete views with data pulled from the isolated collections. This can be done
 on a timer, on command, on whenever constituent records are detected to have
 changed.
 
 ### Batch updates
 
 Either use a separate tool for this or write one-off scripts as the need arises.
+
+## Partition key
+
+Most documents will require a partition key so that the database nows how to shard the data.  Alternatively, you can specify single-partition collections.  These collections will be stored (by default) using the *_central* partition key.  This may simplify access but be aware that this collection will be subject to the maximum size (document count and data volume) and throughput of a partition supported by the database.
 
 ## Cosmos Setup
 
