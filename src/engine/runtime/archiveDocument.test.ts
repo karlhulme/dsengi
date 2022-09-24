@@ -47,6 +47,7 @@ Deno.test("Archiving a document should call fetch and upsert on doc store.", asy
     docVersion: "1111-2222",
     docOpIds: [
       "50e02b33-b22c-4207-8785-5a8aa529ec84",
+      "00000000-0000-0000-0000-111122223333",
     ],
     docCreatedByUserId: "user-0001",
     docCreatedMillisecondsSinceEpoch: 1629881470000,
@@ -63,6 +64,7 @@ Deno.test("Archiving a document should call fetch and upsert on doc store.", asy
   assertEquals(
     await sengi.archiveDocument<Car>({
       ...defaultRequestProps,
+      operationId: "00000000-0000-0000-0000-111122223333",
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     }),
     {
@@ -114,6 +116,7 @@ Deno.test("Archiving a document that is already archived will only fetch on the 
 
   const result = await sengi.archiveDocument<Car>({
     ...defaultRequestProps,
+    operationId: "00000000-0000-0000-0000-111122223333",
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
   });
 
@@ -139,6 +142,7 @@ Deno.test("Fail to archive a document if it changes between fetch and upsert.", 
   await assertRejects(() =>
     sengi.archiveDocument<Car>({
       ...defaultRequestProps,
+      operationId: "00000000-0000-0000-0000-111122223333",
       id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     }), SengiConflictOnSaveError);
 });
@@ -151,6 +155,7 @@ Deno.test("Reject an attempt to archive a non-existent doc.", async () => {
   await assertRejects(() =>
     sengi.archiveDocument<Car>({
       ...defaultRequestProps,
+      operationId: "00000000-0000-0000-0000-111122223333",
       id: "06151119-065a-4691-a7c8-aaaaaaaaaaaa",
     }), SengiDocNotFoundError);
 });

@@ -238,6 +238,8 @@ export class Sengi<
         this.getNewDocVersion(),
       );
 
+      appendDocOpId(doc, props.operationId);
+
       doc.docStatus = DocStatuses.Archived;
       doc.docArchivedByUserId = props.userId;
       doc.docArchivedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
@@ -364,8 +366,7 @@ export class Sengi<
    * Patches an existing document with a merge patch.
    * Although very unlikely, it's possible that a patch is successfully
    * applied but an error is encountered when trying to write the patch
-   * to te patches container.  If this circumstance it is safe to try
-   * applying the patch again.
+   * to the patches container.  In this circumstance it is safe to apply the patch again.
    * @param props A property bag.
    */
   async patchDocument<Doc extends DocBase>(

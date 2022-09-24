@@ -15,6 +15,11 @@ export interface ArchiveDocumentProps<
   partition: string | null;
 
   /**
+   * The id of the operation.
+   */
+  operationId: string;
+
+  /**
    * The id of a document.
    */
   id: string;
