@@ -5,11 +5,6 @@ import { DocBase } from "../doc/index.ts";
  */
 export interface PatchDocumentResult<Doc extends DocBase> {
   /**
-   * True if a document was updated.
-   */
-  isUpdated: boolean;
-
-  /**
    * The updated document.
    */
   doc: Doc;

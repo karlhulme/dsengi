@@ -78,7 +78,6 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
       },
     }),
     {
-      isUpdated: true,
       doc: resultDoc,
     },
   );
@@ -189,35 +188,6 @@ Deno.test("Patching a document with an overriden storePatchPartition will be hon
   ));
 });
 
-Deno.test("Patching a document with a known operation id should only call fetch on doc store.", async () => {
-  const { sengi, docStore } = createSengiForTest();
-
-  const spyFetch = spy(docStore, "fetch");
-  const spyUpsert = spy(docStore, "upsert");
-
-  const result = await sengi.patchDocument<Car>({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "50e02b33-b22c-4207-8785-5a8aa529ec84",
-    patch: {
-      model: "fiesta",
-    },
-  });
-
-  assertEquals(result.isUpdated, false);
-  assertEquals(result.doc.id, "06151119-065a-4691-a7c8-2d84ec746ba9");
-
-  assertEquals(spyFetch.callCount, 1);
-  assert(spyFetch.calledWith(
-    "car",
-    "_central",
-    "06151119-065a-4691-a7c8-2d84ec746ba9",
-    { custom: "prop" },
-  ));
-
-  assertEquals(spyUpsert.callCount, 0);
-});
-
 Deno.test("Patching a document using a required version should cause the required version to be passed to the doc store.", async () => {
   const { sengi, docStore } = createSengiForTest();
 
@@ -234,7 +204,6 @@ Deno.test("Patching a document using a required version should cause the require
     },
   });
 
-  assertEquals(result.isUpdated, true);
   assertEquals(result.doc.id, "06151119-065a-4691-a7c8-2d84ec746ba9");
 
   assertEquals(spyFetch.callCount, 1);

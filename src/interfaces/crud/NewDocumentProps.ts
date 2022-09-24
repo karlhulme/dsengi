@@ -32,6 +32,11 @@ export interface NewDocumentProps<
   partition: string | null;
 
   /**
+   * The id of the operation.
+   */
+  operationId: string;
+
+  /**
    * The new document.  All of the system fields will be added automatically
    * expect for the id property which must be populated.
    */

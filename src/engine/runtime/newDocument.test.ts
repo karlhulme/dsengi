@@ -30,7 +30,7 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
     docType: "car",
     docStatus: "active",
-    docOpIds: [],
+    docOpIds: ["00000000-0000-0000-0000-111122223333"],
     docVersion: "1111-2222",
     docCreatedByUserId: "user-0001",
     docCreatedMillisecondsSinceEpoch: 1629881470000,
@@ -48,6 +48,7 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     await sengi.newDocument({
       ...defaultRequestProps,
       docTypeName: "car",
+      operationId: "00000000-0000-0000-0000-111122223333",
       doc: newCar,
     }),
     {
@@ -89,6 +90,7 @@ Deno.test("Adding a new document that already exists should not lead to a call t
 
   const result = await sengi.newDocument<Car>({
     ...defaultRequestProps,
+    operationId: "00000000-0000-0000-0000-111122223333",
     doc: newCar,
   });
 
@@ -107,6 +109,7 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
   assertRejects(async () => {
     await sengi.newDocument<Car>({
       ...defaultRequestProps,
+      operationId: "00000000-0000-0000-0000-111122223333",
       doc: {
         ...newCar,
         registration: "HZ12 3AB",

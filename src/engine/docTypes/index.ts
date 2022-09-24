@@ -10,5 +10,4 @@ export * from "./ensureDocSystemFields.ts";
 export * from "./ensureUserId.ts";
 export * from "./executePatch.ts";
 export * from "./executeValidateDoc.ts";
-export * from "./isOpIdInDocument.ts";
 export * from "./selectDocTypeFromArray.ts";

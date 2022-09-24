@@ -49,7 +49,6 @@ import {
   ensureUserId,
   executePatch,
   executeValidateDoc,
-  isOpIdInDocument,
   selectDocTypeFromArray,
 } from "../docTypes/index.ts";
 
@@ -330,7 +329,7 @@ export class Sengi<
 
       doc.docType = props.docTypeName;
       doc.docStatus = DocStatuses.Active;
-      doc.docOpIds = [];
+      doc.docOpIds = [props.operationId];
       applyCommonFieldValuesToDoc(
         doc,
         this.getMillisecondsSinceEpoch(),
@@ -400,42 +399,38 @@ export class Sengi<
 
     const loadedDocVersion = doc.docVersion as string;
 
-    const opIdAlreadyExists = isOpIdInDocument(doc, props.operationId);
+    executePatch(
+      props.docTypeName,
+      docType.readOnlyFieldNames,
+      doc as Doc,
+      props.patch,
+    );
+    appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
-    if (!opIdAlreadyExists) {
-      executePatch(
-        props.docTypeName,
-        docType.readOnlyFieldNames,
-        doc as Doc,
-        props.patch,
-      );
-      appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
+    applyCommonFieldValuesToDoc(
+      doc,
+      this.getMillisecondsSinceEpoch(),
+      props.userId,
+      this.getNewDocVersion(),
+    );
 
-      applyCommonFieldValuesToDoc(
-        doc,
-        this.getMillisecondsSinceEpoch(),
-        props.userId,
-        this.getNewDocVersion(),
-      );
+    executeValidateDoc(
+      props.docTypeName,
+      docType.validateFields,
+      docType.validateDoc,
+      doc as Doc,
+    );
+    ensureDocSystemFields(props.docTypeName, doc as Doc);
 
-      executeValidateDoc(
-        props.docTypeName,
-        docType.validateFields,
-        docType.validateDoc,
-        doc as Doc,
-      );
-      ensureDocSystemFields(props.docTypeName, doc as Doc);
+    const upsertResult = await this.safeDocStore.upsert(
+      props.docTypeName,
+      partition,
+      doc as unknown as DocStoreRecord,
+      props.reqVersion || loadedDocVersion,
+      docType.docStoreParams,
+    );
 
-      const upsertResult = await this.safeDocStore.upsert(
-        props.docTypeName,
-        partition,
-        doc as unknown as DocStoreRecord,
-        props.reqVersion || loadedDocVersion,
-        docType.docStoreParams,
-      );
-
-      ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
-    }
+    ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
 
     if (props.storePatch) {
       const patchDoc = {
@@ -463,7 +458,6 @@ export class Sengi<
     }
 
     return {
-      isUpdated: !opIdAlreadyExists,
       doc: doc as Doc,
     };
   }
