@@ -33,6 +33,11 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   useSinglePartition?: boolean;
 
   /**
+   * A function that generates a new id for documents of this type.
+   */
+  newId: () => string;
+
+  /**
    * A validator function that returns a string describing the validation
    * failure, or uses a void return if the given document is valid.
    * This function may alter the document to make it valid, such as

@@ -4,7 +4,6 @@ export * from "./coerceQueryResult.ts";
 export * from "./ensureCanDeleteDocuments.ts";
 export * from "./ensureCanFetchWholeCollection.ts";
 export * from "./ensureCanReplaceDocuments.ts";
-export * from "./ensureDocId.ts";
 export * from "./ensureDocWasFound.ts";
 export * from "./ensureDocSystemFields.ts";
 export * from "./ensureUserId.ts";

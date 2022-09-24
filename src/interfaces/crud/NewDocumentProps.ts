@@ -1,6 +1,7 @@
 import { DocBase } from "../doc/index.ts";
 
 type OmittedDocFieldNames =
+  | "id"
   | "docType"
   | "docStatus"
   | "docVersion"
@@ -37,8 +38,7 @@ export interface NewDocumentProps<
   operationId: string;
 
   /**
-   * The new document.  All of the system fields will be added automatically
-   * expect for the id property which must be populated.
+   * The new document.  All of the system fields will be added automatically.
    */
   doc: Partial<Omit<Doc, OmittedDocFieldNames>>;
 

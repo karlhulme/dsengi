@@ -12,12 +12,14 @@ function createDocTypes() {
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
+    newId: () => "abcd",
   }, {
     name: "example",
     docStoreParams: "",
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
+    newId: () => "abcd",
   }];
 
   return docTypes;

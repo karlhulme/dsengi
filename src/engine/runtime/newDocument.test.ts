@@ -11,7 +11,6 @@ import {
 } from "./shared.test.ts";
 
 const newCar: Partial<Car> = {
-  id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
   manufacturer: "ford",
   model: "ka",
   registration: "HG12 3AB",
@@ -23,11 +22,10 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
-  const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
 
   const resultDoc = {
-    id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
+    id: "00000000-1234-1234-1234-000000000000",
     docType: "car",
     docStatus: "active",
     docOpIds: ["00000000-0000-0000-0000-111122223333"],
@@ -52,18 +50,9 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
       doc: newCar,
     }),
     {
-      isNew: true,
       doc: resultDoc,
     },
   );
-
-  assertEquals(spyFetch.callCount, 1);
-  assert(spyFetch.calledWith(
-    "car",
-    "_central",
-    "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-    { custom: "prop" },
-  ));
 
   assertEquals(spyUpsert.callCount, 1);
   assert(spyUpsert.calledWith(
@@ -73,32 +62,6 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     null,
     { custom: "prop" },
   ));
-});
-
-Deno.test("Adding a new document that already exists should not lead to a call to upsert.", async () => {
-  const { docStore, sengi } = createSengiWithMockStore({
-    fetch: async () => ({
-      doc: {
-        id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
-      },
-    }),
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  });
-
-  const spyFetch = spy(docStore, "fetch");
-  const spyUpsert = spy(docStore, "upsert");
-
-  const result = await sengi.newDocument<Car>({
-    ...defaultRequestProps,
-    operationId: "00000000-0000-0000-0000-111122223333",
-    doc: newCar,
-  });
-
-  assertEquals(result.isNew, false);
-  assertEquals(result.doc.id, "d7fe060b-2d03-46e2-8cb5-ab18380790d1");
-
-  assertEquals(spyFetch.callCount, 1);
-  assertEquals(spyUpsert.callCount, 0);
 });
 
 Deno.test("Fail to add a new document that does not pass validation.", async () => {

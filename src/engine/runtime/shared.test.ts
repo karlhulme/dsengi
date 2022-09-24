@@ -68,6 +68,7 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
         return "Field originalOwner must be a string";
       }
     },
+    newId: () => "00000000-1234-1234-1234-000000000000",
   };
 }
 

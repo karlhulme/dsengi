@@ -12,6 +12,7 @@ Deno.test("Remain silent if policy allows fetch whole collection action.", () =>
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
+    newId: () => "abcd",
     policy: {
       canFetchWholeCollection: true,
     },
@@ -27,6 +28,7 @@ Deno.test("Raise error if policy disallows fetch whole collection action.", () =
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
+    newId: () => "abcd",
     policy: {
       canFetchWholeCollection: false,
     },
@@ -46,6 +48,7 @@ Deno.test("Raise error if policy not specified for fetch whole collection action
     readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
+    newId: () => "abcd",
   };
 
   assertThrows(

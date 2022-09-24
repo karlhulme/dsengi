@@ -6,11 +6,6 @@ import { DocBase } from "../doc/index.ts";
  */
 export interface NewDocumentResult<Doc extends DocBase> {
   /**
-   * True if a new document was created.
-   */
-  isNew: boolean;
-
-  /**
    * The document that was created or the document that already existed.
    */
   doc: Doc;

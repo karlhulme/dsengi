@@ -36,6 +36,7 @@ import {
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
 import { ensurePartition } from "../docTypes/ensurePartition.ts";
+import { generateNewDocumentId } from "../docTypes/generateNewDocumentId.ts";
 import {
   appendDocOpId,
   applyCommonFieldValuesToDoc,
@@ -43,7 +44,6 @@ import {
   ensureCanDeleteDocuments,
   ensureCanFetchWholeCollection,
   ensureCanReplaceDocuments,
-  ensureDocId,
   ensureDocSystemFields,
   ensureDocWasFound,
   ensureUserId,
@@ -238,7 +238,7 @@ export class Sengi<
         this.getNewDocVersion(),
       );
 
-      appendDocOpId(doc, props.operationId);
+      appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
       doc.docStatus = DocStatuses.Archived;
       doc.docArchivedByUserId = props.userId;
@@ -304,9 +304,9 @@ export class Sengi<
       this.validateUserId,
     );
 
-    ensureDocId(props.doc);
-
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
+    const id = generateNewDocumentId(docType);
 
     const partition = ensurePartition(
       props.partition,
@@ -314,52 +314,40 @@ export class Sengi<
       docType.useSinglePartition,
     );
 
-    const fetchResult = await this.safeDocStore.fetch(
-      docType.name,
+    const doc = props.doc as Partial<Doc>;
+
+    doc.id = id;
+    doc.docType = props.docTypeName;
+    doc.docStatus = DocStatuses.Active;
+    doc.docOpIds = [props.operationId];
+
+    applyCommonFieldValuesToDoc(
+      doc,
+      this.getMillisecondsSinceEpoch(),
+      props.userId,
+      this.getNewDocVersion(),
+    );
+
+    executeValidateDoc(
+      props.docTypeName,
+      docType.validateFields,
+      docType.validateDoc,
+      doc as Doc,
+    );
+
+    ensureDocSystemFields(props.docTypeName, doc as Doc);
+
+    await this.safeDocStore.upsert(
+      props.docTypeName,
       partition,
-      props.doc.id as string,
+      doc as unknown as DocStoreRecord,
+      null,
       docType.docStoreParams,
     );
 
-    if (fetchResult.doc) {
-      return {
-        isNew: false,
-        doc: fetchResult.doc as unknown as Doc,
-      };
-    } else {
-      const doc = props.doc as Partial<Doc>;
-
-      doc.docType = props.docTypeName;
-      doc.docStatus = DocStatuses.Active;
-      doc.docOpIds = [props.operationId];
-      applyCommonFieldValuesToDoc(
-        doc,
-        this.getMillisecondsSinceEpoch(),
-        props.userId,
-        this.getNewDocVersion(),
-      );
-
-      executeValidateDoc(
-        props.docTypeName,
-        docType.validateFields,
-        docType.validateDoc,
-        doc as Doc,
-      );
-      ensureDocSystemFields(props.docTypeName, doc as Doc);
-
-      await this.safeDocStore.upsert(
-        props.docTypeName,
-        partition,
-        doc as unknown as DocStoreRecord,
-        null,
-        docType.docStoreParams,
-      );
-
-      return {
-        isNew: true,
-        doc: doc as Doc,
-      };
-    }
+    return {
+      doc: doc as Doc,
+    };
   }
 
   /**

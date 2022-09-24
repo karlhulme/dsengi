@@ -38,16 +38,6 @@ export class SengiDocNotFoundError extends SengiRequestError { // HTTP 404
   }
 }
 
-export class SengiDocIdMissing extends SengiRequestError {
-  constructor() {
-    super(
-      `A new document was supplied without an id property.`,
-    );
-    Object.setPrototypeOf(this, new.target.prototype);
-    this.name = this.constructor.name;
-  }
-}
-
 export class SengiPatchValidationFailedError extends SengiRequestError {
   constructor(readonly docTypeName: string, readonly validationError: string) {
     super(

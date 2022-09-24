@@ -38,6 +38,7 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
       readOnlyFieldNames: [],
       validateDoc: () => {},
       validateFields: () => {},
+      newId: () => "abcd",
     }],
     patchDocStoreParams: { custom: "patch-props" },
   });
@@ -46,7 +47,6 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
     docTypeName: "car",
     operationId: "00000000-0000-0000-0000-111122223333",
     doc: {
-      id: "d7fe060b-2d03-46e2-8cb5-ab18380790d1",
       manufacturer: "Ford",
       model: "ka",
     },
