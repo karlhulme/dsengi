@@ -32,7 +32,7 @@ Deno.test("Select documents using a filter.", async () => {
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",
-        },
+        } as Car,
       ],
     },
   );

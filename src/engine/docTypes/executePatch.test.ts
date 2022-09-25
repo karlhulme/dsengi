@@ -40,7 +40,7 @@ Deno.test("A valid patch that changes a value is applied.", () => {
     id: "123",
     propA: "AAA",
     propB: "bbb",
-  });
+  } as ExampleDoc);
 });
 
 Deno.test("A valid patch that removes a value is applied.", () => {
@@ -65,7 +65,7 @@ Deno.test("A valid patch that removes a value is applied.", () => {
     id: "123",
     propA: "aaa",
     propB: "bbb",
-  });
+  } as ExampleDoc);
 });
 
 Deno.test("A patch that attempts to change a system field is rejected.", () => {

@@ -69,7 +69,7 @@ Deno.test("Select all documents of a type in a collection.", async () => {
           model: "cooper",
           registration: "HG12 5EF",
         },
-      ],
+      ] as Car[],
     },
   );
 

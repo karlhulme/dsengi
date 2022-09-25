@@ -33,7 +33,7 @@ Deno.test("Select by document ids.", async () => {
           manufacturer: "ford",
           model: "ka",
           registration: "HG12 3AB",
-        },
+        } as Car,
       ],
     },
   );

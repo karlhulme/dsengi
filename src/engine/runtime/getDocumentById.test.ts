@@ -32,7 +32,7 @@ Deno.test("Get document by id and doc is found.", async () => {
         manufacturer: "ford",
         model: "ka",
         registration: "HG12 3AB",
-      },
+      } as Car,
     },
   );
 

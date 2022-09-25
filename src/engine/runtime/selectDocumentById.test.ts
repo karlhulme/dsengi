@@ -31,7 +31,7 @@ Deno.test("Select by document id and doc is found.", async () => {
         manufacturer: "ford",
         model: "ka",
         registration: "HG12 3AB",
-      },
+      } as Car,
     },
   );
 

@@ -9,12 +9,12 @@ export {
   assertStrictEquals,
   assertThrows,
   fail,
-} from "https://deno.land/std@0.128.0/testing/asserts.ts";
+} from "https://deno.land/std@0.156.0/testing/asserts.ts";
 
 export {
   decode as decodeBase64,
   encode as encodeBase64,
-} from "https://deno.land/std@0.128.0/encoding/base64.ts";
+} from "https://deno.land/std@0.156.0/encoding/base64.ts";
 
 export { match, spy } from "https://cdn.skypack.dev/sinon?dts";
 
