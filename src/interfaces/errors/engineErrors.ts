@@ -12,6 +12,18 @@ export class SengiMissingNewIdFunctionError extends SengiEngineError {
   }
 }
 
+export class SengiMissingPatchConfigError extends SengiEngineError {
+  constructor(
+    readonly settingName: string,
+  ) {
+    super(
+      `The setting '${settingName}' must be specified in order to record document patches`,
+    );
+    Object.setPrototypeOf(this, new.target.prototype);
+    this.name = this.constructor.name;
+  }
+}
+
 export class SengiQueryCoerceFailedError extends SengiEngineError {
   constructor(
     readonly docTypeName: string,

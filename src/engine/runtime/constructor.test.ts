@@ -18,17 +18,6 @@ Deno.test("Fail to create a Sengi if no doc store is provided.", () => {
   );
 });
 
-Deno.test("Fail to create a Sengi if doc store params are not provided for patches.", () => {
-  assertThrows(
-    () =>
-      new Sengi({
-        docStore: createMockStore(),
-      }),
-    Error,
-    "Must supply doc store params for the patch documents.",
-  );
-});
-
 Deno.test("Create a Sengi using a mock doc store and the default functions which are then invoked as a result of creating a doc.", async () => {
   const sengi = new Sengi({
     docStore: createMockStore(),

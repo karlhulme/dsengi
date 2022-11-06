@@ -1,7 +1,7 @@
 {
   "tasks": {
-    "setup_cosmos": "deno run --allow-env --allow-net ./setup/cosmosSetup.ts",
-    "teardown_cosmos": "deno run --allow-env --allow-net ./setup/cosmosTeardown.ts",
+    "setup_cosmos": "deno run --allow-env --allow-net ./setup/setupCosmos.ts",
+    "teardown_cosmos": "deno run --allow-env --allow-net ./setup/teardownCosmos.ts",
     "test": "rm -rf cov_profile && deno test --allow-env --allow-net --coverage=cov_profile && deno coverage cov_profile && deno fmt"
   }
 }

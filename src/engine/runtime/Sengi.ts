@@ -46,6 +46,7 @@ import {
   ensureCanReplaceDocuments,
   ensureDocSystemFields,
   ensureDocWasFound,
+  ensureStorePatchesConfig,
   ensureUserId,
   executePatch,
   executeValidateDoc,
@@ -58,7 +59,7 @@ import {
 const DEFAULT_CACHE_SIZE = 500;
 
 /**
- * The default name of a doc type that stores a patch.
+ * The default document patch name.
  */
 const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
 
@@ -146,7 +147,7 @@ export class Sengi<
   private getNewDocVersion: () => string;
   private cache: TtlCache<DocBase>;
   private patchDocTypeName: string;
-  private patchDocStoreParams: DocStoreParams;
+  private patchDocStoreParams?: DocStoreParams;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -183,11 +184,6 @@ export class Sengi<
 
     this.patchDocTypeName = props.patchDocTypeName ||
       DEFAULT_PATCH_DOC_TYPE_NAME;
-
-    if (!props.patchDocStoreParams) {
-      throw new Error("Must supply doc store params for the patch documents.");
-    }
-
     this.patchDocStoreParams = props.patchDocStoreParams;
   }
 
@@ -394,6 +390,7 @@ export class Sengi<
       doc as Doc,
       props.patch,
     );
+
     appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
     applyCommonFieldValuesToDoc(
@@ -409,22 +406,22 @@ export class Sengi<
       docType.validateDoc,
       doc as Doc,
     );
+
     ensureDocSystemFields(props.docTypeName, doc as Doc);
 
-    const upsertResult = await this.safeDocStore.upsert(
-      props.docTypeName,
-      partition,
-      doc as unknown as DocStoreRecord,
-      props.reqVersion || loadedDocVersion,
-      docType.docStoreParams,
-    );
-
-    ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
-
+    // Once all the document validations are complete, we write the
+    // patch event to the patch document store (if requested).  A failure
+    // at this point means we've logged a patch that wasn't applied,
+    // but this is better than not having a log of patch that was applied.
     if (props.storePatch) {
+      ensureStorePatchesConfig(
+        this.patchDocTypeName,
+        this.patchDocStoreParams,
+      );
+
       const patchDoc = {
         id: props.operationId,
-        docType: this.patchDocTypeName,
+        docType: this.patchDocTypeName!,
         patchedDocId: props.id,
         patchedDocType: props.docTypeName,
         patch: props.patch,
@@ -438,13 +435,23 @@ export class Sengi<
       );
 
       await this.safeDocStore.upsert(
-        this.patchDocTypeName,
+        this.patchDocTypeName!,
         props.storePatchPartition || partition,
         patchDoc,
         null,
-        this.patchDocStoreParams,
+        this.patchDocStoreParams!,
       );
     }
+
+    const upsertResult = await this.safeDocStore.upsert(
+      props.docTypeName,
+      partition,
+      doc as unknown as DocStoreRecord,
+      props.reqVersion || loadedDocVersion,
+      docType.docStoreParams,
+    );
+
+    ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
 
     return {
       doc: doc as Doc,
