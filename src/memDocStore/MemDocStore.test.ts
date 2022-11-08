@@ -37,7 +37,7 @@ function createDocs(): DocStoreRecord[] {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
-      docDigests: [],
+      docDigests: ["abcd"],
       partitionKey: "_central",
       lastSyncedMillisecondsSinceEpoch: 0,
     },
@@ -170,7 +170,7 @@ Deno.test("A document can be fetched.", async () => {
       fruit: "orange",
       docVersion: "aaa3",
       docOpIds: [],
-      docDigests: [],
+      docDigests: ["abcd"],
       partitionKey: "_central",
       lastSyncedMillisecondsSinceEpoch: 0,
     },
@@ -200,16 +200,18 @@ Deno.test("A count query can be executed.", async () => {
   assertEquals(result, { data: 3, queryCharge: 0 });
 });
 
-Deno.test("Select documents that are pending synchronisation.", async () => {
+Deno.test("Select documents based on digest.", async () => {
   const docs = createDocs();
   const docStore = new MemDocStore({ docs, generateDocVersionFunc });
-  const result = await docStore.selectPendingSync(
+  const result = await docStore.selectByDigest(
     "test",
+    "_central",
+    "abcd",
     {},
   );
   assertEquals(
-    result.docHeaders.map((dh) => dh.id + dh.partition),
-    ["003_central"],
+    result.docs.map((d) => d.id),
+    ["003"],
   );
 });
 

@@ -3,7 +3,6 @@ import {
   DocStoreDeleteByIdResult,
   DocStoreExistsResult,
   DocStoreFetchResult,
-  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -31,8 +30,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       "exists",
       "fetch",
       "query",
-      "selectPendingSync",
       "selectAll",
+      "selectByDigest",
       "selectByFilter",
       "selectByIds",
       "upsert",
@@ -149,26 +148,6 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
   }
 
   /**
-   * Select the documents that are waiting for synchronisation.
-   * @param docTypeName The name of a doc type.
-   * @param docStoreParams The parameters for the document store.
-   */
-  async selectPendingSync(
-    docTypeName: string,
-    docStoreParams: DocStoreParams,
-  ): Promise<DocStorePendingSyncResult> {
-    try {
-      const result = await this.docStore.selectPendingSync(
-        docTypeName,
-        docStoreParams,
-      );
-      return result;
-    } catch (err) {
-      throw new UnexpectedDocStoreError("selectPendingSync", err as Error);
-    }
-  }
-
-  /**
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
@@ -246,6 +225,32 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("selectByIds", err as Error);
+    }
+  }
+
+  /**
+   * Select documents of a specified type that contain the given digest.
+   * @param docTypeName The name of a doc type.
+   * @param partition The name of a document partition.
+   * @param digest A digest.
+   * @param docStoreParams The params for the document store.
+   */
+  async selectByDigest(
+    docTypeName: string,
+    partition: string,
+    digest: string,
+    docStoreParams: DocStoreParams,
+  ): Promise<DocStoreSelectResult> {
+    try {
+      const result = await this.docStore.selectByDigest(
+        docTypeName,
+        partition,
+        digest,
+        docStoreParams,
+      );
+      return result;
+    } catch (err) {
+      throw new UnexpectedDocStoreError("selectByDigest", err as Error);
     }
   }
 

@@ -99,7 +99,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
-      docDigests: [],
+      docDigests: ["abc", "def"],
     },
     {
       id: "02",
@@ -446,42 +446,6 @@ Deno.test("A sql query can be executed that returns an aggregated value.", async
   assertEquals(queryResult.data, 3);
 });
 
-Deno.test("Select all documents of a type that are pending sync in a single partition.", async () => {
-  await initDb();
-
-  const docStore = createCosmosDbDocStore();
-
-  const result = await docStore.selectPendingSync(
-    "tree",
-    { databaseName: "sengi", collectionName: "trees" },
-  );
-  const sortedDocs = result.docHeaders.sort((a, b) =>
-    (a.id as string).localeCompare(b.id as string)
-  );
-  assertEquals(
-    sortedDocs.map((doc) => doc.id),
-    ["03"],
-  );
-});
-
-Deno.test("Select all documents of a type that are pending sync in multiple partitions.", async () => {
-  await initDb();
-
-  const docStore = createCosmosDbDocStore();
-
-  const result = await docStore.selectPendingSync(
-    "treePack",
-    { databaseName: "sengi", collectionName: "treePacks" },
-  );
-  const sortedDocs = result.docHeaders.sort((a, b) =>
-    (a.id as string).localeCompare(b.id as string)
-  );
-  assertEquals(
-    sortedDocs.map((doc) => doc.id + doc.partition),
-    ["02forest", "04tropical"],
-  );
-});
-
 Deno.test("Select all documents of a type from a single partition.", async () => {
   await initDb();
 
@@ -650,7 +614,7 @@ Deno.test("Select documents using ids that appear multiple times.", async () => 
   );
 });
 
-Deno.test("Select a documents that includes a document version.", async () => {
+Deno.test("Select a document that includes a document version.", async () => {
   await initDb();
 
   const docStore = createCosmosDbDocStore();
@@ -665,6 +629,24 @@ Deno.test("Select a documents that includes a document version.", async () => {
   assertEquals(result.docs.length, 1);
   assertEquals(result.docs[0].name, "beech");
   assertEquals(typeof result.docs[0].docVersion, "string");
+});
+
+Deno.test("Select documents based on a digest.", async () => {
+  await initDb();
+
+  const docStore = createCosmosDbDocStore();
+
+  const result = await docStore.selectByDigest(
+    "tree",
+    TestPartition,
+    "def",
+    { databaseName: "sengi", collectionName: "trees" },
+  );
+
+  assertEquals(
+    result.docs.map((doc) => subsetDoc(doc, ["id"])),
+    [{ id: "01" }],
+  );
 });
 
 Deno.test("Insert a new document and rely on doc store to generate doc version.", async () => {

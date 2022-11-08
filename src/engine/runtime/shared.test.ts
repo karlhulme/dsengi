@@ -69,6 +69,7 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
       }
     },
     newId: () => "00000000-1234-1234-1234-000000000000",
+    changeEventFieldNames: [],
   };
 }
 
@@ -80,8 +81,8 @@ export function createMockStore(
     exists: async () => ({ found: false }),
     fetch: async () => ({ doc: null }),
     query: async () => ({ data: 0 }),
-    selectPendingSync: async () => ({ docHeaders: [] }),
     selectAll: async () => ({ docs: [] }),
+    selectByDigest: async () => ({ docs: [] }),
     selectByFilter: async () => ({ docs: [] }),
     selectByIds: async () => ({ docs: [] }),
     upsert: async () => ({

@@ -15,7 +15,6 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreExistsResult,
   DocStoreFetchResult,
-  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -367,7 +366,7 @@ export class CosmosDbDocStore implements
   /**
    * Execute a query against the document store.
    * @param _docTypeName The name of a doc type.
-   * @param query A query to execute that should include a clause for =
+   * @param query A query to execute that should include a clause for
    * a specific partition.
    * @param docStoreParams The parameters for the document store.
    */
@@ -395,41 +394,42 @@ export class CosmosDbDocStore implements
   }
 
   /**
-   * Select the documents that are waiting for synchronisation.
+   * Select any documents that are hosting the given digest.
    * @param docTypeName The name of a doc type.
    * @param docStoreParams The parameters for the document store.
    */
-  async selectPendingSync(
+  async selectByDigest(
     docTypeName: string,
+    partition: string,
+    digest: string,
     docStoreParams: CosmosDbDocStoreParams,
-  ): Promise<DocStorePendingSyncResult> {
+  ): Promise<DocStoreSelectResult> {
     await this.ensureCryptoKey();
 
-    const containerDirectResult = await queryDocumentsContainersDirect(
+    const selectCmd = this.buildSelectCommand(
+      true,
+      "ARRAY_CONTAINS(d.docDigests, @digest)",
+      undefined,
+      1,
+    );
+
+    const gatewayResult = await queryDocumentsGateway(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
       docStoreParams.collectionName,
-      `SELECT d.id, d.partitionKey as partition, d._etag as docVersion
-       FROM Docs d
-       WHERE d.docType = @docTypeName 
-         AND d.lastSyncedMillisecondsSinceEpoch = @zero`,
+      partition,
+      selectCmd,
       [
-        { name: "@docTypeName", value: docTypeName },
-        { name: "@zero", value: 0 },
+        { name: "@partitionKey", value: partition },
+        { name: "@docType", value: docTypeName },
+        { name: "@digest", value: digest },
       ],
-      "concatArrays",
     );
 
     return {
-      docHeaders: (containerDirectResult.data as Array<
-        { id: string; partition: string; docVersion: string }
-      >).map((r) => ({
-        id: r.id,
-        partition: r.partition,
-        docVersion: r.docVersion.replaceAll('"', ""),
-      })),
-      queryCharge: containerDirectResult.queryCharge,
+      docs: gatewayResult.records.map(this.cleanDoc),
+      queryCharge: gatewayResult.queryCharge,
     };
   }
 

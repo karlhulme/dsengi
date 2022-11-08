@@ -3,7 +3,6 @@ export * from "./DocStoreDeleteByIdResult.ts";
 export * from "./DocStoreDeleteByIdResultCode.ts";
 export * from "./DocStoreExistsResult.ts";
 export * from "./DocStoreFetchResult.ts";
-export * from "./DocStorePendingSyncResult.ts";
 export * from "./DocStoreRecord.ts";
 export * from "./DocStoreQueryResult.ts";
 export * from "./DocStoreSelectResult.ts";

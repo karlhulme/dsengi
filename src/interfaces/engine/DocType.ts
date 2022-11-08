@@ -34,8 +34,18 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
 
   /**
    * A function that generates a new id for documents of this type.
+   * This function is called if an explicitId is not provided when
+   * calling newDocument.
    */
   newId: () => string;
+
+  /**
+   * The names of the document fields that should be included with
+   * any change events, in addition to the document's id.  It can be
+   * useful to include parent ids and other related ids if the
+   * change events are being used to build denormalised records.
+   */
+  changeEventFieldNames: string[];
 
   /**
    * A validator function that returns a string describing the validation

@@ -1,3 +1,6 @@
+/**
+ * The type of document mutation.
+ */
 export type DocMutationType = "create" | "patch" | "archive";
 
 /**

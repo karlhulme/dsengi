@@ -58,6 +58,19 @@ export interface NewDocumentProps<
   explicitId?: string;
 
   /**
+   * True if a change event should be written to the changeEvents container
+   * of the document store and then later raised as an event.
+   */
+  raiseChangeEvent?: boolean;
+
+  /**
+   * The name of the partition where the change event should be stored.
+   * If raiseChangeEvent is true, but this value is omitted, then the
+   * partition property is used.
+   */
+  raiseChangeEventPartition?: string;
+
+  /**
    * The id of the user that is making the request.
    */
   userId: string;

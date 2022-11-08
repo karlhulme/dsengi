@@ -229,6 +229,38 @@ Deno.test("Patching a document using a required version should cause the require
   ));
 });
 
+Deno.test("Do not patch a document if the patch digest is already on the document.", async () => {
+  const { docStore, sengi } = createSengiWithMockStore({
+    fetch: async () => ({
+      doc: {
+        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+        docType: "car",
+        docStatus: "active",
+        docVersion: "aaaa",
+        docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+        docDigests: ["11e7:P0:0d171dfe74e5c0f0738c8d5861973efea1750ebf"],
+        manufacturer: "ford",
+        model: "ka",
+        registration: "HG12 3AB",
+      },
+    }),
+  });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    reqVersion: "aaaa",
+    patch: {
+      model: "fiesta",
+    },
+  });
+
+  assertEquals(spyUpsert.callCount, 0);
+});
+
 Deno.test("Fail to patch document when required version is not available.", async () => {
   const { sengi } = createSengiForTest({
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,

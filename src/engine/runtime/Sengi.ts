@@ -45,10 +45,12 @@ import {
   ensureCanReplaceDocuments,
   ensureDocSystemFields,
   ensureDocWasFound,
+  ensureRaiseChangeEventsConfig,
   ensureStorePatchesConfig,
   ensureUserId,
   executePatch,
   executeValidateDoc,
+  isDigestInArray,
   selectDocTypeFromArray,
 } from "../docTypes/index.ts";
 
@@ -61,6 +63,11 @@ const DEFAULT_CACHE_SIZE = 500;
  * The default document patch name.
  */
 const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
+
+/**
+ * The default document change event name.
+ */
+const DEFAULT_CHANGE_EVENT_DOC_TYPE_NAME = "changeEvent";
 
 /**
  * The default central partition.
@@ -122,6 +129,26 @@ export interface SengiConstructorProps<
    * to store a patch.
    */
   patchDocStoreParams?: DocStoreParams;
+
+  /**
+   * The name of the doc type that stores change events.
+   */
+  changeEventDocTypeName?: string;
+
+  /**
+   * The params to be passed to the document store when attempting
+   * to store a change event.
+   */
+  changeEventDocStoreParams?: DocStoreParams;
+
+  /**
+   * A function that will be invoked whenever a document is archived,
+   * deleted, created or patched.
+   * It is not raised when documents are replaced.
+   * This function is guaranteed to be invoked at least once for
+   * each committed change.
+   */
+  documentChanged?: () => Promise<void>; // docType, id, changeType, preMutationFields, postMutationFields
 }
 
 /**
@@ -147,6 +174,8 @@ export class Sengi<
   private cache: TtlCache<DocBase>;
   private patchDocTypeName: string;
   private patchDocStoreParams?: DocStoreParams;
+  private changeEventDocTypeName: string;
+  private changeEventDocStoreParams?: DocStoreParams;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -184,6 +213,10 @@ export class Sengi<
     this.patchDocTypeName = props.patchDocTypeName ||
       DEFAULT_PATCH_DOC_TYPE_NAME;
     this.patchDocStoreParams = props.patchDocStoreParams;
+
+    this.changeEventDocTypeName = props.changeEventDocTypeName ||
+      DEFAULT_CHANGE_EVENT_DOC_TYPE_NAME;
+    this.changeEventDocStoreParams = props.changeEventDocStoreParams;
   }
 
   /**
@@ -223,11 +256,27 @@ export class Sengi<
 
     const loadedDocVersion = doc.docVersion as string;
 
+    // if (props.raiseChangeEvent) {
+    //   ensureRaiseChangeEventsConfig(
+    //     this.changeEventDocTypeName,
+    //     this.changeEventDocStoreParams,
+    //   );
+
+    // load existing changeEvent
+
+    // if not found,
+    //  create one by extracting the changeEventFieldNames specified on the doc type
+    //  use preMutationFieldValues and postMutationFieldValues
+    //  and store it
+    // }
+
+    const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
+
     const isAlreadyArchived = doc.docStatus === DocStatuses.Archived &&
       Boolean(doc.docArchivedByUserId) &&
       Boolean(doc.docArchivedMillisecondsSinceEpoch);
 
-    if (!isAlreadyArchived) {
+    if (!isDigestProcessed && !isAlreadyArchived) {
       applyCommonFieldValuesToDoc(
         doc,
         this.getMillisecondsSinceEpoch(),
@@ -253,6 +302,10 @@ export class Sengi<
 
       ensureUpsertSuccessful(result, false);
     }
+
+    // if (props.raiseChangeEvent) {
+    // raise the change event, using the changeEventProps stored earlier
+    // }
 
     return {
       isArchived: !isAlreadyArchived,
@@ -292,7 +345,9 @@ export class Sengi<
   }
 
   /**
-   * Adds a new document to a collection by supplying all the data.
+   * Adds a new document to a collection.  This function can also be used to
+   * perform an upsert by specifying an explicitId.  If you want change events
+   * to be raised, then use this function rather than replaceDocument.
    * @param props A property bag.
    */
   async newDocument<Doc extends DocBase>(
@@ -320,41 +375,54 @@ export class Sengi<
       docType.useSinglePartition,
     );
 
-    const doc = props.doc as Partial<Doc>;
-
-    doc.id = id;
-    doc.docType = props.docTypeName;
-    doc.docStatus = DocStatuses.Active;
-    doc.docOpIds = [props.operationId];
-    doc.docDigests = [digest];
-
-    applyCommonFieldValuesToDoc(
-      doc,
-      this.getMillisecondsSinceEpoch(),
-      props.userId,
-      this.getNewDocVersion(),
-    );
-
-    executeValidateDoc(
-      props.docTypeName,
-      docType.validateFields,
-      docType.validateDoc,
-      doc as Doc,
-    );
-
-    ensureDocSystemFields(props.docTypeName, doc as Doc);
-
-    await this.safeDocStore.upsert(
+    const processedDocs = await this.safeDocStore.selectByDigest(
       props.docTypeName,
       partition,
-      doc as unknown as DocStoreRecord,
-      null,
+      digest,
       docType.docStoreParams,
     );
 
-    return {
-      doc: doc as Doc,
-    };
+    if (processedDocs.docs.length === 0) {
+      const doc = props.doc as Partial<Doc>;
+
+      doc.id = id;
+      doc.docType = props.docTypeName;
+      doc.docStatus = DocStatuses.Active;
+      doc.docOpIds = [props.operationId];
+      doc.docDigests = [digest];
+
+      applyCommonFieldValuesToDoc(
+        doc,
+        this.getMillisecondsSinceEpoch(),
+        props.userId,
+        this.getNewDocVersion(),
+      );
+
+      executeValidateDoc(
+        props.docTypeName,
+        docType.validateFields,
+        docType.validateDoc,
+        doc as Doc,
+      );
+
+      ensureDocSystemFields(props.docTypeName, doc as Doc);
+
+      await this.safeDocStore.upsert(
+        props.docTypeName,
+        partition,
+        doc as unknown as DocStoreRecord,
+        null,
+        docType.docStoreParams,
+      );
+
+      return {
+        doc: doc as Doc,
+      };
+    } else {
+      return {
+        doc: processedDocs.docs[0] as unknown as Doc,
+      };
+    }
   }
 
   /**
@@ -400,78 +468,82 @@ export class Sengi<
       fetchResult.doc as unknown as Partial<Doc>,
     );
 
-    const loadedDocVersion = doc.docVersion as string;
+    const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
 
-    executePatch(
-      props.docTypeName,
-      docType.readOnlyFieldNames,
-      doc as Doc,
-      props.patch,
-    );
+    if (!isDigestProcessed) {
+      const loadedDocVersion = doc.docVersion as string;
 
-    appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
-
-    appendDocDigest(doc, digest, docType.policy?.maxDigests);
-
-    applyCommonFieldValuesToDoc(
-      doc,
-      this.getMillisecondsSinceEpoch(),
-      props.userId,
-      this.getNewDocVersion(),
-    );
-
-    executeValidateDoc(
-      props.docTypeName,
-      docType.validateFields,
-      docType.validateDoc,
-      doc as Doc,
-    );
-
-    ensureDocSystemFields(props.docTypeName, doc as Doc);
-
-    // Once all the document validations are complete, we write the
-    // patch event to the patch document store (if requested).  A failure
-    // at this point means we've logged a patch that wasn't applied,
-    // but this is better than not having a log of patch that was applied.
-    if (props.storePatch) {
-      ensureStorePatchesConfig(
-        this.patchDocTypeName,
-        this.patchDocStoreParams,
+      executePatch(
+        props.docTypeName,
+        docType.readOnlyFieldNames,
+        doc as Doc,
+        props.patch,
       );
 
-      const patchDoc = {
-        id: props.operationId,
-        docType: this.patchDocTypeName!,
-        patchedDocId: props.id,
-        patchedDocType: props.docTypeName,
-        patch: props.patch,
-      };
+      appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
+
+      appendDocDigest(doc, digest, docType.policy?.maxDigests);
 
       applyCommonFieldValuesToDoc(
-        patchDoc,
+        doc,
         this.getMillisecondsSinceEpoch(),
         props.userId,
         this.getNewDocVersion(),
       );
 
-      await this.safeDocStore.upsert(
-        this.patchDocTypeName!,
-        props.storePatchPartition || partition,
-        patchDoc,
-        null,
-        this.patchDocStoreParams!,
+      executeValidateDoc(
+        props.docTypeName,
+        docType.validateFields,
+        docType.validateDoc,
+        doc as Doc,
       );
+
+      ensureDocSystemFields(props.docTypeName, doc as Doc);
+
+      // Once all the document validations are complete, we write the
+      // patch event to the patch document store (if requested).  A failure
+      // at this point means we've logged a patch that wasn't applied,
+      // but this is better than not having a log of patch that was applied.
+      if (props.storePatch) {
+        ensureStorePatchesConfig(
+          this.patchDocTypeName,
+          this.patchDocStoreParams,
+        );
+
+        const patchDoc = {
+          id: props.operationId,
+          docType: this.patchDocTypeName!,
+          patchedDocId: props.id,
+          patchedDocType: props.docTypeName,
+          patch: props.patch,
+        };
+
+        applyCommonFieldValuesToDoc(
+          patchDoc,
+          this.getMillisecondsSinceEpoch(),
+          props.userId,
+          this.getNewDocVersion(),
+        );
+
+        await this.safeDocStore.upsert(
+          this.patchDocTypeName!,
+          props.storePatchPartition || partition,
+          patchDoc,
+          null,
+          this.patchDocStoreParams!,
+        );
+      }
+
+      const upsertResult = await this.safeDocStore.upsert(
+        props.docTypeName,
+        partition,
+        doc as unknown as DocStoreRecord,
+        props.reqVersion || loadedDocVersion,
+        docType.docStoreParams,
+      );
+
+      ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
     }
-
-    const upsertResult = await this.safeDocStore.upsert(
-      props.docTypeName,
-      partition,
-      doc as unknown as DocStoreRecord,
-      props.reqVersion || loadedDocVersion,
-      docType.docStoreParams,
-    );
-
-    ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
 
     return {
       doc: doc as Doc,
@@ -507,9 +579,10 @@ export class Sengi<
   }
 
   /**
-   * Replaces (or inserts) a document.
-   * Unlike the newDocument function, this function will replace an existing document.
-   * It will not attempt to set the common fields (e.g. docOpIds or docLastUpdatedByUserId).
+   * Replaces a document.
+   * This function will not attempt to set the common fields (e.g. docOpIds or docLastUpdatedByUserId)
+   * or raise change events. This is intended for migrations where explicit control over the contents of
+   * the written file is required.
    * @param props A property bag.
    */
   async replaceDocument<Doc extends DocBase>(

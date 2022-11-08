@@ -13,6 +13,7 @@ function createDocTypes() {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
+    changeEventFieldNames: [],
   }, {
     name: "example",
     docStoreParams: "",
@@ -20,6 +21,7 @@ function createDocTypes() {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
+    changeEventFieldNames: [],
   }];
 
   return docTypes;

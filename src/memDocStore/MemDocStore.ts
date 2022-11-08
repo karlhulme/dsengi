@@ -7,7 +7,6 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreExistsResult,
   DocStoreFetchResult,
-  DocStorePendingSyncResult,
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
@@ -191,25 +190,24 @@ export class MemDocStore implements
   }
 
   /**
-   * Selects all documents that are pending synchronisation
+   * Selects the documents that contain the digest.
    * @param docTypeName The type of document.
+   * @param partition The partition.
+   * @param digest A digest to search for.
    * @param _docStoreParams The parameters for the document store.
    */
-  async selectPendingSync(
+  async selectByDigest(
     docTypeName: string,
+    partition: string,
+    digest: string,
     _docStoreParams: MemDocStoreParams,
-  ): Promise<DocStorePendingSyncResult> {
-    const matchedDocs = this.docs.filter((d) =>
-      d.docType === docTypeName && d.lastSyncedMillisecondsSinceEpoch === 0
-    );
-    return {
-      docHeaders: matchedDocs.map((d) => ({
-        id: d.id as string,
-        docVersion: d.docVersion as string,
-        partition: d.partitionKey as string,
-      })),
-      queryCharge: 0,
-    };
+  ): Promise<DocStoreSelectResult> {
+    const matchedDocs = this.docs
+      .filter((d) =>
+        d.docType === docTypeName && d.partitionKey === partition &&
+        (d.docDigests as string[]).includes(digest)
+      );
+    return this.buildSelectResult(matchedDocs);
   }
 
   /**

@@ -2,7 +2,6 @@ import { DocStoreRecord } from "./DocStoreRecord.ts";
 import { DocStoreDeleteByIdResult } from "./DocStoreDeleteByIdResult.ts";
 import { DocStoreExistsResult } from "./DocStoreExistsResult.ts";
 import { DocStoreFetchResult } from "./DocStoreFetchResult.ts";
-import { DocStorePendingSyncResult } from "./DocStorePendingSyncResult.ts";
 import { DocStoreQueryResult } from "./DocStoreQueryResult.ts";
 import { DocStoreSelectResult } from "./DocStoreSelectResult.ts";
 import { DocStoreUpsertResult } from "./DocStoreUpsertResult.ts";
@@ -51,12 +50,14 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   ) => Promise<DocStoreQueryResult>;
 
   /**
-   * Select all the documents that are waiting for synchronisation.
+   * Select the documents that are hosting the given digest.
    */
-  selectPendingSync: (
+  selectByDigest: (
     docTypeName: string,
+    partition: string,
+    digest: string,
     docStoreParams: DocStoreParams,
-  ) => Promise<DocStorePendingSyncResult>;
+  ) => Promise<DocStoreSelectResult>;
 
   /**
    * Select all the documents of one document type from a collection.

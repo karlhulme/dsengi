@@ -14,7 +14,7 @@ Deno.test("Reject patch settings without a patch name.", () => {
   );
 });
 
-Deno.test("Reject patch settings without a patch name.", () => {
+Deno.test("Reject patch settings without params.", () => {
   assertThrows(
     () => ensureStorePatchesConfig("valid", undefined),
     SengiMissingPatchConfigError,

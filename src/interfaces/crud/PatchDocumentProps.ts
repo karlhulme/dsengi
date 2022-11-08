@@ -54,7 +54,7 @@ export interface PatchDocumentProps<
   patch: Omit<PartialNullable<Doc>, OmittedDocFieldNames>;
 
   /**
-   * True if the patch should be written to the changes container
+   * True if the patch should be written to the patches container
    * of the document store.
    */
   storePatch?: boolean;
@@ -65,6 +65,19 @@ export interface PatchDocumentProps<
    * partition property is used.
    */
   storePatchPartition?: string;
+
+  /**
+   * True if a change event should be written to the changeEvents container
+   * of the document store and then later raised as an event.
+   */
+  raiseChangeEvent?: boolean;
+
+  /**
+   * The name of the partition where the change event should be stored.
+   * If raiseChangeEvent is true, but this value is omitted, then the
+   * partition property is used.
+   */
+  raiseChangeEventPartition?: string;
 
   /**
    * The required version of the document.  If specified, then this

@@ -18,7 +18,6 @@ const newCarTemplate: Partial<Car> = {
 
 Deno.test("Adding a new document should call exists and then upsert on doc store.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
@@ -70,7 +69,6 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
 
 Deno.test("Adding a new document with an explicit id.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
-    fetch: async () => ({ doc: null }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
 
@@ -122,10 +120,27 @@ Deno.test("Adding a new document with an explicit id.", async () => {
   ));
 });
 
-Deno.test("Fail to add a new document that does not pass validation.", async () => {
-  const { sengi } = createSengiWithMockStore({
-    fetch: async () => ({ doc: null }),
+Deno.test("Do not create a document if one already exists with the same digest.", async () => {
+  const { docStore, sengi } = createSengiWithMockStore({
+    selectByDigest: async () => ({ docs: [{ id: "abcd" }] }),
   });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.newDocument<Car>({
+    ...defaultRequestProps,
+    operationId: "00000000-0000-0000-0000-111122223333",
+    doc: {
+      ...newCarTemplate,
+      registration: "HZ12 3AB",
+    },
+  });
+
+  assertEquals(spyUpsert.callCount, 0);
+});
+
+Deno.test("Fail to add a new document that does not pass validation.", async () => {
+  const { sengi } = createSengiWithMockStore();
 
   assertRejects(async () => {
     await sengi.newDocument<Car>({
