@@ -1,5 +1,6 @@
 export * from "./appendDocOpId.ts";
 export * from "./applyCommonFieldValuesToDoc.ts";
+export * from "./buildChangedFieldBlock.ts";
 export * from "./coerceQueryResult.ts";
 export * from "./createDigest.ts";
 export * from "./ensureCanDeleteDocuments.ts";

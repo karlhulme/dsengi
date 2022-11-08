@@ -69,7 +69,7 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
       }
     },
     newId: () => "00000000-1234-1234-1234-000000000000",
-    changeEventFieldNames: [],
+    changeEventFieldNames: ["manufacturer"],
   };
 }
 
@@ -138,6 +138,7 @@ export const createSengiWithMockStore = (
     getNewDocVersion: () => "1111-2222",
     cacheSize: 100,
     patchDocStoreParams: { custom: "patch-props" },
+    changeEventDocStoreParams: { custom: "change-event-props" },
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     DocTypeNames,
     TestDocStoreParams,

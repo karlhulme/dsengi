@@ -11,6 +11,7 @@ import {
   DocStoreRecord,
   DocStoreUpsertResultCode,
   DocType,
+  DocumentChangedProps,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
   NewDocumentProps,
@@ -38,6 +39,7 @@ import { generateNewDocumentId } from "../docTypes/generateNewDocumentId.ts";
 import {
   appendDocOpId,
   applyCommonFieldValuesToDoc,
+  buildChangedFieldBlock,
   coerceQueryResult,
   createDigest,
   ensureCanDeleteDocuments,
@@ -176,6 +178,7 @@ export class Sengi<
   private patchDocStoreParams?: DocStoreParams;
   private changeEventDocTypeName: string;
   private changeEventDocStoreParams?: DocStoreParams;
+  private documentChanged?: () => Promise<void>;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -217,6 +220,8 @@ export class Sengi<
     this.changeEventDocTypeName = props.changeEventDocTypeName ||
       DEFAULT_CHANGE_EVENT_DOC_TYPE_NAME;
     this.changeEventDocStoreParams = props.changeEventDocStoreParams;
+
+    this.documentChanged = props.documentChanged;
   }
 
   /**
@@ -256,19 +261,17 @@ export class Sengi<
 
     const loadedDocVersion = doc.docVersion as string;
 
-    // if (props.raiseChangeEvent) {
-    //   ensureRaiseChangeEventsConfig(
-    //     this.changeEventDocTypeName,
-    //     this.changeEventDocStoreParams,
-    //   );
-
-    // load existing changeEvent
-
-    // if not found,
-    //  create one by extracting the changeEventFieldNames specified on the doc type
-    //  use preMutationFieldValues and postMutationFieldValues
-    //  and store it
-    // }
+    const changeEvent = await this.buildChangeEvent(
+      "archive",
+      Boolean(props.raiseChangeEvent),
+      props.raiseChangeEventPartition,
+      docType.changeEventFieldNames,
+      props.docTypeName,
+      partition,
+      doc,
+      digest,
+      props.userId,
+    );
 
     const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
 
@@ -303,9 +306,9 @@ export class Sengi<
       ensureUpsertSuccessful(result, false);
     }
 
-    // if (props.raiseChangeEvent) {
-    // raise the change event, using the changeEventProps stored earlier
-    // }
+    if (props.raiseChangeEvent) {
+      console.log(changeEvent);
+    }
 
     return {
       isArchived: !isAlreadyArchived,
@@ -315,7 +318,8 @@ export class Sengi<
 
   /**
    * Deletes an existing document.
-   * If the document does not exist then the call succeeds but indicates that a document was not actually deleted.
+   * If the document does not exist then the call succeeds but the properties on the returned
+   * object indicates that a document was not actually deleted.
    * @param props A property bag.
    */
   async deleteDocument(
@@ -331,12 +335,39 @@ export class Sengi<
 
     ensureCanDeleteDocuments(docType);
 
+    const digest = await createDigest(props.operationId, "delete");
+
+    const existingDoc = props.raiseChangeEvent
+      ? await this.safeDocStore.fetch(
+        props.docTypeName,
+        partition,
+        props.id,
+        docType.docStoreParams,
+      )
+      : null;
+
+    const changeEvent = await this.buildChangeEvent(
+      "delete",
+      Boolean(props.raiseChangeEvent),
+      props.raiseChangeEventPartition,
+      docType.changeEventFieldNames,
+      props.docTypeName,
+      partition,
+      existingDoc?.doc || null,
+      digest,
+      props.userId,
+    );
+
     const deleteByIdResult = await this.safeDocStore.deleteById(
       props.docTypeName,
       partition,
       props.id,
       docType.docStoreParams,
     );
+
+    if (changeEvent) {
+      console.log(changeEvent);
+    }
 
     const isDeleted =
       deleteByIdResult.code === DocStoreDeleteByIdResultCode.DELETED;
@@ -800,5 +831,91 @@ export class Sengi<
     return {
       doc: result.docs[0] as Doc,
     };
+  }
+
+  private async buildChangeEvent(
+    action: string,
+    raiseChangeEvent: boolean,
+    raiseChangeEventPartition: undefined | string,
+    changeEventFieldNames: string[],
+    docTypeName: string,
+    docPartition: string,
+    doc: DocStoreRecord | null, // Not available when re-deleting a document.
+    digest: string,
+    userId: string,
+  ): Promise<DocumentChangedProps | null> {
+    if (!raiseChangeEvent) {
+      return null;
+    }
+
+    const changeEventDocPartition = raiseChangeEventPartition || docPartition;
+
+    ensureRaiseChangeEventsConfig(
+      this.documentChanged,
+      this.changeEventDocTypeName,
+      this.changeEventDocStoreParams,
+    );
+
+    const existingChangeEvent = await this.safeDocStore.fetch(
+      this.changeEventDocTypeName,
+      changeEventDocPartition,
+      digest,
+      this.changeEventDocStoreParams!,
+    );
+
+    if (existingChangeEvent.doc) {
+      return {
+        digest: existingChangeEvent.doc.id as string,
+        action: existingChangeEvent.doc.action as string,
+        subjectId: existingChangeEvent.doc.subjectId as string,
+        subjectDocType: existingChangeEvent.doc.subjectDocType as string,
+        preChangeFields: existingChangeEvent.doc.preChangeFields as Record<
+          string,
+          unknown
+        >,
+        postChangeFields: existingChangeEvent.doc.postChangeFields as Record<
+          string,
+          unknown
+        >,
+        timestampInMilliseconds: existingChangeEvent.doc.timestamp as number,
+        changeUserId: existingChangeEvent.doc.changeUserId as string,
+      };
+    } else if (doc) {
+      const changeEvent: DocumentChangedProps = {
+        digest,
+        action,
+        subjectId: doc.id as string,
+        subjectDocType: docTypeName,
+        preChangeFields: buildChangedFieldBlock(doc, changeEventFieldNames),
+        postChangeFields: {},
+        timestampInMilliseconds: this.getMillisecondsSinceEpoch(),
+        changeUserId: userId,
+      };
+
+      const changeEventDoc = {
+        id: digest,
+        docType: this.changeEventDocTypeName,
+        ...changeEvent,
+      };
+
+      applyCommonFieldValuesToDoc(
+        changeEventDoc,
+        this.getMillisecondsSinceEpoch(),
+        userId,
+        this.getNewDocVersion(),
+      );
+
+      await this.safeDocStore.upsert(
+        this.changeEventDocTypeName,
+        changeEventDocPartition,
+        changeEventDoc,
+        null,
+        this.changeEventDocStoreParams!,
+      );
+
+      return changeEvent;
+    } else {
+      return null;
+    }
   }
 }

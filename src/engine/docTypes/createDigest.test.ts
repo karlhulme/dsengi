@@ -27,6 +27,18 @@ Deno.test("Generate a digest for an archive operation without any params or sequ
   );
 });
 
+Deno.test("Generate a digest for a delete operation without any params or sequence number.", async () => {
+  const result = await createDigest(
+    "00000000-0000-0000-0000-000000001111",
+    "delete",
+  );
+
+  assertEquals(
+    result,
+    "1111:D0:9967d8e62faf9757929d0eb281c4c073fc087a4c",
+  );
+});
+
 Deno.test("Generate a digest for an unknown operation without any params or sequence number.", async () => {
   const result = await createDigest(
     "00000000-0000-0000-0000-000000001111",

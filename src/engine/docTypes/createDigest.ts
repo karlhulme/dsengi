@@ -1,7 +1,7 @@
 /**
  * The type of document mutation.
  */
-export type DocMutationType = "create" | "patch" | "archive";
+export type DocMutationType = "create" | "delete" | "patch" | "archive";
 
 /**
  * Returns a digest that represents the mutation described
@@ -50,6 +50,8 @@ function convertMutationTypeToLetter(mutationType: DocMutationType) {
       return "A";
     case "create":
       return "C";
+    case "delete":
+      return "D";
     default:
     case "patch":
       return "P";

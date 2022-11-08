@@ -15,6 +15,11 @@ export interface DeleteDocumentProps<
   partition: string | null;
 
   /**
+   * The id of the operation.
+   */
+  operationId: string;
+
+  /**
    * The id of a document.
    */
   id: string;
@@ -31,4 +36,9 @@ export interface DeleteDocumentProps<
    * partition property is used.
    */
   raiseChangeEventPartition?: string;
+
+  /**
+   * The id of the user that is making the request.
+   */
+  userId: string;
 }

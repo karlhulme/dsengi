@@ -1,5 +1,11 @@
 // deno-lint-ignore-file require-await
-import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
+import {
+  assert,
+  assertEquals,
+  assertObjectMatch,
+  assertRejects,
+  spy,
+} from "../../../deps.ts";
 import {
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
@@ -12,25 +18,27 @@ import {
   defaultRequestProps,
 } from "./shared.test.ts";
 
+const createDoc = () => ({
+  id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+  docType: "car",
+  docStatus: "active",
+  docVersion: "aaaa",
+  docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+  docDigests: [
+    "9999:A0:6ac951d1db683edc4a3bde31842608f45919b6b4",
+  ],
+  manufacturer: "ford",
+  model: "ka",
+  registration: "HG12 3AB",
+});
+
 const createSengiForTest = (
   upsertResponse?: DocStoreUpsertResult,
   sengiCtorOverrides?: Record<string, unknown>,
 ) => {
   return createSengiWithMockStore({
     fetch: async () => ({
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-        docType: "car",
-        docStatus: "active",
-        docVersion: "aaaa",
-        docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
-        docDigests: [
-          "9999:A0:6ac951d1db683edc4a3bde31842608f45919b6b4",
-        ],
-        manufacturer: "ford",
-        model: "ka",
-        registration: "HG12 3AB",
-      },
+      doc: createDoc(),
     }),
     upsert: async () =>
       upsertResponse || ({ code: DocStoreUpsertResultCode.REPLACED }),
@@ -179,4 +187,90 @@ Deno.test("Reject an attempt to archive a non-existent doc.", async () => {
       operationId: "00000000-0000-0000-0000-111122223333",
       id: "06151119-065a-4691-a7c8-aaaaaaaaaaaa",
     }), SengiDocNotFoundError);
+});
+
+Deno.test("Raise an event when archiving a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore({
+    fetch: async (docTypeName: string, _partition: string, _id: string) => {
+      if (docTypeName === "changeEvent") {
+        return {
+          doc: null,
+        };
+      } else {
+        return {
+          doc: createDoc(),
+        };
+      }
+    },
+    upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
+  }, {
+    documentChanged: async () => {},
+  });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.archiveDocument<Car>({
+    ...defaultRequestProps,
+    raiseChangeEvent: true,
+    operationId: "00000000-0000-0000-0000-111122223333",
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+  });
+
+  // First upsert is the event, second upsert is the doc being archived.
+  assertEquals(spyUpsert.callCount, 2);
+
+  assertEquals(spyUpsert.args[0][0], "changeEvent");
+  assertEquals(spyUpsert.args[0][1], "_central");
+  assertObjectMatch(spyUpsert.args[0][2], {
+    action: "archive",
+    changeUserId: "user-0001",
+    digest: "3333:A0:2d049793436193a9329dd590873023a004d10d48",
+    postChangeFields: {},
+    preChangeFields: {
+      manufacturer: "ford",
+    },
+    subjectDocType: "car",
+    subjectId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    timestampInMilliseconds: 1629881470000,
+  });
+});
+
+Deno.test("Raise a pre-saved event when archiving a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore({
+    fetch: async (docTypeName: string, _partition: string, _id: string) => {
+      if (docTypeName === "changeEvent") {
+        return {
+          doc: {
+            digest: "abcd",
+            action: "archive",
+            preChangeFields: {
+              manufacturer: "ford",
+            },
+            subjectDocType: "car",
+            timestampInMilliseconds: 1629881000000,
+          },
+        };
+      } else {
+        return {
+          doc: createDoc(),
+        };
+      }
+    },
+    upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
+  }, {
+    documentChanged: async () => {},
+  });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.archiveDocument<Car>({
+    ...defaultRequestProps,
+    raiseChangeEvent: true,
+    raiseChangeEventPartition: "diffPartition",
+    operationId: "00000000-0000-0000-0000-111122223333",
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+  });
+
+  // Only one upsert because the event was retrieved
+  assertEquals(spyUpsert.callCount, 1);
 });

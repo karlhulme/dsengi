@@ -1,4 +1,4 @@
-import { SengiMissingPatchConfigError } from "../../interfaces/index.ts";
+import { SengiMissingChangeEventsConfigError } from "../../interfaces/index.ts";
 
 /**
  * Raises an error if the raise-change-events settings have not been set.
@@ -7,14 +7,19 @@ import { SengiMissingPatchConfigError } from "../../interfaces/index.ts";
  * store when writing new change events.
  */
 export function ensureRaiseChangeEventsConfig<DocStoreParams>(
+  documentChanged?: () => Promise<void>,
   changeEventsDocTypeName?: string,
   changeEventsDocStoreParams?: DocStoreParams,
 ) {
+  if (typeof documentChanged !== "function") {
+    throw new SengiMissingChangeEventsConfigError("documentChanged");
+  }
+
   if (typeof changeEventsDocTypeName !== "string") {
-    throw new SengiMissingPatchConfigError("changeEventsDocTypeName");
+    throw new SengiMissingChangeEventsConfigError("changeEventsDocTypeName");
   }
 
   if (!changeEventsDocStoreParams) {
-    throw new SengiMissingPatchConfigError("changeEventsDocStoreParams");
+    throw new SengiMissingChangeEventsConfigError("changeEventsDocStoreParams");
   }
 }

@@ -62,20 +62,29 @@ issued commands because all mutations are idempotent.
 - DELETE instructions can all be repeated because the end result is the same. A
   digest is not written to the file for this.
 
-### Querying data across multiple collections
+### Change events
 
-Build concrete views with data pulled from the isolated collections. This should
-be done by handling the change events feed that Sengi provides.
+It can b useful to handle change events in order to build concrete denomalised
+views by combining records from the isolated collections. These denormalised
+records need to be updated (perhaps on a throttle) whenever a constituent record
+changes.
+
+We do not rely on the underlying change feed of the document store because these
+don't always provide the fidilty required. For example, Cosmos does not include
+deletions in the change feed, and it does include the before/after fields of
+each change.
 
 Before any mutation is attempted a change event is created and written to a
-container. Once the mutation has been successfully applied the change event will
-be raised. If the hanlder for the change event raises an error, then an error
-will be raised for the whole mutation, even though the document was successfully
-mutated. The mutation can be replayed, thanks to the idempontent nature of
-mutations, allowing the change event to be handled successfully.
+container. This change event includes the values of the changeEventFieldNames
+(defined on the docType) both before and after the mutation. Once the mutation
+has been successfully applied the change event is raised. If the hanlder for the
+change event raises an error, then an error will be raised for the whole
+mutation, even though the document was successfully mutated. The mutation can be
+replayed, thanks to the idempontent nature of mutations, allowing the change
+event to be handled successfully.
 
-Therefore, change events are guaranteed to be delivered at least once. Duplicate
-change events will carry the same payload as the original.
+Change events are guaranteed to be delivered at least once. Duplicate change
+events will carry the same payload as the original change event.
 
 ### Batch updates
 
