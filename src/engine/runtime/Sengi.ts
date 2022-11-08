@@ -302,7 +302,7 @@ export class Sengi<
 
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
-    const id = generateNewDocumentId(docType);
+    const id = props.explicitId || generateNewDocumentId(docType);
 
     const partition = ensurePartition(
       props.partition,

@@ -38,9 +38,24 @@ export interface NewDocumentProps<
   operationId: string;
 
   /**
+   * A mechanism for providing idempotency when creating many
+   * documents using identical parameters.  If creating documents in a
+   * loop, pass the loop variable as the sequence number.
+   */
+  sequenceNo?: string;
+
+  /**
    * The new document.  All of the system fields will be added automatically.
    */
   doc: Partial<Omit<Doc, OmittedDocFieldNames>>;
+
+  /**
+   * If supplied, this value will be used as the id of the new document.
+   * This will be used instead of the generator function supplied for
+   * the document type.  If a document with the given id already exists it
+   * will be replaced.
+   */
+  explicitId?: string;
 
   /**
    * The id of the user that is making the request.

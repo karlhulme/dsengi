@@ -55,7 +55,7 @@ export interface PatchDocumentProps<
   /**
    * The name of the partition where the patch should be stored.
    * If storePatch is true, but this value is omitted, then the
-   * partition field is used instead.
+   * partition property is used.
    */
   storePatchPartition?: string;
 
