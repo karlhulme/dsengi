@@ -11,12 +11,12 @@ function createDoc(): DocBase {
     docType: "test",
     docStatus: "active",
     docOpIds: [],
+    docDigests: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
-    docLastSyncedMillisecondsSinceEpoch: 1234,
   };
 }
 
@@ -66,6 +66,17 @@ Deno.test("A doc with an invalid docOpIds array is rejected.", () => {
   );
 });
 
+Deno.test("A doc with an invalid docDigests array is rejected.", () => {
+  const doc = createDoc();
+  const docRecord = doc as unknown as Record<string, unknown>;
+  delete docRecord.docDigests;
+  assertThrows(
+    () => ensureDocSystemFields("test", doc),
+    SengiDocValidationFailedError,
+    "docDigests property",
+  );
+});
+
 Deno.test("A doc with an invalid docCreatedByUserId property is rejected.", () => {
   const doc = createDoc();
   const docRecord = doc as unknown as Record<string, unknown>;
@@ -107,16 +118,5 @@ Deno.test("A doc with an invalid docLastUpdatedMillisecondsSinceEpoch property i
     () => ensureDocSystemFields("test", doc),
     SengiDocValidationFailedError,
     "docLastUpdatedMillisecondsSinceEpoch property",
-  );
-});
-
-Deno.test("A doc with an invalid docLastSyncedMillisecondsSinceEpoch property is rejected.", () => {
-  const doc = createDoc();
-  const docRecord = doc as unknown as Record<string, unknown>;
-  delete docRecord.docLastSyncedMillisecondsSinceEpoch;
-  assertThrows(
-    () => ensureDocSystemFields("test", doc),
-    SengiDocValidationFailedError,
-    "docLastSyncedMillisecondsSinceEpoch property",
   );
 });

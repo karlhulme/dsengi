@@ -17,12 +17,12 @@ function createDoc(): ExampleDoc {
     docType: "test",
     docStatus: "active",
     docOpIds: [],
+    docDigests: [],
     docVersion: "1234",
     docCreatedMillisecondsSinceEpoch: 1234,
     docCreatedByUserId: "anon",
     docLastUpdatedMillisecondsSinceEpoch: 1234,
     docLastUpdatedByUserId: "anon",
-    docLastSyncedMillisecondsSinceEpoch: 1234,
   };
 }
 

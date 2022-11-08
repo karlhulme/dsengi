@@ -44,6 +44,15 @@ export function ensureDocSystemFields(docTypeName: string, doc: DocBase): void {
     );
   }
 
+  // appendDocIdempKey and applyCommonFieldValuesToDoc both repair docKeyIdemps so this check
+  // should only fail if validateDoc or preSave corrupts this field.
+  if (!Array.isArray(doc.docDigests)) {
+    throw new SengiDocValidationFailedError(
+      docTypeName,
+      `Document must have docDigests property of type array.`,
+    );
+  }
+
   // applyCommonFieldValuesToDoc repairs these fields so these checks should only fail if validateDoc or preSave corrupts these field.
   if (typeof doc.docCreatedMillisecondsSinceEpoch !== "number") {
     throw new SengiDocValidationFailedError(
@@ -67,12 +76,6 @@ export function ensureDocSystemFields(docTypeName: string, doc: DocBase): void {
     throw new SengiDocValidationFailedError(
       docTypeName,
       "Document must have docLastUpdatedByUserId property of type string.",
-    );
-  }
-  if (typeof doc.docLastSyncedMillisecondsSinceEpoch !== "number") {
-    throw new SengiDocValidationFailedError(
-      docTypeName,
-      "Document must have docLastSyncedMillisecondsSinceEpoch property of type number.",
     );
   }
 }

@@ -28,6 +28,11 @@ export interface DocBase {
   docOpIds: string[];
 
   /**
+   * An array of operation digests that represent the mutations made to this document.
+   */
+  docDigests: string[];
+
+  /**
    * The number of milliseconds that have elapsed between the unix epoch
    * and the document being created.
    */
@@ -48,12 +53,6 @@ export interface DocBase {
    * The id of the user that last updated the document.
    */
   docLastUpdatedByUserId: string;
-
-  /**
-   * The number of milliseconds that have elapsed between the unix epoch
-   * and the document being synchronised by a records service.
-   */
-  docLastSyncedMillisecondsSinceEpoch?: number;
 
   /**
    * The number of milliseconds that have elapsed between the unix epoch

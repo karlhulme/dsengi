@@ -33,12 +33,19 @@ export const DocSystemFieldNames = [
   "docVersion",
 
   /**
-   * 'docOpIds' stores an array of operation ids that is used to prevent
-   * the same operation from being applied multiple times.  You can specify
-   * as part of the policy of a document type how many document operation ids
-   * to store.
+   * 'docOpIds' stores an array of operation ids that can be used to find
+   * all the documents that have been amended as a consequence of a single
+   * operation.
    */
   "docOpIds",
+
+  /**
+   * 'docDigests' stores an array of digests that are used to prevent
+   * the same mutation from being applied multiple times.  You can specify
+   * as part of the policy of a document type how many document digests
+   * to store.
+   */
+  "docDigests",
 
   /**
    * 'docCreatedByUserId' stores the id of the user that created the document.
@@ -72,10 +79,4 @@ export const DocSystemFieldNames = [
    * the unix epoch when the document was archived.
    */
   "docArchivedMillisecondsSinceEpoch",
-
-  /**
-   * 'docLastSyncedMillisecondsSinceEpoch' stores the number of milliseconds since
-   * the unix epoch and when the document was last synchronised by a record service..
-   */
-  "docLastSyncedMillisecondsSinceEpoch",
 ];

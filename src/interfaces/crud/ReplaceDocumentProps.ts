@@ -3,13 +3,13 @@ import { DocBase } from "../doc/index.ts";
 type OmittedDocFieldNames =
   | "docVersion"
   | "docOpIds"
+  | "docDigests"
   | "docCreatedByUserId"
   | "docCreatedMillisecondsSinceEpoch"
   | "docLastUpdatedByUserId"
   | "docLastUpdatedMillisecondsSinceEpoch"
   | "docArchivedByUserId"
-  | "docArchivedMillisecondsSinceEpoch"
-  | "docLastSyncedMillisecondsSinceEpoch";
+  | "docArchivedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to replace a document.

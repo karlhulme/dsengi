@@ -6,13 +6,13 @@ type OmittedDocFieldNames =
   | "docStatus"
   | "docVersion"
   | "docOpIds"
+  | "docDigests"
   | "docCreatedByUserId"
   | "docCreatedMillisecondsSinceEpoch"
   | "docLastUpdatedByUserId"
   | "docLastUpdatedMillisecondsSinceEpoch"
   | "docArchivedByUserId"
-  | "docArchivedMillisecondsSinceEpoch"
-  | "docLastSyncedMillisecondsSinceEpoch";
+  | "docArchivedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to patch a document.
@@ -40,6 +40,13 @@ export interface PatchDocumentProps<
    * The id of the operation.
    */
   operationId: string;
+
+  /**
+   * A mechanism for providing idempotency when updating many
+   * documents using identical parameters.  If updating documents in a
+   * loop, pass the loop variable as the sequence number.
+   */
+  sequenceNo?: string;
 
   /**
    * The patch to be applied.

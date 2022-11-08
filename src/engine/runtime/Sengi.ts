@@ -13,7 +13,6 @@ import {
   DocType,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
-  MarkDocumentSyncedProps,
   NewDocumentProps,
   NewDocumentResult,
   PatchDocumentProps,
@@ -28,19 +27,19 @@ import {
   SelectDocumentsByFilterResult,
   SelectDocumentsByIdsProps,
   SelectDocumentsByIdsResult,
-  SelectDocumentsPendingSyncProps,
-  SelectDocumentsPendingSyncResult,
   SelectDocumentsProps,
   SelectDocumentsResult,
   SengiDocNotFoundError,
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
+import { appendDocDigest } from "../docTypes/appendDocDigest.ts";
 import { ensurePartition } from "../docTypes/ensurePartition.ts";
 import { generateNewDocumentId } from "../docTypes/generateNewDocumentId.ts";
 import {
   appendDocOpId,
   applyCommonFieldValuesToDoc,
   coerceQueryResult,
+  createDigest,
   ensureCanDeleteDocuments,
   ensureCanFetchWholeCollection,
   ensureCanReplaceDocuments,
@@ -199,6 +198,8 @@ export class Sengi<
       this.validateUserId,
     );
 
+    const digest = await createDigest(props.operationId, "archive");
+
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
     const partition = ensurePartition(
@@ -233,6 +234,8 @@ export class Sengi<
         props.userId,
         this.getNewDocVersion(),
       );
+
+      appendDocDigest(doc, digest, docType.policy?.maxDigests);
 
       appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
@@ -300,6 +303,13 @@ export class Sengi<
       this.validateUserId,
     );
 
+    const digest = await createDigest(
+      props.operationId,
+      "create",
+      props.doc,
+      props.sequenceNo,
+    );
+
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
     const id = props.explicitId || generateNewDocumentId(docType);
@@ -316,6 +326,7 @@ export class Sengi<
     doc.docType = props.docTypeName;
     doc.docStatus = DocStatuses.Active;
     doc.docOpIds = [props.operationId];
+    doc.docDigests = [digest];
 
     applyCommonFieldValuesToDoc(
       doc,
@@ -361,6 +372,13 @@ export class Sengi<
       this.validateUserId,
     );
 
+    const digest = await createDigest(
+      props.operationId,
+      "patch",
+      props.patch,
+      props.sequenceNo,
+    );
+
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
     const partition = ensurePartition(
@@ -392,6 +410,8 @@ export class Sengi<
     );
 
     appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
+
+    appendDocDigest(doc, digest, docType.policy?.maxDigests);
 
     applyCommonFieldValuesToDoc(
       doc,
@@ -540,81 +560,6 @@ export class Sengi<
       isNew,
       doc,
     };
-  }
-
-  /**
-   * Selects the identifying keys of the documents that need
-   * to be synchronised.
-   * @param props A property bag.
-   */
-  async selectDocumentsPendingSync(
-    props: SelectDocumentsPendingSyncProps<DocTypeNames>,
-  ): Promise<SelectDocumentsPendingSyncResult> {
-    const docHeaders = await Promise.all(
-      props.queries.map(async (query) => {
-        const docType = selectDocTypeFromArray(
-          this.docTypes,
-          query.docTypeName,
-        );
-
-        const pendingSyncResult = await this.safeDocStore.selectPendingSync(
-          query.docTypeName,
-          docType.docStoreParams,
-        );
-
-        return pendingSyncResult.docHeaders.map((r) => ({
-          id: r.id,
-          docTypeName: query.docTypeName,
-          partition: r.partition,
-          docVersion: r.docVersion,
-        }));
-      }),
-    );
-
-    return {
-      docHeaders: docHeaders.flat(1),
-    };
-  }
-
-  /**
-   * Marks the specified document as being synchronised.
-   * @param props A property bag.
-   */
-  async markDocumentSynced(
-    props: MarkDocumentSyncedProps<DocTypeNames>,
-  ): Promise<void> {
-    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
-
-    const partition = ensurePartition(
-      props.partition,
-      this.centralPartitionName,
-      docType.useSinglePartition,
-    );
-
-    const fetchResult = await this.safeDocStore.fetch(
-      props.docTypeName,
-      partition,
-      props.id,
-      docType.docStoreParams,
-    );
-
-    const doc = ensureDocWasFound(
-      props.docTypeName,
-      props.id,
-      fetchResult.doc as Partial<DocBase>,
-    );
-
-    doc.docLastSyncedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
-
-    const upsertResult = await this.safeDocStore.upsert(
-      props.docTypeName,
-      partition,
-      doc as unknown as DocStoreRecord,
-      props.reqVersion,
-      docType.docStoreParams,
-    );
-
-    ensureUpsertSuccessful(upsertResult, true);
   }
 
   /**

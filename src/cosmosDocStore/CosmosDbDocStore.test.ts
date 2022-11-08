@@ -99,6 +99,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
     {
       id: "02",
@@ -109,6 +110,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
     {
       id: "03",
@@ -119,6 +121,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
   ];
 
@@ -147,6 +150,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
     {
       id: "02",
@@ -158,6 +162,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
     {
       id: "03",
@@ -169,6 +174,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 1234,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
     {
       id: "04",
@@ -180,6 +186,7 @@ async function initDb(): Promise<void> {
       lastSyncedMillisecondsSinceEpoch: 0,
       docVersion: "not_used",
       docOpIds: [],
+      docDigests: [],
     },
   ];
 
@@ -337,6 +344,7 @@ Deno.test("A document can be fetched.", async () => {
     name: "beech",
     heightInCms: 225,
     docOpIds: [],
+    docDigests: [],
   });
 });
 
@@ -375,6 +383,7 @@ Deno.test("A document can be fetched from a container that uses a partition key 
     environment: "forest",
     heightInCms: 225,
     docOpIds: [],
+    docDigests: [],
   });
 });
 
@@ -672,6 +681,7 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     heightInCms: 150,
     docVersion: "ignore_me",
     docOpIds: [],
+    docDigests: [],
   };
   assertEquals(
     await docStore.upsert("tree", TestPartition, doc, null, {
@@ -710,6 +720,7 @@ Deno.test("Update an existing document.", async () => {
     heightInCms: 123,
     docVersion: "not_used",
     docOpIds: [],
+    docDigests: [],
   };
   assertEquals(
     await docStore.upsert("tree", TestPartition, doc, null, {
@@ -752,6 +763,7 @@ Deno.test("Update an existing document with a required version.", async () => {
     heightInCms: 123,
     docVersion: "not_used",
     docOpIds: [],
+    docDigests: [],
   };
   assertEquals(
     await docStore.upsert("tree", TestPartition, doc, reqVersion, {
@@ -788,6 +800,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
     heightInCms: 123,
     docVersion: "not_used",
     docOpIds: [],
+    docDigests: [],
   };
   assertEquals(
     await docStore.upsert("tree", TestPartition, doc, "bbbb", {

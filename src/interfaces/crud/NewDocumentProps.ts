@@ -6,13 +6,13 @@ type OmittedDocFieldNames =
   | "docStatus"
   | "docVersion"
   | "docOpIds"
+  | "docDigests"
   | "docCreatedByUserId"
   | "docCreatedMillisecondsSinceEpoch"
   | "docLastUpdatedByUserId"
   | "docLastUpdatedMillisecondsSinceEpoch"
   | "docArchivedByUserId"
-  | "docArchivedMillisecondsSinceEpoch"
-  | "docLastSyncedMillisecondsSinceEpoch";
+  | "docArchivedMillisecondsSinceEpoch";
 
 /**
  * Defines the properties that are required to create
