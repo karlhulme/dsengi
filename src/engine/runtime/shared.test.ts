@@ -69,7 +69,7 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
       }
     },
     newId: () => "00000000-1234-1234-1234-000000000000",
-    changeEventFieldNames: ["manufacturer"],
+    changeEventFieldNames: ["manufacturer", "model"],
   };
 }
 

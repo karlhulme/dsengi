@@ -5,13 +5,14 @@ import {
   DeleteDocumentProps,
   DeleteDocumentResult,
   DocBase,
+  DocMutationType,
   DocStatuses,
   DocStore,
   DocStoreDeleteByIdResultCode,
   DocStoreRecord,
   DocStoreUpsertResultCode,
   DocType,
-  DocumentChangedProps,
+  DocumentChangedEventProps,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
   NewDocumentProps,
@@ -261,17 +262,19 @@ export class Sengi<
 
     const loadedDocVersion = doc.docVersion as string;
 
-    const changeEvent = await this.buildChangeEvent(
-      "archive",
-      Boolean(props.raiseChangeEvent),
-      props.raiseChangeEventPartition,
-      docType.changeEventFieldNames,
-      props.docTypeName,
-      partition,
-      doc,
-      digest,
-      props.userId,
-    );
+    const changeEvent = props.raiseChangeEvent
+      ? await this.buildChangeEvent(
+        "archive",
+        props.raiseChangeEventPartition,
+        docType.changeEventFieldNames,
+        props.docTypeName,
+        partition,
+        doc,
+        null,
+        digest,
+        props.userId,
+      )
+      : null;
 
     const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
 
@@ -306,7 +309,7 @@ export class Sengi<
       ensureUpsertSuccessful(result, false);
     }
 
-    if (props.raiseChangeEvent) {
+    if (changeEvent) {
       console.log(changeEvent);
     }
 
@@ -346,17 +349,19 @@ export class Sengi<
       )
       : null;
 
-    const changeEvent = await this.buildChangeEvent(
-      "delete",
-      Boolean(props.raiseChangeEvent),
-      props.raiseChangeEventPartition,
-      docType.changeEventFieldNames,
-      props.docTypeName,
-      partition,
-      existingDoc?.doc || null,
-      digest,
-      props.userId,
-    );
+    const changeEvent = props.raiseChangeEvent
+      ? await this.buildChangeEvent(
+        "delete",
+        props.raiseChangeEventPartition,
+        docType.changeEventFieldNames,
+        props.docTypeName,
+        partition,
+        existingDoc?.doc || null,
+        null,
+        digest,
+        props.userId,
+      )
+      : null;
 
     const deleteByIdResult = await this.safeDocStore.deleteById(
       props.docTypeName,
@@ -413,9 +418,11 @@ export class Sengi<
       docType.docStoreParams,
     );
 
-    if (processedDocs.docs.length === 0) {
-      const doc = props.doc as Partial<Doc>;
+    const doc = processedDocs.docs.length > 0
+      ? processedDocs.docs[0] as Partial<Doc>
+      : props.doc as Partial<Doc>;
 
+    if (processedDocs.docs.length === 0) {
       doc.id = id;
       doc.docType = props.docTypeName;
       doc.docStatus = DocStatuses.Active;
@@ -437,7 +444,24 @@ export class Sengi<
       );
 
       ensureDocSystemFields(props.docTypeName, doc as Doc);
+    }
 
+    const changeEvent = props.raiseChangeEvent
+      ? await this.buildChangeEvent(
+        "create",
+        props.raiseChangeEventPartition,
+        docType.changeEventFieldNames,
+        props.docTypeName,
+        partition,
+        doc as DocStoreRecord,
+        null,
+        digest,
+        props.userId,
+      )
+      : null;
+
+    if (processedDocs.docs.length === 0) {
+      // We have created a new document so we need to upsert it.
       await this.safeDocStore.upsert(
         props.docTypeName,
         partition,
@@ -445,15 +469,15 @@ export class Sengi<
         null,
         docType.docStoreParams,
       );
-
-      return {
-        doc: doc as Doc,
-      };
-    } else {
-      return {
-        doc: processedDocs.docs[0] as unknown as Doc,
-      };
     }
+
+    if (changeEvent) {
+      console.log(changeEvent);
+    }
+
+    return {
+      doc: doc as Doc,
+    };
   }
 
   /**
@@ -499,6 +523,20 @@ export class Sengi<
       fetchResult.doc as unknown as Partial<Doc>,
     );
 
+    const changeEvent = props.raiseChangeEvent
+      ? await this.buildChangeEvent(
+        "patch",
+        props.raiseChangeEventPartition,
+        docType.changeEventFieldNames,
+        props.docTypeName,
+        partition,
+        doc as DocStoreRecord,
+        props.patch as DocStoreRecord,
+        digest,
+        props.userId,
+      )
+      : null;
+
     const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
 
     if (!isDigestProcessed) {
@@ -534,7 +572,7 @@ export class Sengi<
       // Once all the document validations are complete, we write the
       // patch event to the patch document store (if requested).  A failure
       // at this point means we've logged a patch that wasn't applied,
-      // but this is better than not having a log of patch that was applied.
+      // but this is better than not having a log of a patch that was applied.
       if (props.storePatch) {
         ensureStorePatchesConfig(
           this.patchDocTypeName,
@@ -574,6 +612,10 @@ export class Sengi<
       );
 
       ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
+    }
+
+    if (changeEvent) {
+      console.log(changeEvent);
     }
 
     return {
@@ -833,21 +875,34 @@ export class Sengi<
     };
   }
 
+  /**
+   * Returns a DocumentChangedProps object which describes an event, or
+   * null if no event should be raised.  If the event data has been built
+   * previously then the event data is loaded from the events container,
+   * otherwise it is constructed, written to the events container and returned.
+   * @param action The action that triggered this event.
+   * @param raiseChangeEventPartition The partition for the event.  This should
+   * typically be left undefined and the docPartition will be used instead.
+   * @param changeEventFieldNames The names of the fields that should be included
+   * in the event data.
+   * @param docTypeName The type of document that was mutated, triggered the event.
+   * @param docPartition The partition used for the document that was mutated.  If
+   * raiseChangeEventPartition is not specified then this partition will be used.
+   * @param doc The unmodified document that triggered the event.
+   * @param digest The digest associated with the mutation.
+   * @param userId The id of the user that triggered the event.
+   */
   private async buildChangeEvent(
-    action: string,
-    raiseChangeEvent: boolean,
+    action: DocMutationType,
     raiseChangeEventPartition: undefined | string,
     changeEventFieldNames: string[],
     docTypeName: string,
     docPartition: string,
     doc: DocStoreRecord | null, // Not available when re-deleting a document.
+    patch: DocStoreRecord | null, // Only supplied for patch.
     digest: string,
     userId: string,
-  ): Promise<DocumentChangedProps | null> {
-    if (!raiseChangeEvent) {
-      return null;
-    }
-
+  ): Promise<DocumentChangedEventProps | null> {
     const changeEventDocPartition = raiseChangeEventPartition || docPartition;
 
     ensureRaiseChangeEventsConfig(
@@ -869,25 +924,28 @@ export class Sengi<
         action: existingChangeEvent.doc.action as string,
         subjectId: existingChangeEvent.doc.subjectId as string,
         subjectDocType: existingChangeEvent.doc.subjectDocType as string,
-        preChangeFields: existingChangeEvent.doc.preChangeFields as Record<
+        subjectFields: existingChangeEvent.doc.subjectFields as Record<
           string,
           unknown
         >,
-        postChangeFields: existingChangeEvent.doc.postChangeFields as Record<
-          string,
-          unknown
-        >,
+        subjectPatchFields: existingChangeEvent.doc
+          .subjectPatchFields as Record<
+            string,
+            unknown
+          >,
         timestampInMilliseconds: existingChangeEvent.doc.timestamp as number,
         changeUserId: existingChangeEvent.doc.changeUserId as string,
       };
     } else if (doc) {
-      const changeEvent: DocumentChangedProps = {
+      const changeEvent: DocumentChangedEventProps = {
         digest,
         action,
         subjectId: doc.id as string,
         subjectDocType: docTypeName,
-        preChangeFields: buildChangedFieldBlock(doc, changeEventFieldNames),
-        postChangeFields: {},
+        subjectFields: buildChangedFieldBlock(doc, changeEventFieldNames),
+        subjectPatchFields: patch
+          ? buildChangedFieldBlock(patch, changeEventFieldNames)
+          : {},
         timestampInMilliseconds: this.getMillisecondsSinceEpoch(),
         changeUserId: userId,
       };
@@ -915,6 +973,9 @@ export class Sengi<
 
       return changeEvent;
     } else {
+      // This would suggest a doc was not supplied and an existing
+      // event was not found.  This can happen if an attempt is made
+      // to delete a document which is no longer present.
       return null;
     }
   }

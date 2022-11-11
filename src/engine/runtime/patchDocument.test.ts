@@ -2,6 +2,7 @@
 import {
   assert,
   assertEquals,
+  assertObjectMatch,
   assertRejects,
   match,
   spy,
@@ -229,7 +230,7 @@ Deno.test("Patching a document using a required version should cause the require
   ));
 });
 
-Deno.test("Do not patch a document if the patch digest is already on the document.", async () => {
+Deno.test("Patching a document is an idempotent operation based on the digest on the doc.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
     fetch: async () => ({
       doc: {
@@ -380,4 +381,119 @@ Deno.test("Reject a patch that produces a doc that fails the docType validate fu
     SengiDocValidationFailedError,
     "Unrecognised vehicle registration prefix",
   );
+});
+
+Deno.test("Raise an event when patching a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore({
+    fetch: async (docTypeName: string, _partition: string, _id: string) => {
+      if (docTypeName === "changeEvent") {
+        return {
+          doc: null,
+        };
+      } else {
+        return {
+          doc: {
+            id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+            docType: "car",
+            docStatus: "active",
+            docVersion: "aaaa",
+            docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+            docDigests: [],
+            manufacturer: "ford",
+            model: "ka",
+            registration: "HG12 3AB",
+          },
+        };
+      }
+    },
+    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
+  }, {
+    documentChanged: async () => {},
+  });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    raiseChangeEvent: true,
+    reqVersion: "aaaa",
+    patch: {
+      model: "focus",
+    },
+  });
+
+  // Upsert the event first, and the patched document second.
+  assertEquals(spyUpsert.callCount, 2);
+
+  assertEquals(spyUpsert.args[0][0], "changeEvent");
+  assertEquals(spyUpsert.args[0][1], "_central");
+  assertObjectMatch(spyUpsert.args[0][2], {
+    action: "patch",
+    changeUserId: "user-0001",
+    digest: "11e7:P0:23c6c33083a52d1a1e85b082c516502f5baa4e94",
+    subjectId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    subjectDocType: "car",
+    subjectFields: {
+      model: "ka",
+    },
+    subjectPatchFields: {
+      model: "focus",
+    },
+    timestampInMilliseconds: 1629881470000,
+  });
+});
+
+Deno.test("Raise a pre-saved event when patching a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore({
+    fetch: async (docTypeName: string, _partition: string, _id: string) => {
+      if (docTypeName === "changeEvent") {
+        return {
+          doc: {
+            digest: "abcd",
+            action: "create",
+            preChangeFields: {
+              manufacturer: "ford",
+            },
+            subjectDocType: "car",
+            timestampInMilliseconds: 1629881000000,
+          },
+        };
+      } else {
+        return {
+          doc: {
+            id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+            docType: "car",
+            docStatus: "active",
+            docVersion: "aaaa",
+            docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+            docDigests: [],
+            manufacturer: "ford",
+            model: "ka",
+            registration: "HG12 3AB",
+          },
+        };
+      }
+    },
+    upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
+  }, {
+    documentChanged: async () => {},
+  });
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.patchDocument<Car>({
+    ...defaultRequestProps,
+    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+    raiseChangeEvent: true,
+    reqVersion: "aaaa",
+    patch: {
+      model: "focus",
+    },
+  });
+
+  // 1 upsert, the patched document, but not the event
+  assertEquals(spyUpsert.callCount, 1);
 });

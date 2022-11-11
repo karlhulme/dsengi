@@ -105,7 +105,7 @@ Deno.test("Archiving a document should call fetch and upsert on doc store.", asy
   ));
 });
 
-Deno.test("Archiving a document is an idempotent operation.", async () => {
+Deno.test("Archiving a document is an idempotent operation based on the digest on the doc.", async () => {
   const { sengi, docStore } = createSengiForTest();
 
   const spyUpsert = spy(docStore, "upsert");
@@ -225,12 +225,12 @@ Deno.test("Raise an event when archiving a document.", async () => {
     action: "archive",
     changeUserId: "user-0001",
     digest: "3333:A0:2d049793436193a9329dd590873023a004d10d48",
-    postChangeFields: {},
-    preChangeFields: {
+    subjectId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    subjectDocType: "car",
+    subjectFields: {
       manufacturer: "ford",
     },
-    subjectDocType: "car",
-    subjectId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+    subjectPatchFields: {},
     timestampInMilliseconds: 1629881470000,
   });
 });
@@ -243,10 +243,10 @@ Deno.test("Raise a pre-saved event when archiving a document.", async () => {
           doc: {
             digest: "abcd",
             action: "archive",
-            preChangeFields: {
+            subjectDocType: "car",
+            subjectFields: {
               manufacturer: "ford",
             },
-            subjectDocType: "car",
             timestampInMilliseconds: 1629881000000,
           },
         };

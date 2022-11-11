@@ -1,7 +1,4 @@
-/**
- * The type of document mutation.
- */
-export type DocMutationType = "create" | "delete" | "patch" | "archive";
+import { DocMutationType } from "../../interfaces/index.ts";
 
 /**
  * Returns a digest that represents the mutation described
@@ -11,7 +8,9 @@ export type DocMutationType = "create" | "delete" | "patch" | "archive";
  * @param mutationParams The parameters for the mutation.
  * @param sequenceNo The sequence of the mutation which should be specified
  * if multiple mutations are required using identical mutation params, such
- * as when creating a set of identical documents.
+ * as when creating a set of identical documents.  This also ensures that the
+ * digest is unique across a set of changes, even if the mutation is identical
+ * and the document id is not yet determined.
  */
 export async function createDigest(
   operationId: string,

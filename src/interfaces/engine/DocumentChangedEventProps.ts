@@ -2,7 +2,7 @@
  * Represents the data supplied in a documentChanged event
  * raised by Sengi when a document is mutated.
  */
-export interface DocumentChangedProps {
+export interface DocumentChangedEventProps {
   /**
    * The digest of the change event.
    */
@@ -24,16 +24,19 @@ export interface DocumentChangedProps {
   subjectDocType: string;
 
   /**
-   * The set of field values on the document prior to the change
-   * being applied.
+   * A subset of the subject document being mutated that triggered this event.
+   * The fields are specified on the document type as changeEventFieldNames.
+   * For all events, this property contains the field values before any mutation
+   * has taken place.
    */
-  preChangeFields: Record<string, unknown>;
+  subjectFields: Record<string, unknown>;
 
   /**
-   * The set of field values on the document after the change
-   * has been applied.
+   * The subject of the patch to be applied in a patch event, based  on the fields
+   * specified on the document type as changeEventFieldNames.
+   * For archive, delete and creation event this field will be an empty object.
    */
-  postChangeFields: Record<string, unknown>;
+  subjectPatchFields: Record<string, unknown>;
 
   /**
    * The number of milliseconds since the unix epoch when this
