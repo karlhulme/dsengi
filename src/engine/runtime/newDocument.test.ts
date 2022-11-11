@@ -169,8 +169,6 @@ Deno.test("Raise an event when creating a document.", async () => {
       };
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");
@@ -220,8 +218,6 @@ Deno.test("Raise a pre-saved event when creating a document.", async () => {
       };
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");

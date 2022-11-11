@@ -203,8 +203,6 @@ Deno.test("Raise an event when archiving a document.", async () => {
       }
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");
@@ -243,11 +241,14 @@ Deno.test("Raise a pre-saved event when archiving a document.", async () => {
           doc: {
             digest: "abcd",
             action: "archive",
+            subjectId: "efgh",
             subjectDocType: "car",
             subjectFields: {
               manufacturer: "ford",
             },
+            subjectPatchFields: {},
             timestampInMilliseconds: 1629881000000,
+            changeUserId: "user_007",
           },
         };
       } else {
@@ -257,8 +258,6 @@ Deno.test("Raise a pre-saved event when archiving a document.", async () => {
       }
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");

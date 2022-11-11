@@ -40,21 +40,21 @@ import { generateNewDocumentId } from "../docTypes/generateNewDocumentId.ts";
 import {
   appendDocOpId,
   applyCommonFieldValuesToDoc,
-  buildChangedFieldBlock,
   coerceQueryResult,
   createDigest,
   ensureCanDeleteDocuments,
   ensureCanFetchWholeCollection,
   ensureCanReplaceDocuments,
+  ensureChangeEventsConfig,
   ensureDocSystemFields,
   ensureDocWasFound,
-  ensureRaiseChangeEventsConfig,
-  ensureStorePatchesConfig,
+  ensurePatchingConfig,
   ensureUserId,
   executePatch,
   executeValidateDoc,
   isDigestInArray,
   selectDocTypeFromArray,
+  subsetOfDocStoreRecord,
 } from "../docTypes/index.ts";
 
 /**
@@ -149,9 +149,13 @@ export interface SengiConstructorProps<
    * deleted, created or patched.
    * It is not raised when documents are replaced.
    * This function is guaranteed to be invoked at least once for
-   * each committed change.
+   * each committed change.  This function should commence processing
+   * of the event as efficiently as possible, typically by writing the
+   * event details to a queue for onward processing.  If this event
+   * raises an error then the entire mutation fails and the upstream
+   * services will be able to retry.
    */
-  documentChanged?: () => Promise<void>; // docType, id, changeType, preMutationFields, postMutationFields
+  documentChanged?: (props: DocumentChangedEventProps) => Promise<void>;
 }
 
 /**
@@ -179,7 +183,7 @@ export class Sengi<
   private patchDocStoreParams?: DocStoreParams;
   private changeEventDocTypeName: string;
   private changeEventDocStoreParams?: DocStoreParams;
-  private documentChanged?: () => Promise<void>;
+  private documentChanged?: (props: DocumentChangedEventProps) => Promise<void>;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -310,7 +314,7 @@ export class Sengi<
     }
 
     if (changeEvent) {
-      console.log(changeEvent);
+      await this.raiseChangeEvent(changeEvent);
     }
 
     return {
@@ -371,7 +375,7 @@ export class Sengi<
     );
 
     if (changeEvent) {
-      console.log(changeEvent);
+      await this.raiseChangeEvent(changeEvent);
     }
 
     const isDeleted =
@@ -472,7 +476,7 @@ export class Sengi<
     }
 
     if (changeEvent) {
-      console.log(changeEvent);
+      await this.raiseChangeEvent(changeEvent);
     }
 
     return {
@@ -574,7 +578,7 @@ export class Sengi<
       // at this point means we've logged a patch that wasn't applied,
       // but this is better than not having a log of a patch that was applied.
       if (props.storePatch) {
-        ensureStorePatchesConfig(
+        ensurePatchingConfig(
           this.patchDocTypeName,
           this.patchDocStoreParams,
         );
@@ -615,7 +619,7 @@ export class Sengi<
     }
 
     if (changeEvent) {
-      console.log(changeEvent);
+      await this.raiseChangeEvent(changeEvent);
     }
 
     return {
@@ -905,8 +909,7 @@ export class Sengi<
   ): Promise<DocumentChangedEventProps | null> {
     const changeEventDocPartition = raiseChangeEventPartition || docPartition;
 
-    ensureRaiseChangeEventsConfig(
-      this.documentChanged,
+    ensureChangeEventsConfig(
       this.changeEventDocTypeName,
       this.changeEventDocStoreParams,
     );
@@ -920,7 +923,7 @@ export class Sengi<
 
     if (existingChangeEvent.doc) {
       return {
-        digest: existingChangeEvent.doc.id as string,
+        digest: existingChangeEvent.doc.digest as string,
         action: existingChangeEvent.doc.action as string,
         subjectId: existingChangeEvent.doc.subjectId as string,
         subjectDocType: existingChangeEvent.doc.subjectDocType as string,
@@ -933,7 +936,8 @@ export class Sengi<
             string,
             unknown
           >,
-        timestampInMilliseconds: existingChangeEvent.doc.timestamp as number,
+        timestampInMilliseconds: existingChangeEvent.doc
+          .timestampInMilliseconds as number,
         changeUserId: existingChangeEvent.doc.changeUserId as string,
       };
     } else if (doc) {
@@ -942,9 +946,9 @@ export class Sengi<
         action,
         subjectId: doc.id as string,
         subjectDocType: docTypeName,
-        subjectFields: buildChangedFieldBlock(doc, changeEventFieldNames),
+        subjectFields: subsetOfDocStoreRecord(doc, changeEventFieldNames),
         subjectPatchFields: patch
-          ? buildChangedFieldBlock(patch, changeEventFieldNames)
+          ? subsetOfDocStoreRecord(patch, changeEventFieldNames)
           : {},
         timestampInMilliseconds: this.getMillisecondsSinceEpoch(),
         changeUserId: userId,
@@ -977,6 +981,16 @@ export class Sengi<
       // event was not found.  This can happen if an attempt is made
       // to delete a document which is no longer present.
       return null;
+    }
+  }
+
+  /**
+   * Raises the documentChanged event using the given properties.
+   * @param props A set of document changed event properties.
+   */
+  private async raiseChangeEvent(props: DocumentChangedEventProps) {
+    if (this.documentChanged) {
+      await this.documentChanged(props);
     }
   }
 }

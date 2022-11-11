@@ -1,14 +1,14 @@
 import { assertThrows } from "../../../deps.ts";
 import { SengiMissingPatchConfigError } from "../../interfaces/index.ts";
-import { ensureStorePatchesConfig } from "./ensureStorePatchesConfig.ts";
+import { ensurePatchingConfig } from "./ensurePatchingConfig.ts";
 
 Deno.test("Accept valid patch settings.", () => {
-  ensureStorePatchesConfig("valid", { valid: "" });
+  ensurePatchingConfig("valid", { valid: "" });
 });
 
 Deno.test("Reject patch settings without a patch name.", () => {
   assertThrows(
-    () => ensureStorePatchesConfig(undefined, { valid: "" }),
+    () => ensurePatchingConfig(undefined, { valid: "" }),
     SengiMissingPatchConfigError,
     "patchDocTypeName",
   );
@@ -16,7 +16,7 @@ Deno.test("Reject patch settings without a patch name.", () => {
 
 Deno.test("Reject patch settings without params.", () => {
   assertThrows(
-    () => ensureStorePatchesConfig("valid", undefined),
+    () => ensurePatchingConfig("valid", undefined),
     SengiMissingPatchConfigError,
     "patchDocStoreParams",
   );

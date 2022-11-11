@@ -160,8 +160,6 @@ Deno.test("Raise a pre-saved event when deleting a document.", async () => {
     },
     deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.DELETED }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");
@@ -187,8 +185,6 @@ Deno.test("Cannot raise an event when deleting a previously deleted document if 
     },
     deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.NOT_FOUND }),
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");

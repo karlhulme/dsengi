@@ -6,7 +6,7 @@ import { SengiMissingPatchConfigError } from "../../interfaces/index.ts";
  * @param patchDocStoreParams The params to be passed to the document
  * store when writing new patches.
  */
-export function ensureStorePatchesConfig<DocStoreParams>(
+export function ensurePatchingConfig<DocStoreParams>(
   patchDocTypeName?: string,
   patchDocStoreParams?: DocStoreParams,
 ) {

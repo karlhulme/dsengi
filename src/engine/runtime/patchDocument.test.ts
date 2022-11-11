@@ -407,8 +407,6 @@ Deno.test("Raise an event when patching a document.", async () => {
       }
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");
@@ -477,8 +475,6 @@ Deno.test("Raise a pre-saved event when patching a document.", async () => {
       }
     },
     upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, {
-    documentChanged: async () => {},
   });
 
   const spyUpsert = spy(docStore, "upsert");
