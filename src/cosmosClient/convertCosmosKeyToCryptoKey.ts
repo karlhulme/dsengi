@@ -14,7 +14,7 @@ export async function convertCosmosKeyToCryptoKey(
     keyBuffer,
     { name: "HMAC", hash: "SHA-256" },
     true,
-    ["sign", "verify"],
+    ["sign"],
   );
 
   return cryptoKey;

@@ -120,12 +120,11 @@ export async function generateCosmosReqHeaders(
 
   const data = encoder.encode(text);
 
-  const signature = await crypto.subtle.sign("HMAC", props.key, data.buffer);
+  const signature = await crypto.subtle.sign("HMAC", props.key, data);
 
-  const authorizationHeader = encodeURIComponent(
-    "type=" + COSMOS_SIGN_TYPE + "&ver=" + COSMOS_SIGN_VERSION + "&sig=" +
-      encodeBase64(signature),
-  );
+  const authorizationHeader = "type=" + COSMOS_SIGN_TYPE +
+    "&ver=" + COSMOS_SIGN_VERSION +
+    "&sig=" + encodeURIComponent(encodeBase64(signature));
 
   return {
     authorizationHeader,
