@@ -40,12 +40,24 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   newId: () => string;
 
   /**
-   * The names of the document fields that should be included with
-   * any change events, in addition to the document's id.  It can be
-   * useful to include parent ids and other related ids if the
-   * change events are being used to build denormalised records.
+   * Indicates if patches for this document type should be stored.
    */
-  changeEventFieldNames: string[];
+  storePatches: boolean;
+
+  /**
+   * Indicates if the change property should be populated in the
+   * response object following mutation operations.
+   */
+  trackChanges: boolean;
+
+  /**
+   * The names of the document fields that should be included within
+   * the change property that is returned from the mutation operations
+   * archive, create, delete and patch.
+   * It can be useful to include parent ids and other related document
+   * ids so that denormalised records can be built.
+   */
+  changeFieldNames: string[];
 
   /**
    * A validator function that returns a string describing the validation

@@ -13,7 +13,9 @@ function createDocTypes() {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
+    trackChanges: false,
+    storePatches: false,
   }, {
     name: "example",
     docStoreParams: "",
@@ -21,7 +23,9 @@ function createDocTypes() {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
+    trackChanges: false,
+    storePatches: false,
   }];
 
   return docTypes;

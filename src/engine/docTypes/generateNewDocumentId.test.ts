@@ -13,10 +13,12 @@ Deno.test("Generate a new document id.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertEquals(generateNewDocumentId(docType), "abcd");
@@ -30,10 +32,12 @@ Deno.test("Fail to generate a new document id if function not supplied.", () => 
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   // deno-lint-ignore no-explicit-any
@@ -55,10 +59,12 @@ Deno.test("Fail to generate a new document id if function throws an error.", () 
     newId: () => {
       throw new Error();
     },
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(
@@ -75,10 +81,12 @@ Deno.test("Fail to generate a new document id if function returns a non-string."
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => 1234 as unknown as string,
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(

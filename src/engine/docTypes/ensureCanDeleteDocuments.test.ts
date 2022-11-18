@@ -13,10 +13,12 @@ Deno.test("Remain silent if policy allows delete action.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   ensureCanDeleteDocuments(docType);
@@ -30,10 +32,12 @@ Deno.test("Raise error if policy disallows delete action.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canDeleteDocuments: false,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(
@@ -51,7 +55,9 @@ Deno.test("Raise error if policy not specified for delete action.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(

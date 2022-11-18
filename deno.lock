@@ -2,9 +2,9 @@
   "version": "2",
   "remote": {
     "https://cdn.skypack.dev/-/@sinonjs/fake-timers@v9.1.2-KzX0ompb8odSUvoOapks/dist=es2019,mode=types/index.d.ts": "f83b320cceccfc48457a818d18fc9a006ab18d0bdd727aa2c2e73dc1b4a45e98",
-    "https://cdn.skypack.dev/-/sinon@v14.0.1-R4Dmc6jwDhTlpW3nZ87W/dist=es2019,mode=imports/optimized/sinon.js": "1588952d6d326c66bb21c29a8ee10c6ec458c5d09442533af094a6218bd1528c",
-    "https://cdn.skypack.dev/-/sinon@v14.0.1-R4Dmc6jwDhTlpW3nZ87W/dist=es2019,mode=types/index.d.ts": "0f2e3eac43c7fe1f475144a590bfc0a7e589f478b09e399a1a1cd36c97de38d1",
-    "https://cdn.skypack.dev/sinon?dts": "4fb5201e70d4a4333fb18773921b55d1d2839fc291d39f43d0e24e982b85cfc3",
+    "https://cdn.skypack.dev/-/sinon@v14.0.2-RehU07mOA48Xa1BglfoO/dist=es2019,mode=imports/optimized/sinon.js": "edc497d4f6b249740593381de06ac129cc06ad7d37b78724282cf595eab97ae5",
+    "https://cdn.skypack.dev/-/sinon@v14.0.2-RehU07mOA48Xa1BglfoO/dist=es2019,mode=types/index.d.ts": "0f2e3eac43c7fe1f475144a590bfc0a7e589f478b09e399a1a1cd36c97de38d1",
+    "https://cdn.skypack.dev/sinon?dts": "9fa05ecca566b7c8f261cdaec5f3f2fdfde720ee4f21c8f93e8156d8aa508a47",
     "https://deno.land/std@0.125.0/async/delay.ts": "f38013c800f5129b14fdbf41fb4f4fbaf9525f69f4266946e14d0cf57c830b0c",
     "https://deno.land/std@0.125.0/fmt/colors.ts": "870f10d440af4c309ab7bff97266d8ddb2c8a69039bcbd33253c8bfc14502116",
     "https://deno.land/std@0.125.0/testing/_diff.ts": "9d849cd6877694152e01775b2d93f9d6b7aef7e24bfe3bfafc4d7a1ac8e9f392",

@@ -13,10 +13,12 @@ Deno.test("Remain silent if policy allows fetch whole collection action.", () =>
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canFetchWholeCollection: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   ensureCanFetchWholeCollection(docType);
@@ -30,10 +32,12 @@ Deno.test("Raise error if policy disallows fetch whole collection action.", () =
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canFetchWholeCollection: false,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(
@@ -51,7 +55,9 @@ Deno.test("Raise error if policy not specified for fetch whole collection action
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(

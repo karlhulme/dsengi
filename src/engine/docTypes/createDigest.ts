@@ -1,4 +1,4 @@
-import { DocMutationType } from "../../interfaces/index.ts";
+import { DocChangeAction } from "../../interfaces/index.ts";
 
 /**
  * Returns a digest that represents the mutation described
@@ -14,7 +14,7 @@ import { DocMutationType } from "../../interfaces/index.ts";
  */
 export async function createDigest(
   operationId: string,
-  mutationType: DocMutationType,
+  mutationType: DocChangeAction,
   mutationParams?: unknown,
   sequenceNo?: string,
 ) {
@@ -43,7 +43,7 @@ export async function createDigest(
  * Returns a single character representing the type of mutation.
  * @param mutationType A type of mutation.
  */
-function convertMutationTypeToLetter(mutationType: DocMutationType) {
+function convertMutationTypeToLetter(mutationType: DocChangeAction) {
   switch (mutationType) {
     case "archive":
       return "A";

@@ -26,7 +26,9 @@ export interface Car extends DocBase {
   engineCode?: string;
 }
 
-export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
+export function createCarDocType(
+  options?: { storePatches?: boolean; trackChanges?: boolean },
+): DocType<DocTypeNames, TestDocStoreParams> {
   return {
     name: "car",
     docStoreParams: { custom: "prop" },
@@ -69,7 +71,9 @@ export function createCarDocType(): DocType<DocTypeNames, TestDocStoreParams> {
       }
     },
     newId: () => "00000000-1234-1234-1234-000000000000",
-    changeEventFieldNames: ["manufacturer", "model"],
+    trackChanges: Boolean(options?.trackChanges),
+    storePatches: Boolean(options?.storePatches),
+    changeFieldNames: ["manufacturer", "model"],
   };
 }
 
@@ -121,10 +125,11 @@ interface SengiTestObjects {
 export const createSengiWithMockStore = (
   docStoreOverrides?: Record<string, unknown>,
   sengiCtorOverrides?: Record<string, unknown>,
+  options?: { trackChanges?: boolean; storePatches?: boolean },
 ): SengiTestObjects => {
   const docStore = createMockStore(docStoreOverrides);
 
-  const carDocType = createCarDocType();
+  const carDocType = createCarDocType(options);
 
   const sengiCtorProps = Object.assign({
     docTypes: [carDocType],
@@ -138,7 +143,7 @@ export const createSengiWithMockStore = (
     getNewDocVersion: () => "1111-2222",
     cacheSize: 100,
     patchDocStoreParams: { custom: "patch-props" },
-    changeEventDocStoreParams: { custom: "change-event-props" },
+    changeDocStoreParams: { custom: "change-event-props" },
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     DocTypeNames,
     TestDocStoreParams,

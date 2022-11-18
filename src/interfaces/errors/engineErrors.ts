@@ -12,12 +12,12 @@ export class SengiMissingNewIdFunctionError extends SengiEngineError {
   }
 }
 
-export class SengiMissingChangeEventsConfigError extends SengiEngineError {
+export class SengiMissingDocChangeConfigError extends SengiEngineError {
   constructor(
     readonly settingName: string,
   ) {
     super(
-      `The setting '${settingName}' must be specified in order to emit change events.`,
+      `The setting '${settingName}' must be specified in order to return change data.`,
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;

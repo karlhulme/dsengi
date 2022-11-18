@@ -1,11 +1,5 @@
 // deno-lint-ignore-file require-await
-import {
-  assert,
-  assertEquals,
-  assertObjectMatch,
-  assertRejects,
-  spy,
-} from "../../../deps.ts";
+import { assert, assertEquals, assertRejects, spy } from "../../../deps.ts";
 import {
   DocStoreUpsertResultCode,
   SengiDocValidationFailedError,
@@ -60,6 +54,7 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
     }),
     {
       doc: resultDoc,
+      change: null,
     },
   );
 
@@ -113,6 +108,7 @@ Deno.test("Adding a new document with an explicit id.", async () => {
     }),
     {
       doc: resultDoc,
+      change: null,
     },
   );
 
@@ -160,22 +156,27 @@ Deno.test("Fail to add a new document that does not pass validation.", async () 
   }, SengiDocValidationFailedError);
 });
 
-Deno.test("Raise an event when creating a document.", async () => {
-  const { sengi, docStore } = createSengiWithMockStore({
-    fetch: async (_docTypeName: string, _partition: string, _id: string) => {
-      return {
-        // fail to find an existing event, or an existing created doc
-        doc: null,
-      };
+Deno.test("Return a change document when creating a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore(
+    {
+      fetch: async (_docTypeName: string, _partition: string, _id: string) => {
+        return {
+          // fail to find an existing event, or an existing created doc
+          doc: null,
+        };
+      },
+      upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
     },
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  });
+    {},
+    {
+      trackChanges: true,
+    },
+  );
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await sengi.newDocument({
+  const result = await sengi.newDocument({
     ...defaultRequestProps,
-    raiseChangeEvent: true,
     operationId: "00000000-0000-0000-0000-111122223333",
     doc: {
       ...newCarTemplate,
@@ -186,45 +187,40 @@ Deno.test("Raise an event when creating a document.", async () => {
   // Upsert the event first, and the new document second.
   assertEquals(spyUpsert.callCount, 2);
 
-  assertEquals(spyUpsert.args[0][0], "changeEvent");
-  assertEquals(spyUpsert.args[0][1], "_central");
-  assertObjectMatch(spyUpsert.args[0][2], {
-    action: "create",
-    changeUserId: "user-0001",
-    digest: "3333:C1:37ff973bb907562b705d9c573dea1af1ca175ef2",
-    subjectId: "00000000-1234-1234-1234-000000000000",
-    subjectDocType: "car",
-    subjectFields: {
-      manufacturer: "ford",
-    },
-    subjectPatchFields: {},
-    timestampInMilliseconds: 1629881470000,
+  assertEquals(result.change?.action, "create");
+  assertEquals(result.change?.fields, {
+    manufacturer: "ford",
+    model: "ka",
   });
 });
 
 Deno.test("Raise a pre-saved event when creating a document.", async () => {
-  const { sengi, docStore } = createSengiWithMockStore({
-    fetch: async (_docTypeName: string, _partition: string, _id: string) => {
-      return {
-        doc: {
-          digest: "abcd",
-          action: "create",
-          preChangeFields: {
-            manufacturer: "ford",
+  const { sengi, docStore } = createSengiWithMockStore(
+    {
+      fetch: async (_docTypeName: string, _partition: string, _id: string) => {
+        return {
+          doc: {
+            digest: "abcd",
+            action: "create",
+            fields: {
+              manufacturer: "ford-original",
+            },
+            timestampInMilliseconds: 1629881000000,
           },
-          subjectDocType: "car",
-          timestampInMilliseconds: 1629881000000,
-        },
-      };
+        };
+      },
+      upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
     },
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  });
+    {},
+    {
+      trackChanges: true,
+    },
+  );
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await sengi.newDocument({
+  const result = await sengi.newDocument({
     ...defaultRequestProps,
-    raiseChangeEvent: true,
     operationId: "00000000-0000-0000-0000-111122223333",
     doc: {
       ...newCarTemplate,
@@ -234,4 +230,9 @@ Deno.test("Raise a pre-saved event when creating a document.", async () => {
 
   // 1 upsert, the new document, but not the event
   assertEquals(spyUpsert.callCount, 1);
+
+  assertEquals(result.change?.action, "create");
+  assertEquals(result.change?.fields, {
+    manufacturer: "ford-original",
+  });
 });

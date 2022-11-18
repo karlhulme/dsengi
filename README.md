@@ -7,17 +7,21 @@ You can use Jsonotron to generate interfaces for each document type to be saved.
 
 ## Todo
 
+- Read x-ms-session-token from response and use it subsequent requests so that a
+  single instance of this engine will always be reading it's own writes.
 - Write tests for the `/src/cosmosClient` namespace / separate out.
 
 ## Design
 
 A NoSQL database offers a few specific benefits:
 
-- Schemaless backend allows schema to be made defined solely within in the
-  design layer, which simplifies environment setup and upgrade.
-- Data is stored in partitions and thus scales horizontally with performance
-  maintained.
-- None of the mutations require locks so performance is maintained.
+- Schemaless backend allows schema to be defined solely within in the coded
+  service, which simplifies environment setup and upgrade.
+- Data is stored in partitions and thus scales horizontally - allowing specific
+  read/write requirements (expressed in RUs) to be made available by the
+  database.
+- None of the mutations require locks on other tables so performance is more
+  predictable.
 - It can be globally distributed, storing data nearer customers.
 
 However there are a number of specific lost benefits:
@@ -34,20 +38,25 @@ fact, it may not be possible to implement ACID support on a distributed
 schemaless database while maintaining predicatable and controllable performance
 levels. Other mitigations must be adopted:
 
-- A - Atomic (must be aware that data is eventually consistency when reading.)
-- C - Consistency (data validity is provided by the Sengi engine, referential
-  integrity requires care during development, the NoSQL database will ensure
-  consistency of individual record writes.)
-- I - Isolated (one operation should not affect another - this is rarely an
-  issue.)
-- D - Durable (most NoSQL databases will retain data in the event of power
-  loss.)
+- A - Atomic: We assume only a single mutation is performed at a time. See the
+  action in idempotence and forward-only recovery below.
+- C - Consistency: Data validity is ensured by the Sengi engine. Referential
+  integrity requires some care during development.
+- I - Isolated: The NoSQL database will ensure consistency of individual record
+  writes.
+- D - Durable: The NoSQL database will retain data in the event of power loss.
 
 A significant challenge is what to do when sengi rejects an update in the middle
 of a set of updates. This could be caused by a transient failure or because the
 logic/data supplied was not valid. In this situation some data may have been
-written already. In the general case, it is safe to replay any of the previously
-issued commands because all mutations are idempotent.
+written already. While NoSQL databases are ATOMIC within their support for
+transactions, such support is rarely sufficient for the types of multi-step
+operations that are often required.
+
+Sengi resolves this with a forward-only recovery system. Specifically, all
+methods are idempotent, therefore if an error is encountered the operation
+should be stored and then replayed later. The replay process ensures the
+database is brought back into a known state.
 
 - CREATE, ARCHIVE and PATCH instructions can all be repeated because a digest
   (built from the mutation type, operation id, sequence number and parameters)
@@ -55,36 +64,33 @@ issued commands because all mutations are idempotent.
   instruction is issued the presence of the digest will prevent it being applied
   again. The engine will treat these as successful mutations. When creating or
   mutation multiple documents using identical parameters as part of a single
-  operation you must also provide a sequence number of the 2nd update onwards
-  will be ignored. Note that a document that is currenlty archived will not be
+  operation you must also provide a sequence number or the 2nd update onwards
+  will be ignored. Note that a document that is currently archived will not be
   archived a second time, although this is based on the archived property rather
   than the digest propery.
 - DELETE instructions can all be repeated because the end result is the same. A
   digest is not written to the file for this.
 
-### Change events
+### Change records
 
-It can b useful to handle change events in order to build concrete denomalised
-views by combining records from the isolated collections. These denormalised
-records need to be updated (perhaps on a throttle) whenever a constituent record
-changes.
+It can be useful to handle change information in order to build concrete
+denomalised views by combining records from the isolated collections. These
+denormalised records need to be updated whenever a constituent record changes.
 
 We do not rely on the underlying change feed of the document store because these
 don't always provide the fidilty required. For example, Cosmos does not include
 deletions in the change feed, and it does include the before/after fields of
 each change.
 
-Before any mutation is attempted a change event is created and written to a
-container. This change event includes the values of the changeEventFieldNames
+Before any mutation is attempted a change document is created and written to a
+container. This change document includes the values of the changeFieldNames
 (defined on the docType) both before and after the mutation. Once the mutation
-has been successfully applied the change event is raised. If the hanlder for the
-change event raises an error, then an error will be raised for the whole
-mutation, even though the document was successfully mutated. The mutation can be
-replayed, thanks to the idempontent nature of mutations, allowing the change
-event to be handled successfully.
+has been successfully applied the change document is returned along with the
+newly modified document.
 
-Change events are guaranteed to be delivered at least once. Duplicate change
-events will carry the same payload as the original change event.
+If an operation is repeated, the original change document is returned. This
+allows documents to be repeatedly deleted and patched (perhaps as a recovery is
+attempted), with the correct change information returned.
 
 ### Batch updates
 
@@ -92,7 +98,7 @@ Either use a separate tool for this or write one-off scripts as the need arises.
 
 ## Partition key
 
-Most documents will require a partition key so that the database nows how to
+Most documents will require a partition key so that the database knows how to
 shard the data. Alternatively, you can specify single-partition collections.
 These collections will be stored (by default) using the __central_ partition
 key. This may simplify access but be aware that this collection will be subject
@@ -110,3 +116,9 @@ container can be assigned dedicated RUs if it's a hot container.
 
 On production, always create indexes for any filters required, including one for
 id lookup, based on `partitionKey > docType > id`.
+
+Specify a consistency level of SESSION to guarantee that any information written
+to the db by a service is guaranteed to be read back immediately by that same
+service. Other services running sengi could potentially see old data but this is
+unavoidable anyway because of potential lag between the processing parts of
+those services and has to be dealt with on a case-by-case basis.

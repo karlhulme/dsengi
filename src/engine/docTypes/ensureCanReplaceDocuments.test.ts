@@ -13,10 +13,12 @@ Deno.test("Remain silent if policy allows replace document action.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canReplaceDocuments: true,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   ensureCanReplaceDocuments(docType);
@@ -30,10 +32,12 @@ Deno.test("Raise error if policy disallows replace document action.", () => {
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
     policy: {
       canReplaceDocuments: false,
     },
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(
@@ -51,7 +55,9 @@ Deno.test("Raise error if policy not specified for replace document action.", ()
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
-    changeEventFieldNames: [],
+    changeFieldNames: [],
+    trackChanges: false,
+    storePatches: false,
   };
 
   assertThrows(

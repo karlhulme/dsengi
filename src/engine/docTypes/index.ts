@@ -5,7 +5,7 @@ export * from "./createDigest.ts";
 export * from "./ensureCanDeleteDocuments.ts";
 export * from "./ensureCanFetchWholeCollection.ts";
 export * from "./ensureCanReplaceDocuments.ts";
-export * from "./ensureChangeEventsConfig.ts";
+export * from "./ensureDocChangeConfig.ts";
 export * from "./ensureDocSystemFields.ts";
 export * from "./ensureDocWasFound.ts";
 export * from "./ensurePatchingConfig.ts";

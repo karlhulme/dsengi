@@ -2,7 +2,6 @@
 import {
   assert,
   assertEquals,
-  assertObjectMatch,
   assertRejects,
   match,
   spy,
@@ -25,24 +24,29 @@ import {
 const createSengiForTest = (
   upsertResponse?: DocStoreUpsertResult,
   sengiCtorOverrides?: Record<string, unknown>,
+  options?: { storePatches?: boolean; trackChanges?: boolean },
 ) => {
-  return createSengiWithMockStore({
-    fetch: async () => ({
-      doc: {
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-        docType: "car",
-        docStatus: "active",
-        docVersion: "aaaa",
-        docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
-        docDigests: [],
-        manufacturer: "ford",
-        model: "ka",
-        registration: "HG12 3AB",
-      },
-    }),
-    upsert: async () =>
-      upsertResponse || ({ code: DocStoreUpsertResultCode.REPLACED }),
-  }, sengiCtorOverrides);
+  return createSengiWithMockStore(
+    {
+      fetch: async () => ({
+        doc: {
+          id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+          docType: "car",
+          docStatus: "active",
+          docVersion: "aaaa",
+          docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+          docDigests: [],
+          manufacturer: "ford",
+          model: "ka",
+          registration: "HG12 3AB",
+        },
+      }),
+      upsert: async () =>
+        upsertResponse || ({ code: DocStoreUpsertResultCode.REPLACED }),
+    },
+    sengiCtorOverrides,
+    options,
+  );
 };
 
 Deno.test("Patching a document should call fetch and upsert on doc store, retaining existing properties (including unrecognised ones).", async () => {
@@ -83,6 +87,7 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
     }),
     {
       doc: resultDoc,
+      change: null,
     },
   );
 
@@ -104,8 +109,10 @@ Deno.test("Patching a document should call fetch and upsert on doc store, retain
   ));
 });
 
-Deno.test("Patching a document should cause the patch itself to be saved.", async () => {
-  const { sengi, docStore } = createSengiForTest();
+Deno.test("Patches can be stored.", async () => {
+  const { sengi, docStore } = createSengiForTest(undefined, undefined, {
+    storePatches: true,
+  });
 
   const spyFetch = spy(docStore, "fetch");
   const spyUpsert = spy(docStore, "upsert");
@@ -117,7 +124,6 @@ Deno.test("Patching a document should cause the patch itself to be saved.", asyn
     patch: {
       model: "fiesta",
     },
-    storePatch: true,
   });
 
   assertEquals(spyFetch.callCount, 1);
@@ -128,6 +134,7 @@ Deno.test("Patching a document should cause the patch itself to be saved.", asyn
     { custom: "prop" },
   ));
 
+  // Two upserts, one for the patch, another for the changed doc.
   assertEquals(spyUpsert.callCount, 2);
 
   assert(spyUpsert.calledWith(
@@ -153,44 +160,44 @@ Deno.test("Patching a document should cause the patch itself to be saved.", asyn
   ));
 });
 
-Deno.test("Patching a document with an overriden storePatchPartition will be honoured.", async () => {
-  const { sengi, docStore } = createSengiForTest();
+// Deno.test("Patching a document with an overriden storePatchPartition will be honoured.", async () => {
+//   const { sengi, docStore } = createSengiForTest(undefined, undefined, {
+//     storePatches: true,
+//   });
 
-  const spyUpsert = spy(docStore, "upsert");
+//   const spyUpsert = spy(docStore, "upsert");
 
-  await sengi.patchDocument<Car>({
-    ...defaultRequestProps,
-    id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-    patch: {
-      model: "fiesta",
-    },
-    storePatch: true,
-    storePatchPartition: "_override",
-  });
+//   await sengi.patchDocument<Car>({
+//     ...defaultRequestProps,
+//     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+//     operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+//     patch: {
+//       model: "fiesta",
+//     },
+//   });
 
-  assert(spyUpsert.calledWith(
-    "patch",
-    "_override",
-    {
-      id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-      docType: "patch",
-      patchedDocId: "06151119-065a-4691-a7c8-2d84ec746ba9",
-      patchedDocType: "car",
-      patch: { model: "fiesta" },
-      docStatus: "active",
-      docVersion: "1111-2222",
-      docOpIds: [],
-      docDigests: [],
-      docCreatedMillisecondsSinceEpoch: 1629881470000,
-      docCreatedByUserId: "user-0001",
-      docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
-      docLastUpdatedByUserId: "user-0001",
-    },
-    null,
-    { custom: "patch-props" },
-  ));
-});
+//   assertEquals(spyUpsert.args[0], [
+//     "patch",
+//     "_central",
+//     {
+//       id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
+//       docType: "patch",
+//       patchedDocId: "06151119-065a-4691-a7c8-2d84ec746ba9",
+//       patchedDocType: "car",
+//       patch: { model: "fiesta" },
+//       docStatus: "active",
+//       docVersion: "1111-2222",
+//       docOpIds: [],
+//       docDigests: [],
+//       docCreatedMillisecondsSinceEpoch: 1629881470000,
+//       docCreatedByUserId: "user-0001",
+//       docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+//       docLastUpdatedByUserId: "user-0001",
+//     },
+//     null,
+//     { custom: "patch-props" },
+//   ]);
+// });
 
 Deno.test("Patching a document using a required version should cause the required version to be passed to the doc store.", async () => {
   const { sengi, docStore } = createSengiForTest();
@@ -383,39 +390,44 @@ Deno.test("Reject a patch that produces a doc that fails the docType validate fu
   );
 });
 
-Deno.test("Raise an event when patching a document.", async () => {
-  const { sengi, docStore } = createSengiWithMockStore({
-    fetch: async (docTypeName: string, _partition: string, _id: string) => {
-      if (docTypeName === "changeEvent") {
-        return {
-          doc: null,
-        };
-      } else {
-        return {
-          doc: {
-            id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-            docType: "car",
-            docStatus: "active",
-            docVersion: "aaaa",
-            docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
-            docDigests: [],
-            manufacturer: "ford",
-            model: "ka",
-            registration: "HG12 3AB",
-          },
-        };
-      }
+Deno.test("Return a change doc when patching a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore(
+    {
+      fetch: async (docTypeName: string, _partition: string, _id: string) => {
+        if (docTypeName === "change") {
+          return {
+            doc: null,
+          };
+        } else {
+          return {
+            doc: {
+              id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+              docType: "car",
+              docStatus: "active",
+              docVersion: "aaaa",
+              docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+              docDigests: [],
+              manufacturer: "ford",
+              model: "ka",
+              registration: "HG12 3AB",
+            },
+          };
+        }
+      },
+      upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
     },
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
-  });
+    {},
+    {
+      trackChanges: true,
+    },
+  );
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await sengi.patchDocument<Car>({
+  const result = await sengi.patchDocument<Car>({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-    raiseChangeEvent: true,
     reqVersion: "aaaa",
     patch: {
       model: "focus",
@@ -425,65 +437,65 @@ Deno.test("Raise an event when patching a document.", async () => {
   // Upsert the event first, and the patched document second.
   assertEquals(spyUpsert.callCount, 2);
 
-  assertEquals(spyUpsert.args[0][0], "changeEvent");
-  assertEquals(spyUpsert.args[0][1], "_central");
-  assertObjectMatch(spyUpsert.args[0][2], {
-    action: "patch",
-    changeUserId: "user-0001",
-    digest: "11e7:P0:23c6c33083a52d1a1e85b082c516502f5baa4e94",
-    subjectId: "06151119-065a-4691-a7c8-2d84ec746ba9",
-    subjectDocType: "car",
-    subjectFields: {
-      model: "ka",
-    },
-    subjectPatchFields: {
-      model: "focus",
-    },
-    timestampInMilliseconds: 1629881470000,
+  assertEquals(result.change?.action, "patch");
+  assertEquals(result.change?.fields, {
+    manufacturer: "ford",
+    model: "ka",
+  });
+  assertEquals(result.change?.patchFields, {
+    model: "focus",
   });
 });
 
-Deno.test("Raise a pre-saved event when patching a document.", async () => {
-  const { sengi, docStore } = createSengiWithMockStore({
-    fetch: async (docTypeName: string, _partition: string, _id: string) => {
-      if (docTypeName === "changeEvent") {
-        return {
-          doc: {
-            digest: "abcd",
-            action: "create",
-            preChangeFields: {
-              manufacturer: "ford",
+Deno.test("Raise a pre-saved change doc when patching a document.", async () => {
+  const { sengi, docStore } = createSengiWithMockStore(
+    {
+      fetch: async (docTypeName: string, _partition: string, _id: string) => {
+        if (docTypeName === "change") {
+          return {
+            doc: {
+              digest: "abcd",
+              action: "patch",
+              fields: {
+                manufacturer: "ford-original",
+              },
+              patchFields: {
+                manufacturer: "ford-new",
+              },
+              subjectDocType: "car",
+              timestampInMilliseconds: 1629881000000,
             },
-            subjectDocType: "car",
-            timestampInMilliseconds: 1629881000000,
-          },
-        };
-      } else {
-        return {
-          doc: {
-            id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-            docType: "car",
-            docStatus: "active",
-            docVersion: "aaaa",
-            docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
-            docDigests: [],
-            manufacturer: "ford",
-            model: "ka",
-            registration: "HG12 3AB",
-          },
-        };
-      }
+          };
+        } else {
+          return {
+            doc: {
+              id: "06151119-065a-4691-a7c8-2d84ec746ba9",
+              docType: "car",
+              docStatus: "active",
+              docVersion: "aaaa",
+              docOpIds: ["50e02b33-b22c-4207-8785-5a8aa529ec84"],
+              docDigests: [],
+              manufacturer: "ford",
+              model: "ka",
+              registration: "HG12 3AB",
+            },
+          };
+        }
+      },
+      upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
     },
-    upsert: async () => ({ code: DocStoreUpsertResultCode.REPLACED }),
-  });
+    {},
+    {
+      trackChanges: true,
+    },
+  );
 
   const spyUpsert = spy(docStore, "upsert");
 
-  await sengi.patchDocument<Car>({
+  const result = await sengi.patchDocument<Car>({
     ...defaultRequestProps,
     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
     operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-    raiseChangeEvent: true,
     reqVersion: "aaaa",
     patch: {
       model: "focus",
@@ -492,4 +504,12 @@ Deno.test("Raise a pre-saved event when patching a document.", async () => {
 
   // 1 upsert, the patched document, but not the event
   assertEquals(spyUpsert.callCount, 1);
+
+  assertEquals(result.change?.action, "patch");
+  assertEquals(result.change?.fields, {
+    manufacturer: "ford-original",
+  });
+  assertEquals(result.change?.patchFields, {
+    manufacturer: "ford-new",
+  });
 });

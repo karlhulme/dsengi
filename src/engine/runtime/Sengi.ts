@@ -5,14 +5,14 @@ import {
   DeleteDocumentProps,
   DeleteDocumentResult,
   DocBase,
-  DocMutationType,
+  DocChange,
+  DocChangeAction,
   DocStatuses,
   DocStore,
   DocStoreDeleteByIdResultCode,
   DocStoreRecord,
   DocStoreUpsertResultCode,
   DocType,
-  DocumentChangedEventProps,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
   NewDocumentProps,
@@ -45,7 +45,7 @@ import {
   ensureCanDeleteDocuments,
   ensureCanFetchWholeCollection,
   ensureCanReplaceDocuments,
-  ensureChangeEventsConfig,
+  ensureDocChangeConfig,
   ensureDocSystemFields,
   ensureDocWasFound,
   ensurePatchingConfig,
@@ -68,9 +68,9 @@ const DEFAULT_CACHE_SIZE = 500;
 const DEFAULT_PATCH_DOC_TYPE_NAME = "patch";
 
 /**
- * The default document change event name.
+ * The default document change name.
  */
-const DEFAULT_CHANGE_EVENT_DOC_TYPE_NAME = "changeEvent";
+const DEFAULT_CHANGE_DOC_TYPE_NAME = "change";
 
 /**
  * The default central partition.
@@ -134,28 +134,15 @@ export interface SengiConstructorProps<
   patchDocStoreParams?: DocStoreParams;
 
   /**
-   * The name of the doc type that stores change events.
+   * The name of the doc type that stores changes.
    */
-  changeEventDocTypeName?: string;
+  changeDocTypeName?: string;
 
   /**
    * The params to be passed to the document store when attempting
-   * to store a change event.
+   * to store a change.
    */
-  changeEventDocStoreParams?: DocStoreParams;
-
-  /**
-   * A function that will be invoked whenever a document is archived,
-   * deleted, created or patched.
-   * It is not raised when documents are replaced.
-   * This function is guaranteed to be invoked at least once for
-   * each committed change.  This function should commence processing
-   * of the event as efficiently as possible, typically by writing the
-   * event details to a queue for onward processing.  If this event
-   * raises an error then the entire mutation fails and the upstream
-   * services will be able to retry.
-   */
-  documentChanged?: (props: DocumentChangedEventProps) => Promise<void>;
+  changeDocStoreParams?: DocStoreParams;
 }
 
 /**
@@ -181,9 +168,8 @@ export class Sengi<
   private cache: TtlCache<DocBase>;
   private patchDocTypeName: string;
   private patchDocStoreParams?: DocStoreParams;
-  private changeEventDocTypeName: string;
-  private changeEventDocStoreParams?: DocStoreParams;
-  private documentChanged?: (props: DocumentChangedEventProps) => Promise<void>;
+  private changeDocTypeName: string;
+  private changeDocStoreParams?: DocStoreParams;
 
   /**
    * Creates a new Sengi engine based on a set of doc types and clients.
@@ -222,11 +208,9 @@ export class Sengi<
       DEFAULT_PATCH_DOC_TYPE_NAME;
     this.patchDocStoreParams = props.patchDocStoreParams;
 
-    this.changeEventDocTypeName = props.changeEventDocTypeName ||
-      DEFAULT_CHANGE_EVENT_DOC_TYPE_NAME;
-    this.changeEventDocStoreParams = props.changeEventDocStoreParams;
-
-    this.documentChanged = props.documentChanged;
+    this.changeDocTypeName = props.changeDocTypeName ||
+      DEFAULT_CHANGE_DOC_TYPE_NAME;
+    this.changeDocStoreParams = props.changeDocStoreParams;
   }
 
   /**
@@ -266,12 +250,10 @@ export class Sengi<
 
     const loadedDocVersion = doc.docVersion as string;
 
-    const changeEvent = props.raiseChangeEvent
-      ? await this.buildChangeEvent(
+    const change = docType.trackChanges
+      ? await this.buildDocChange(
         "archive",
-        props.raiseChangeEventPartition,
-        docType.changeEventFieldNames,
-        props.docTypeName,
+        docType.changeFieldNames,
         partition,
         doc,
         null,
@@ -313,13 +295,10 @@ export class Sengi<
       ensureUpsertSuccessful(result, false);
     }
 
-    if (changeEvent) {
-      await this.raiseChangeEvent(changeEvent);
-    }
-
     return {
       isArchived: !isAlreadyArchived,
       doc: doc as Doc,
+      change,
     };
   }
 
@@ -329,9 +308,9 @@ export class Sengi<
    * object indicates that a document was not actually deleted.
    * @param props A property bag.
    */
-  async deleteDocument(
+  async deleteDocument<Doc extends DocBase>(
     props: DeleteDocumentProps<DocTypeNames>,
-  ): Promise<DeleteDocumentResult> {
+  ): Promise<DeleteDocumentResult<Doc>> {
     const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
 
     const partition = ensurePartition(
@@ -344,7 +323,7 @@ export class Sengi<
 
     const digest = await createDigest(props.operationId, "delete");
 
-    const existingDoc = props.raiseChangeEvent
+    const existingDoc = docType.trackChanges
       ? await this.safeDocStore.fetch(
         props.docTypeName,
         partition,
@@ -353,12 +332,10 @@ export class Sengi<
       )
       : null;
 
-    const changeEvent = props.raiseChangeEvent
-      ? await this.buildChangeEvent(
+    const change = docType.trackChanges
+      ? await this.buildDocChange(
         "delete",
-        props.raiseChangeEventPartition,
-        docType.changeEventFieldNames,
-        props.docTypeName,
+        docType.changeFieldNames,
         partition,
         existingDoc?.doc || null,
         null,
@@ -374,14 +351,13 @@ export class Sengi<
       docType.docStoreParams,
     );
 
-    if (changeEvent) {
-      await this.raiseChangeEvent(changeEvent);
-    }
-
     const isDeleted =
       deleteByIdResult.code === DocStoreDeleteByIdResultCode.DELETED;
 
-    return { isDeleted };
+    return {
+      isDeleted,
+      change,
+    };
   }
 
   /**
@@ -450,12 +426,10 @@ export class Sengi<
       ensureDocSystemFields(props.docTypeName, doc as Doc);
     }
 
-    const changeEvent = props.raiseChangeEvent
-      ? await this.buildChangeEvent(
+    const change = docType.trackChanges
+      ? await this.buildDocChange(
         "create",
-        props.raiseChangeEventPartition,
-        docType.changeEventFieldNames,
-        props.docTypeName,
+        docType.changeFieldNames,
         partition,
         doc as DocStoreRecord,
         null,
@@ -475,12 +449,9 @@ export class Sengi<
       );
     }
 
-    if (changeEvent) {
-      await this.raiseChangeEvent(changeEvent);
-    }
-
     return {
       doc: doc as Doc,
+      change,
     };
   }
 
@@ -527,12 +498,10 @@ export class Sengi<
       fetchResult.doc as unknown as Partial<Doc>,
     );
 
-    const changeEvent = props.raiseChangeEvent
-      ? await this.buildChangeEvent(
+    const change = docType.trackChanges
+      ? await this.buildDocChange(
         "patch",
-        props.raiseChangeEventPartition,
-        docType.changeEventFieldNames,
-        props.docTypeName,
+        docType.changeFieldNames,
         partition,
         doc as DocStoreRecord,
         props.patch as DocStoreRecord,
@@ -577,7 +546,7 @@ export class Sengi<
       // patch event to the patch document store (if requested).  A failure
       // at this point means we've logged a patch that wasn't applied,
       // but this is better than not having a log of a patch that was applied.
-      if (props.storePatch) {
+      if (docType.storePatches) {
         ensurePatchingConfig(
           this.patchDocTypeName,
           this.patchDocStoreParams,
@@ -600,7 +569,7 @@ export class Sengi<
 
         await this.safeDocStore.upsert(
           this.patchDocTypeName!,
-          props.storePatchPartition || partition,
+          partition,
           patchDoc,
           null,
           this.patchDocStoreParams!,
@@ -618,12 +587,9 @@ export class Sengi<
       ensureUpsertSuccessful(upsertResult, Boolean(props.reqVersion));
     }
 
-    if (changeEvent) {
-      await this.raiseChangeEvent(changeEvent);
-    }
-
     return {
       doc: doc as Doc,
+      change,
     };
   }
 
@@ -880,117 +846,96 @@ export class Sengi<
   }
 
   /**
-   * Returns a DocumentChangedProps object which describes an event, or
-   * null if no event should be raised.  If the event data has been built
-   * previously then the event data is loaded from the events container,
-   * otherwise it is constructed, written to the events container and returned.
-   * @param action The action that triggered this event.
-   * @param raiseChangeEventPartition The partition for the event.  This should
-   * typically be left undefined and the docPartition will be used instead.
-   * @param changeEventFieldNames The names of the fields that should be included
+   * Returns a DocChange object which describes a change.
+   * If the change data has been built
+   * previously then the change data is loaded from the change container,
+   * otherwise it is constructed, written to the change container and returned.
+   * This method returns null if a delete operation is carried
+   * out for a document which has already been deleted and for which
+   * no previously saved change data can be found.
+   * @param action The action that triggered this change.
+   * @param changeFieldNames The names of the fields that should be included
    * in the event data.
-   * @param docTypeName The type of document that was mutated, triggered the event.
-   * @param docPartition The partition used for the document that was mutated.  If
-   * raiseChangeEventPartition is not specified then this partition will be used.
-   * @param doc The unmodified document that triggered the event.
+   * @param docPartition The partition used for the document that was mutated.
+   * @param doc The unmodified document prior to the change being applied.
+   * @param patch The patch that is being applied to a document
    * @param digest The digest associated with the mutation.
-   * @param userId The id of the user that triggered the event.
+   * @param userId The id of the user that triggered the change.
    */
-  private async buildChangeEvent(
-    action: DocMutationType,
-    raiseChangeEventPartition: undefined | string,
-    changeEventFieldNames: string[],
-    docTypeName: string,
+  private async buildDocChange<Doc extends DocBase>(
+    action: DocChangeAction,
+    changeFieldNames: string[],
     docPartition: string,
     doc: DocStoreRecord | null, // Not available when re-deleting a document.
     patch: DocStoreRecord | null, // Only supplied for patch.
     digest: string,
     userId: string,
-  ): Promise<DocumentChangedEventProps | null> {
-    const changeEventDocPartition = raiseChangeEventPartition || docPartition;
-
-    ensureChangeEventsConfig(
-      this.changeEventDocTypeName,
-      this.changeEventDocStoreParams,
+  ): Promise<DocChange<Doc> | null> {
+    ensureDocChangeConfig(
+      this.changeDocTypeName,
+      this.changeDocStoreParams,
     );
 
-    const existingChangeEvent = await this.safeDocStore.fetch(
-      this.changeEventDocTypeName,
-      changeEventDocPartition,
+    const existingChange = await this.safeDocStore.fetch(
+      this.changeDocTypeName,
+      docPartition,
       digest,
-      this.changeEventDocStoreParams!,
+      this.changeDocStoreParams!,
     );
 
-    if (existingChangeEvent.doc) {
+    if (existingChange.doc) {
+      // Only return the properties required populate a DocChange object
+      // not all the system field names.
       return {
-        digest: existingChangeEvent.doc.digest as string,
-        action: existingChangeEvent.doc.action as string,
-        subjectId: existingChangeEvent.doc.subjectId as string,
-        subjectDocType: existingChangeEvent.doc.subjectDocType as string,
-        subjectFields: existingChangeEvent.doc.subjectFields as Record<
-          string,
-          unknown
-        >,
-        subjectPatchFields: existingChangeEvent.doc
-          .subjectPatchFields as Record<
-            string,
-            unknown
-          >,
-        timestampInMilliseconds: existingChangeEvent.doc
+        action: existingChange.doc.action as DocChangeAction,
+        digest: existingChange.doc.digest as string,
+        docId: existingChange.doc.docId as string,
+        changeUserId: existingChange.doc.changeUserId as string,
+        timestampInMilliseconds: existingChange.doc
           .timestampInMilliseconds as number,
-        changeUserId: existingChangeEvent.doc.changeUserId as string,
+        fields: existingChange.doc.fields as Partial<Doc>,
+        patchFields: existingChange.doc.patchFields as Partial<Doc>,
       };
     } else if (doc) {
-      const changeEvent: DocumentChangedEventProps = {
+      const change: DocChange<Doc> = {
         digest,
         action,
-        subjectId: doc.id as string,
-        subjectDocType: docTypeName,
-        subjectFields: subsetOfDocStoreRecord(doc, changeEventFieldNames),
-        subjectPatchFields: patch
-          ? subsetOfDocStoreRecord(patch, changeEventFieldNames)
+        docId: doc.id as string,
+        fields: subsetOfDocStoreRecord(doc, changeFieldNames) as Partial<Doc>,
+        patchFields: patch
+          ? subsetOfDocStoreRecord(patch, changeFieldNames) as Partial<Doc>
           : {},
         timestampInMilliseconds: this.getMillisecondsSinceEpoch(),
         changeUserId: userId,
       };
 
-      const changeEventDoc = {
+      const changeDoc = {
         id: digest,
-        docType: this.changeEventDocTypeName,
-        ...changeEvent,
+        docType: this.changeDocTypeName,
+        ...change,
       };
 
       applyCommonFieldValuesToDoc(
-        changeEventDoc,
+        changeDoc,
         this.getMillisecondsSinceEpoch(),
         userId,
         this.getNewDocVersion(),
       );
 
       await this.safeDocStore.upsert(
-        this.changeEventDocTypeName,
-        changeEventDocPartition,
-        changeEventDoc,
+        this.changeDocTypeName,
+        docPartition,
+        changeDoc,
         null,
-        this.changeEventDocStoreParams!,
+        this.changeDocStoreParams!,
       );
 
-      return changeEvent;
+      return change;
     } else {
       // This would suggest a doc was not supplied and an existing
       // event was not found.  This can happen if an attempt is made
       // to delete a document which is no longer present.
       return null;
-    }
-  }
-
-  /**
-   * Raises the documentChanged event using the given properties.
-   * @param props A set of document changed event properties.
-   */
-  private async raiseChangeEvent(props: DocumentChangedEventProps) {
-    if (this.documentChanged) {
-      await this.documentChanged(props);
     }
   }
 }

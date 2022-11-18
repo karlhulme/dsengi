@@ -28,7 +28,9 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
       validateDoc: () => {},
       validateFields: () => {},
       newId: () => "abcd",
-      changeEventFieldNames: [],
+      changeFieldNames: [],
+      trackChanges: false,
+      storePatches: false,
     }],
     patchDocStoreParams: { custom: "patch-props" },
   });
