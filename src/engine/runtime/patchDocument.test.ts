@@ -160,45 +160,6 @@ Deno.test("Patches can be stored.", async () => {
   ));
 });
 
-// Deno.test("Patching a document with an overriden storePatchPartition will be honoured.", async () => {
-//   const { sengi, docStore } = createSengiForTest(undefined, undefined, {
-//     storePatches: true,
-//   });
-
-//   const spyUpsert = spy(docStore, "upsert");
-
-//   await sengi.patchDocument<Car>({
-//     ...defaultRequestProps,
-//     id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-//     operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-//     patch: {
-//       model: "fiesta",
-//     },
-//   });
-
-//   assertEquals(spyUpsert.args[0], [
-//     "patch",
-//     "_central",
-//     {
-//       id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-//       docType: "patch",
-//       patchedDocId: "06151119-065a-4691-a7c8-2d84ec746ba9",
-//       patchedDocType: "car",
-//       patch: { model: "fiesta" },
-//       docStatus: "active",
-//       docVersion: "1111-2222",
-//       docOpIds: [],
-//       docDigests: [],
-//       docCreatedMillisecondsSinceEpoch: 1629881470000,
-//       docCreatedByUserId: "user-0001",
-//       docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
-//       docLastUpdatedByUserId: "user-0001",
-//     },
-//     null,
-//     { custom: "patch-props" },
-//   ]);
-// });
-
 Deno.test("Patching a document using a required version should cause the required version to be passed to the doc store.", async () => {
   const { sengi, docStore } = createSengiForTest();
 

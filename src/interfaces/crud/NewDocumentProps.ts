@@ -58,6 +58,13 @@ export interface NewDocumentProps<
   explicitId?: string;
 
   /**
+   * The required version of the document.  If specified, then this
+   * property defines the version of the document that must be
+   * found in the collection otherwise the operation will not be applied.
+   */
+  reqVersion?: string;
+
+  /**
    * The id of the user that is making the request.
    */
   userId: string;

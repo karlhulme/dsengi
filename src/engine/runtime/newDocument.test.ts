@@ -68,7 +68,7 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
   ));
 });
 
-Deno.test("Adding a new document with an explicit id.", async () => {
+Deno.test("Adding a new document with an explicit id and a required version.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
   });
@@ -105,6 +105,7 @@ Deno.test("Adding a new document with an explicit id.", async () => {
       doc: {
         ...newCarTemplate,
       },
+      reqVersion: "1111-2222",
     }),
     {
       doc: resultDoc,
@@ -117,7 +118,7 @@ Deno.test("Adding a new document with an explicit id.", async () => {
     "car",
     "_central",
     resultDoc,
-    null,
+    "1111-2222",
     { custom: "prop" },
   ));
 });

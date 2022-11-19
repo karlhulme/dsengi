@@ -444,7 +444,7 @@ export class Sengi<
         props.docTypeName,
         partition,
         doc as unknown as DocStoreRecord,
-        null,
+        props.reqVersion || null,
         docType.docStoreParams,
       );
     }
