@@ -1,8 +1,8 @@
 name: Deno
 
 env:
-  SENGI_COSMOS_URL: ${{ secrets.COSMOS_URL }}
-  SENGI_COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
+  COSMOS_URL: ${{ secrets.COSMOS_URL }}
+  COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
 
 on:
   push:
