@@ -5,11 +5,6 @@ database such as Azure Cosmos DB.
 
 You can use Jsonotron to generate interfaces for each document type to be saved.
 
-## Todo
-
-- Read x-ms-session-token from response and use it subsequent requests so that a
-  single instance of this engine will always be reading it's own writes.
-
 ## Design
 
 A NoSQL database offers a few specific benefits:
