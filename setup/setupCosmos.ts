@@ -4,7 +4,7 @@ import {
   createDatabase,
   listCollections,
   listDatabases,
-} from "../src/cosmosClient/index.ts";
+} from "../deps.ts";
 
 /**
  * Adds the database and containers to the Cosmos DB instance as required for the test.
@@ -12,16 +12,16 @@ import {
  * throughput requirements are not specified.
  */
 
-const testCosmosUrl = Deno.env.get("SENGI_COSMOS_URL");
+const testCosmosUrl = Deno.env.get("COSMOS_URL");
 
 if (!testCosmosUrl) {
-  throw new Error("SENGI_COSMOS_URL is not defined.");
+  throw new Error("COSMOS_URL is not defined.");
 }
 
-const testCosmosKey = Deno.env.get("SENGI_COSMOS_KEY");
+const testCosmosKey = Deno.env.get("COSMOS_KEY");
 
 if (!testCosmosKey) {
-  throw new Error("SENGI_COSMOS_KEY is not defined.");
+  throw new Error("COSMOS_KEY is not defined.");
 }
 
 console.log("Importing key.");

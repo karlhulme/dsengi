@@ -23,4 +23,19 @@ export {
   retryable,
 } from "https://raw.githubusercontent.com/karlhulme/dpiggle/main/mod.ts";
 
+export {
+  convertCosmosKeyToCryptoKey,
+  createCollection,
+  createDatabase,
+  createDocument,
+  deleteDatabase,
+  deleteDocument,
+  getDocument,
+  listCollections,
+  listDatabases,
+  queryDocumentsContainersDirect,
+  queryDocumentsGateway,
+  replaceDocument,
+} from "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/mod.ts";
+
 export { default as TtlCache } from "https://deno.land/x/ttl@1.0.1/mod.ts";

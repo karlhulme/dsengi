@@ -7,7 +7,7 @@ import {
   queryDocumentsContainersDirect,
   queryDocumentsGateway,
   replaceDocument,
-} from "../cosmosClient/index.ts";
+} from "../../deps.ts";
 import {
   DocStatuses,
   DocStore,
@@ -225,7 +225,7 @@ export class CosmosDbDocStore implements
    * removed and the _etag copied to the docVersion field.
    * @param doc A document retrieved from a Cosmos database.
    */
-  private cleanDoc(doc: DocStoreRecord) {
+  private cleanDoc(doc: Record<string, unknown>) {
     const { _rid, _ts, _self, _etag, _attachments, ...others } = doc;
 
     return {
@@ -343,9 +343,7 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreFetchResult> {
     await this.ensureCryptoKey();
 
-    let rawDoc: DocStoreRecord | null = null;
-
-    rawDoc = await getDocument(
+    const rawDoc = await getDocument(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,

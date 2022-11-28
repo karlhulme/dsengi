@@ -5,7 +5,7 @@ import {
   createDocument,
   deleteDocument,
   queryDocumentsContainersDirect,
-} from "../cosmosClient/index.ts";
+} from "../../deps.ts";
 import {
   DocStoreDeleteByIdResultCode,
   DocStoreRecord,
@@ -15,8 +15,8 @@ import { CosmosDbDocStore } from "./CosmosDbDocStore.ts";
 
 const TestPartition = "testPartition";
 
-const TEST_COSMOS_URL = Deno.env.get("SENGI_COSMOS_URL") || "";
-const TEST_COSMOS_KEY = Deno.env.get("SENGI_COSMOS_KEY") || "";
+const TEST_COSMOS_URL = Deno.env.get("COSMOS_URL") || "";
+const TEST_COSMOS_KEY = Deno.env.get("COSMOS_KEY") || "";
 
 function createCosmosDbDocStore(): CosmosDbDocStore {
   return new CosmosDbDocStore({

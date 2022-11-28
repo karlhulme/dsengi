@@ -1,4 +1,4 @@
-# DSengi
+# dsengi
 
 A utility for retrieving, storing and mutating documents stored in a NoSQL
 database such as Azure Cosmos DB.
@@ -9,7 +9,6 @@ You can use Jsonotron to generate interfaces for each document type to be saved.
 
 - Read x-ms-session-token from response and use it subsequent requests so that a
   single instance of this engine will always be reading it's own writes.
-- Write tests for the `/src/cosmosClient` namespace / separate out.
 
 ## Design
 
@@ -122,3 +121,15 @@ to the db by a service is guaranteed to be read back immediately by that same
 service. Other services running sengi could potentially see old data but this is
 unavoidable anyway because of potential lag between the processing parts of
 those services and has to be dealt with on a case-by-case basis.
+
+## Environment variables
+
+You will need to set the following environment variables to run the tests:
+
+- **COSMOS_URL** The url to the Cosmos db instance, e.g.
+  https://myapp.documents.azure.net
+- **COSMOS_KEY** The value of the shared access key.
+
+## Commands
+
+Run `deno task test` to test and format.
