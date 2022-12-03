@@ -3,7 +3,8 @@
 A utility for retrieving, storing and mutating documents stored in a NoSQL
 database such as Azure Cosmos DB.
 
-You can use Jsonotron to generate interfaces for each document type to be saved.
+You can use Jsonotron to generate interfaces and validation functions for each
+document type to be saved.
 
 ## Design
 
@@ -14,11 +15,11 @@ A NoSQL database offers a few specific benefits:
 - Data is stored in partitions and thus scales horizontally - allowing specific
   read/write requirements (expressed in RUs) to be made available by the
   database.
-- None of the mutations require locks on other tables so performance is more
+- None of the mutations require locks on other tables so performance is
   predictable.
 - It can be globally distributed, storing data nearer customers.
 
-However there are a number of specific lost benefits:
+However there are a number of specific drawbacks compared to a SQL database:
 
 - Loss of transaction support.
 - Loss of aggregation, for example, determining the top 5 records for a given
@@ -33,7 +34,7 @@ schemaless database while maintaining predicatable and controllable performance
 levels. Other mitigations must be adopted:
 
 - A - Atomic: We assume only a single mutation is performed at a time. See the
-  action in idempotence and forward-only recovery below.
+  section on idempotence and forward-only recovery below.
 - C - Consistency: Data validity is ensured by the Sengi engine. Referential
   integrity requires some care during development.
 - I - Isolated: The NoSQL database will ensure consistency of individual record
@@ -52,16 +53,14 @@ methods are idempotent, therefore if an error is encountered the operation
 should be stored and then replayed later. The replay process ensures the
 database is brought back into a known state.
 
-- CREATE, ARCHIVE and PATCH instructions can all be repeated because a digest
-  (built from the mutation type, operation id, sequence number and parameters)
-  is written to the document when it is changed or created. When a repeat
-  instruction is issued the presence of the digest will prevent it being applied
-  again. The engine will treat these as successful mutations. When creating or
-  mutation multiple documents using identical parameters as part of a single
-  operation you must also provide a sequence number or the 2nd update onwards
-  will be ignored. Note that a document that is currently archived will not be
-  archived a second time, although this is based on the archived property rather
-  than the digest propery.
+- CREATE, ARCHIVE, REDACT and PATCH instructions can all be repeated because a
+  digest (built from the mutation type, operation id, sequence number and
+  parameters) is written to the document when it is changed or created. When a
+  repeat instruction is issued the presence of the digest will prevent it being
+  applied again. The engine will treat these as successful mutations. When
+  creating or mutation multiple documents using identical parameters as part of
+  a single operation you must also provide a sequence number or the 2nd update
+  onwards will be ignored.
 - DELETE instructions can all be repeated because the end result is the same. A
   digest is not written to the file for this.
 
@@ -97,7 +96,7 @@ shard the data. Alternatively, you can specify single-partition collections.
 These collections will be stored (by default) using the __central_ partition
 key. This may simplify access but be aware that this collection will be subject
 to the maximum size (document count and data volume) and throughput of a
-partition supported by the database.
+physical partition supported by the database.
 
 ## Cosmos Setup
 
@@ -111,11 +110,12 @@ container can be assigned dedicated RUs if it's a hot container.
 On production, always create indexes for any filters required, including one for
 id lookup, based on `partitionKey > docType > id`.
 
-Specify a consistency level of SESSION to guarantee that any information written
-to the db by a service is guaranteed to be read back immediately by that same
-service. Other services running sengi could potentially see old data but this is
-unavoidable anyway because of potential lag between the processing parts of
-those services and has to be dealt with on a case-by-case basis.
+Specify a consistency level of SESSION and associate the session-token returned
+from write operations with the user that triggered the operation. This ensures
+that any subsequent read operations will reflect the previous writes. If this
+cannot be achieved then the BOUNDED STALENSS level will serialise changes such
+that every node of the service sees the same results but it will double the RU
+cost of each query.
 
 ## Environment variables
 
