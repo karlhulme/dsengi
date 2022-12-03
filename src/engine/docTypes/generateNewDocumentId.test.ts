@@ -14,6 +14,7 @@ Deno.test("Generate a new document id.", () => {
     validateFields: () => {},
     newId: () => "abcd",
     changeFieldNames: [],
+    redactFieldNames: {},
     policy: {
       canDeleteDocuments: true,
     },
@@ -29,6 +30,7 @@ Deno.test("Fail to generate a new document id if function not supplied.", () => 
     name: "test",
     docStoreParams: "",
     readOnlyFieldNames: [],
+    redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "",
@@ -54,6 +56,7 @@ Deno.test("Fail to generate a new document id if function throws an error.", () 
     name: "test",
     docStoreParams: "",
     readOnlyFieldNames: [],
+    redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => {
@@ -78,6 +81,7 @@ Deno.test("Fail to generate a new document id if function returns a non-string."
     name: "test",
     docStoreParams: "",
     readOnlyFieldNames: [],
+    redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => 1234 as unknown as string,

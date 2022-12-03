@@ -10,6 +10,8 @@ export * from "./PatchDocumentProps.ts";
 export * from "./PatchDocumentResult.ts";
 export * from "./QueryDocumentsProps.ts";
 export * from "./QueryDocumentsResult.ts";
+export * from "./RedactDocumentProps.ts";
+export * from "./RedactDocumentResult.ts";
 export * from "./ReplaceDocumentProps.ts";
 export * from "./ReplaceDocumentResult.ts";
 export * from "./SelectDocumentByIdProps.ts";

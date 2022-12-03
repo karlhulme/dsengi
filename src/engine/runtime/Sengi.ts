@@ -21,6 +21,8 @@ import {
   PatchDocumentResult,
   QueryDocumentsProps,
   QueryDocumentsResult,
+  RedactDocumentProps,
+  RedactDocumentResult,
   ReplaceDocumentProps,
   ReplaceDocumentResult,
   SelectDocumentByIdProps,
@@ -53,6 +55,7 @@ import {
   executePatch,
   executeValidateDoc,
   isDigestInArray,
+  redactDoc,
   selectDocTypeFromArray,
   subsetOfDocStoreRecord,
 } from "../docTypes/index.ts";
@@ -306,8 +309,6 @@ export class Sengi<
    * Deletes an existing document.
    * If the document does not exist then the call succeeds but the properties on the returned
    * object indicate that a document was not actually deleted.
-   * This operation will break any links to this document so it is preferred to
-   * invoke archiveDocument instead.
    * @param props A property bag.
    */
   async deleteDocument<Doc extends DocBase>(
@@ -547,7 +548,7 @@ export class Sengi<
       // Once all the document validations are complete, we write the
       // patch event to the patch document store (if requested).  A failure
       // at this point means we've logged a patch that wasn't applied,
-      // but this is better than not having a log of a patch that was applied.
+      // but this is better than missing a log of a patch that was applied.
       if (docType.storePatches) {
         ensurePatchingConfig(
           this.patchDocTypeName,
@@ -622,6 +623,95 @@ export class Sengi<
     );
 
     return { data };
+  }
+
+  /**
+   * Redacts an existing document with a redaction value or the
+   * redactFieldValues specified on the document type.
+   * @param props A property bag.
+   */
+  async redactDocument<Doc extends DocBase>(
+    props: RedactDocumentProps<DocTypeNames>,
+  ): Promise<RedactDocumentResult<Doc>> {
+    ensureUserId(
+      props.userId,
+      this.validateUserId,
+    );
+
+    const digest = await createDigest(props.operationId, "redact");
+
+    const docType = selectDocTypeFromArray(this.docTypes, props.docTypeName);
+
+    const partition = ensurePartition(
+      props.partition,
+      this.centralPartitionName,
+      docType.useSinglePartition,
+    );
+
+    const fetchResult = await this.safeDocStore.fetch(
+      props.docTypeName,
+      partition,
+      props.id,
+      docType.docStoreParams,
+    );
+
+    const doc = ensureDocWasFound(
+      props.docTypeName,
+      props.id,
+      fetchResult.doc as unknown as Partial<DocBase>,
+    );
+
+    const loadedDocVersion = doc.docVersion as string;
+
+    const change = docType.trackChanges
+      ? await this.buildDocChange(
+        "redact",
+        docType.changeFieldNames,
+        partition,
+        doc,
+        null,
+        digest,
+        props.userId,
+      )
+      : null;
+
+    const isDigestProcessed = isDigestInArray(digest, doc.docDigests);
+
+    if (!isDigestProcessed) {
+      applyCommonFieldValuesToDoc(
+        doc,
+        this.getMillisecondsSinceEpoch(),
+        props.userId,
+        this.getNewDocVersion(),
+      );
+
+      appendDocDigest(doc, digest, docType.policy?.maxDigests);
+
+      appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
+
+      redactDoc(doc, docType.redactFieldNames, props.redactValue);
+
+      doc.docRedactedByUserId = props.userId;
+      doc.docRedactedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
+
+      // Record the history of patches associated with this doc.
+
+      const result = await this.safeDocStore.upsert(
+        props.docTypeName,
+        partition,
+        doc as unknown as DocStoreRecord,
+        loadedDocVersion,
+        docType.docStoreParams,
+      );
+
+      ensureUpsertSuccessful(result, false);
+    }
+
+    return {
+      isRedacted: !isDigestProcessed,
+      doc: doc as Doc,
+      change,
+    };
   }
 
   /**
@@ -865,7 +955,7 @@ export class Sengi<
    * in the event data.
    * @param docPartition The partition used for the document that was mutated.
    * @param doc The unmodified document prior to the change being applied.
-   * @param patch The patch that is being applied to a document
+   * @param patch The patch that is being applied to a document or null.
    * @param digest The digest associated with the mutation.
    * @param userId The id of the user that triggered the change.
    */
@@ -891,7 +981,7 @@ export class Sengi<
     );
 
     if (existingChange.doc) {
-      // Only return the properties required populate a DocChange object
+      // Only return the properties required to populate a DocChange object,
       // not all the system field names.
       return {
         action: existingChange.doc.action as DocChangeAction,

@@ -53,11 +53,19 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   /**
    * The names of the document fields that should be included within
    * the change property that is returned from the mutation operations
-   * archive, create, delete and patch.
+   * archive, create, delete, redact and patch.
    * It can be useful to include parent ids and other related document
    * ids so that denormalised records can be built.
    */
   changeFieldNames: string[];
+
+  /**
+   * A mapping between the field names and the values that should
+   * be applied upon redaction.  If the value to be applied is '*'
+   * then the redactionValue will be applied instead.  This is typically
+   * an identifier so that original values can be looked up.
+   */
+  redactFieldNames: Record<string, unknown>;
 
   /**
    * A validator function that returns a string describing the validation

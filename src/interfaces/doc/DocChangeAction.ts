@@ -3,4 +3,9 @@
  * has led to a document being changed.
  * Note that REPLACE is not one of the actions.
  */
-export type DocChangeAction = "archive" | "create" | "delete" | "patch";
+export type DocChangeAction =
+  | "archive"
+  | "create"
+  | "delete"
+  | "redact"
+  | "patch";

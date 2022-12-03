@@ -33,6 +33,10 @@ export function createCarDocType(
     name: "car",
     docStoreParams: { custom: "prop" },
     readOnlyFieldNames: ["manufacturer"],
+    redactFieldNames: {
+      manufacturer: "*",
+      model: "-",
+    },
     policy: {
       canDeleteDocuments: true,
       canReplaceDocuments: true,

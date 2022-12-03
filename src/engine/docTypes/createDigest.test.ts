@@ -54,12 +54,12 @@ Deno.test("Generate a digest for an unknown operation without any params or sequ
 Deno.test("Generate a digest for a patch operation with just params but no sequence number.", async () => {
   const result = await createDigest(
     "00000000-0000-0000-0000-000000002222",
-    "create",
+    "redact",
     { hello: "world" },
   );
 
   assertEquals(
     result,
-    "2222:C0:29f4d90d617bd3e8edbdb598f7d285ed37ae0013",
+    "2222:R0:e249874071fb86e37b46c3e3696bcdf5f1b18f44",
   );
 });

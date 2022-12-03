@@ -64,4 +64,15 @@ export interface DocBase {
    * The id of the user that archived the document.
    */
   docArchivedByUserId?: string;
+
+  /**
+   * The number of milliseconds that have elapsed between the unix epoch
+   * and the document being redacted.
+   */
+  docRedactedMillisecondsSinceEpoch?: number;
+
+  /**
+   * The id of the user that redacted the document.
+   */
+  docRedactedByUserId?: string;
 }

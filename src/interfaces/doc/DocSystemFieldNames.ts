@@ -79,4 +79,15 @@ export const DocSystemFieldNames = [
    * the unix epoch when the document was archived.
    */
   "docArchivedMillisecondsSinceEpoch",
+
+  /**
+   * 'docRedactedByUserId' stores the id of the user that redacted the document.
+   */
+  "docRedactedByUserId",
+
+  /**
+   * 'docRedactedMillisecondsSinceEpoch' stores the number of milliseconds since
+   * the unix epoch when the document was redacted.
+   */
+  "docRedactedMillisecondsSinceEpoch",
 ];

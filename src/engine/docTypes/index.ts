@@ -13,5 +13,6 @@ export * from "./ensureUserId.ts";
 export * from "./executePatch.ts";
 export * from "./executeValidateDoc.ts";
 export * from "./isDigestInArray.ts";
+export * from "./redactDoc.ts";
 export * from "./selectDocTypeFromArray.ts";
 export * from "./subsetOfDocStoreRecord.ts";

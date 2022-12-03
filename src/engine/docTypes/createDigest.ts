@@ -51,6 +51,8 @@ function convertMutationTypeToLetter(mutationType: DocChangeAction) {
       return "C";
     case "delete":
       return "D";
+    case "redact":
+      return "R";
     default:
     case "patch":
       return "P";

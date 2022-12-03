@@ -11,7 +11,6 @@ import {
  * then an error will be raised when the document is validated.
  * @param docTypeName The name of a document type.
  * @param readOnlyFieldNames An array of the read-only fields.
- * @param validateFields A function that validates the types and ranges of the fields
  * of the document to be patched.
  * @param doc The doc that will be patched.
  * @param patch The patch to be applied.

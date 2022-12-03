@@ -13,7 +13,9 @@ type OmittedDocFieldNames =
   | "docLastUpdatedByUserId"
   | "docLastUpdatedMillisecondsSinceEpoch"
   | "docArchivedByUserId"
-  | "docArchivedMillisecondsSinceEpoch";
+  | "docArchivedMillisecondsSinceEpoch"
+  | "docRedactedByUserId"
+  | "docRedactedMillisecondsSinceEpoch";
 
 /**
  * Describes a change made to a document, once that
