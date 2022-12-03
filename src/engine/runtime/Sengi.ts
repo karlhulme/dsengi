@@ -694,8 +694,6 @@ export class Sengi<
       doc.docRedactedByUserId = props.userId;
       doc.docRedactedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();
 
-      // Record the history of patches associated with this doc.
-
       const result = await this.safeDocStore.upsert(
         props.docTypeName,
         partition,
