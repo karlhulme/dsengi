@@ -21,14 +21,15 @@ export interface SelectDocumentsByIdsProps<
   ids: string[];
 
   /**
-   * True if archived documents should be included in the response.
-   */
-  includeArchived: boolean;
-
-  /**
    * If specified, attempt will be made to load the documents
    * from a cache.  If that fails, any fetched documents will
    * be cached for the given number of milliseconds.
    */
   cacheMilliseconds?: number;
+
+  /**
+   * True if archived documents should be included in the response.
+   * By default, archived documents will not be returned.
+   */
+  includeArchived?: boolean;
 }

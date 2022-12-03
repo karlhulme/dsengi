@@ -305,7 +305,9 @@ export class Sengi<
   /**
    * Deletes an existing document.
    * If the document does not exist then the call succeeds but the properties on the returned
-   * object indicates that a document was not actually deleted.
+   * object indicate that a document was not actually deleted.
+   * This operation will break any links to this document so it is preferred to
+   * invoke archiveDocument instead.
    * @param props A property bag.
    */
   async deleteDocument<Doc extends DocBase>(
@@ -594,7 +596,8 @@ export class Sengi<
   }
 
   /**
-   * Executes a query across a set of documents.
+   * Executes a query across a set of documents.  The result will include
+   * archived documents unless they are explicitly excluded.
    * @param props A property bag.
    */
   async queryDocuments<QueryResult>(
@@ -700,7 +703,7 @@ export class Sengi<
       props.docTypeName,
       partition,
       props.filter,
-      props.includeArchived,
+      Boolean(props.includeArchived),
       docType.docStoreParams,
     );
 
@@ -764,8 +767,11 @@ export class Sengi<
       }
     }
 
+    const filteredDocs = docs
+      .filter((d) => d.docStatus === "active" || props.includeArchived);
+
     return {
-      docs,
+      docs: filteredDocs,
     };
   }
 
@@ -789,7 +795,7 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
       partition,
-      props.includeArchived,
+      Boolean(props.includeArchived),
       docType.docStoreParams,
     );
 
@@ -808,7 +814,7 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      includeArchived: true,
+      includeArchived: Boolean(props.includeArchived),
       cacheMilliseconds: props.cacheMilliseconds,
     });
 
@@ -820,6 +826,7 @@ export class Sengi<
   /**
    * Retrieves a document of a specified doc type by id.  If
    * the document is not found then an error is raised.
+   * This function will return archived documents.
    * @param props A property bag.
    */
   async getDocumentById<Doc extends DocBase>(
@@ -829,7 +836,7 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      includeArchived: true,
+      includeArchived: Boolean(props.includeArchived),
       cacheMilliseconds: props.cacheMilliseconds,
     });
 

@@ -23,6 +23,7 @@ export interface SelectDocumentsByFilterProps<
 
   /**
    * True if archived documents should be included in the response.
+   * By default, archived documents will not be returned.
    */
-  includeArchived: boolean;
+  includeArchived?: boolean;
 }
