@@ -43,6 +43,12 @@ export type CosmosDbDocStoreParams = {
    * The name of a Cosmos collection.
    */
   collectionName: string;
+
+  /**
+   * An optional session token, returned by
+   * a previous write operation.
+   */
+  sessionToken?: string;
 };
 
 /**
@@ -269,20 +275,26 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreDeleteByIdResult> {
     await this.ensureCryptoKey();
 
-    const didDelete = await deleteDocument(
+    const deleteDocResult = await deleteDocument(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
       docStoreParams.collectionName,
       partition,
       id,
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
-    const resultCode = didDelete
+    const resultCode = deleteDocResult.didDelete
       ? DocStoreDeleteByIdResultCode.DELETED
       : DocStoreDeleteByIdResultCode.NOT_FOUND;
 
-    return { code: resultCode };
+    return {
+      code: resultCode,
+      sessionToken: deleteDocResult.sessionToken,
+    };
   }
 
   /**
@@ -316,6 +328,9 @@ export class CosmosDbDocStore implements
         { name: "@docType", value: docTypeName },
         { name: "@id", value: id },
       ],
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     // Usually queryDocuments returns an array of documents, but using
@@ -343,19 +358,25 @@ export class CosmosDbDocStore implements
   ): Promise<DocStoreFetchResult> {
     await this.ensureCryptoKey();
 
-    const rawDoc = await getDocument(
+    const getDocumentResult = await getDocument(
       this.cryptoKey as CryptoKey,
       this.cosmosUrl,
       docStoreParams.databaseName,
       docStoreParams.collectionName,
       partition,
       id,
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     let doc = null;
 
-    if (rawDoc && rawDoc.docType === docTypeName) {
-      doc = this.cleanDoc(rawDoc);
+    if (
+      getDocumentResult && getDocumentResult.doc &&
+      getDocumentResult.doc.docType === docTypeName
+    ) {
+      doc = this.cleanDoc(getDocumentResult.doc);
     }
 
     return { doc };
@@ -383,11 +404,14 @@ export class CosmosDbDocStore implements
       query.queryStatement,
       query.parameters,
       query.transform,
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     return {
       data: containerDirectResult.data,
-      queryCharge: containerDirectResult.queryCharge,
+      queryCharge: containerDirectResult.requestCharge,
     };
   }
 
@@ -423,11 +447,14 @@ export class CosmosDbDocStore implements
         { name: "@docType", value: docTypeName },
         { name: "@digest", value: digest },
       ],
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     return {
       docs: gatewayResult.records.map(this.cleanDoc),
-      queryCharge: gatewayResult.queryCharge,
+      queryCharge: gatewayResult.requestCharge,
     };
   }
 
@@ -459,11 +486,14 @@ export class CosmosDbDocStore implements
         { name: "@partitionKey", value: partition },
         { name: "@docType", value: docTypeName },
       ],
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     return {
       docs: gatewayResult.records.map(this.cleanDoc),
-      queryCharge: gatewayResult.queryCharge,
+      queryCharge: gatewayResult.requestCharge,
     };
   }
 
@@ -504,11 +534,14 @@ export class CosmosDbDocStore implements
         { name: "@docType", value: docTypeName },
         ...(filter.parameters || []),
       ],
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     return {
       docs: gatewayResult.records.map(this.cleanDoc),
-      queryCharge: gatewayResult.queryCharge,
+      queryCharge: gatewayResult.requestCharge,
     };
   }
 
@@ -542,11 +575,14 @@ export class CosmosDbDocStore implements
         { name: "@partitionKey", value: partition },
         { name: "@docType", value: docTypeName },
       ],
+      {
+        sessionToken: docStoreParams.sessionToken,
+      },
     );
 
     return {
       docs: gatewayResult.records.map(this.cleanDoc),
-      queryCharge: gatewayResult.queryCharge,
+      queryCharge: gatewayResult.requestCharge,
     };
   }
 
@@ -573,7 +609,7 @@ export class CosmosDbDocStore implements
     await this.ensureCryptoKey();
 
     if (reqVersion) {
-      const didReplace = await replaceDocument(
+      const replaceDocumentResult = await replaceDocument(
         this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         docStoreParams.databaseName,
@@ -582,16 +618,20 @@ export class CosmosDbDocStore implements
         uploadableDoc,
         {
           ifMatch: reqVersion,
+          sessionToken: docStoreParams.sessionToken,
         },
       );
 
-      const resultCode = didReplace
+      const resultCode = replaceDocumentResult.didReplace
         ? DocStoreUpsertResultCode.REPLACED
         : DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE;
 
-      return { code: resultCode };
+      return {
+        code: resultCode,
+        sessionToken: replaceDocumentResult.sessionToken,
+      };
     } else {
-      const didCreate = await createDocument(
+      const createDocumentResult = await createDocument(
         this.cryptoKey as CryptoKey,
         this.cosmosUrl,
         docStoreParams.databaseName,
@@ -600,14 +640,18 @@ export class CosmosDbDocStore implements
         uploadableDoc,
         {
           upsertDocument: true,
+          sessionToken: docStoreParams.sessionToken,
         },
       );
 
-      const resultCode = didCreate
+      const resultCode = createDocumentResult.didCreate
         ? DocStoreUpsertResultCode.CREATED
         : DocStoreUpsertResultCode.REPLACED;
 
-      return { code: resultCode };
+      return {
+        code: resultCode,
+        sessionToken: createDocumentResult.sessionToken,
+      };
     }
   }
 }

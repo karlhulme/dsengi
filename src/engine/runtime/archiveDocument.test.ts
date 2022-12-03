@@ -161,6 +161,7 @@ Deno.test("Archiving a document that is already archived will only fetch on the 
 Deno.test("Fail to archive a document if it changes between fetch and upsert.", async () => {
   const { sengi } = createSengiForTest({
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
+    sessionToken: "",
   });
 
   await assertRejects(() =>

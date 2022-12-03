@@ -39,6 +39,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
+    {},
   )).data as any[];
 
   if (treeDocs.length > MAX_ITEMS_TO_DELETE) {
@@ -55,6 +56,7 @@ async function initDb(): Promise<void> {
       "trees",
       treeDoc["partitionKey"] as string,
       treeDoc.id as string,
+      {},
     );
   }
 
@@ -68,6 +70,7 @@ async function initDb(): Promise<void> {
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
+    {},
   )).data as any[];
 
   if (treePackDocs.length > MAX_ITEMS_TO_DELETE) {
@@ -84,6 +87,7 @@ async function initDb(): Promise<void> {
       "treePacks",
       treePackDoc["partitionKey"] as string,
       treePackDoc.id as string,
+      {},
     );
   }
 
@@ -216,6 +220,7 @@ async function readContainer(
     "SELECT * FROM Docs d",
     [],
     "concatArrays",
+    {},
   )).data as any[];
 
   return docs;
@@ -239,15 +244,12 @@ Deno.test("A document can be deleted from a central partition.", async () => {
 
   const docStore = createCosmosDbDocStore();
 
-  assertEquals(
-    await docStore.deleteById("tree", TestPartition, "03", {
-      databaseName: "sengi",
-      collectionName: "trees",
-    }),
-    {
-      code: DocStoreDeleteByIdResultCode.DELETED,
-    },
-  );
+  const result = await docStore.deleteById("tree", TestPartition, "03", {
+    databaseName: "sengi",
+    collectionName: "trees",
+  });
+
+  assertEquals(result.code, DocStoreDeleteByIdResultCode.DELETED);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 2);
@@ -258,15 +260,14 @@ Deno.test("A document can be deleted from a non-central partition.", async () =>
 
   const docStore = createCosmosDbDocStore();
 
-  assertEquals(
-    await docStore.deleteById(
-      "treePack",
-      "tropical",
-      "03",
-      { databaseName: "sengi", collectionName: "treePacks" },
-    ),
-    { code: DocStoreDeleteByIdResultCode.DELETED },
+  const result = await docStore.deleteById(
+    "treePack",
+    "tropical",
+    "03",
+    { databaseName: "sengi", collectionName: "treePacks" },
   );
+
+  assertEquals(result.code, DocStoreDeleteByIdResultCode.DELETED);
 
   const docs = await readContainer("treePacks");
   assertEquals(docs.length, 3);
@@ -277,17 +278,14 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
 
   const docStore = createCosmosDbDocStore();
 
-  assertEquals(
-    await docStore.deleteById(
-      "tree",
-      TestPartition,
-      "200",
-      { databaseName: "sengi", collectionName: "trees" },
-    ),
-    {
-      code: DocStoreDeleteByIdResultCode.NOT_FOUND,
-    },
+  const result = await docStore.deleteById(
+    "tree",
+    TestPartition,
+    "200",
+    { databaseName: "sengi", collectionName: "trees" },
   );
+
+  assertEquals(result.code, DocStoreDeleteByIdResultCode.NOT_FOUND);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 3);
@@ -665,15 +663,13 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     docOpIds: [],
     docDigests: [],
   };
-  assertEquals(
-    await docStore.upsert("tree", TestPartition, doc, null, {
-      databaseName: "sengi",
-      collectionName: "trees",
-    }),
-    {
-      code: DocStoreUpsertResultCode.CREATED,
-    },
-  );
+
+  const result = await docStore.upsert("tree", TestPartition, doc, null, {
+    databaseName: "sengi",
+    collectionName: "trees",
+  });
+
+  assertEquals(result.code, DocStoreUpsertResultCode.CREATED);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 4);
@@ -704,15 +700,12 @@ Deno.test("Update an existing document.", async () => {
     docOpIds: [],
     docDigests: [],
   };
-  assertEquals(
-    await docStore.upsert("tree", TestPartition, doc, null, {
-      databaseName: "sengi",
-      collectionName: "trees",
-    }),
-    {
-      code: DocStoreUpsertResultCode.REPLACED,
-    },
-  );
+  const result = await docStore.upsert("tree", TestPartition, doc, null, {
+    databaseName: "sengi",
+    collectionName: "trees",
+  });
+
+  assertEquals(result.code, DocStoreUpsertResultCode.REPLACED);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 3);
@@ -747,13 +740,13 @@ Deno.test("Update an existing document with a required version.", async () => {
     docOpIds: [],
     docDigests: [],
   };
-  assertEquals(
-    await docStore.upsert("tree", TestPartition, doc, reqVersion, {
-      databaseName: "sengi",
-      collectionName: "trees",
-    }),
-    { code: DocStoreUpsertResultCode.REPLACED },
-  );
+
+  const result = await docStore.upsert("tree", TestPartition, doc, reqVersion, {
+    databaseName: "sengi",
+    collectionName: "trees",
+  });
+
+  assertEquals(result.code, DocStoreUpsertResultCode.REPLACED);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 3);
@@ -784,13 +777,13 @@ Deno.test("Fail to update an existing document if the required version is unavai
     docOpIds: [],
     docDigests: [],
   };
-  assertEquals(
-    await docStore.upsert("tree", TestPartition, doc, "bbbb", {
-      databaseName: "sengi",
-      collectionName: "trees",
-    }),
-    { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE },
-  );
+
+  const result = await docStore.upsert("tree", TestPartition, doc, "bbbb", {
+    databaseName: "sengi",
+    collectionName: "trees",
+  });
+
+  assertEquals(result.code, DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE);
 
   const docs = await readContainer("trees");
   assertEquals(docs.length, 3);

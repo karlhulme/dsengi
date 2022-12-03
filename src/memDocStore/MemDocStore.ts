@@ -121,9 +121,9 @@ export class MemDocStore implements
 
     if (index > -1) {
       this.docs.splice(index, 1);
-      return { code: DocStoreDeleteByIdResultCode.DELETED };
+      return { code: DocStoreDeleteByIdResultCode.DELETED, sessionToken: "" };
     } else {
-      return { code: DocStoreDeleteByIdResultCode.NOT_FOUND };
+      return { code: DocStoreDeleteByIdResultCode.NOT_FOUND, sessionToken: "" };
     }
   }
 
@@ -300,14 +300,17 @@ export class MemDocStore implements
       reqVersion &&
       (index === -1 || this.docs[index].docVersion !== reqVersion)
     ) {
-      return { code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE };
+      return {
+        code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
+        sessionToken: "",
+      };
     } else {
       if (index > -1) {
         this.docs.splice(index, 1, docCopy);
-        return { code: DocStoreUpsertResultCode.REPLACED };
+        return { code: DocStoreUpsertResultCode.REPLACED, sessionToken: "" };
       } else {
         this.docs.push(docCopy);
-        return { code: DocStoreUpsertResultCode.CREATED };
+        return { code: DocStoreUpsertResultCode.CREATED, sessionToken: "" };
       }
     }
   }

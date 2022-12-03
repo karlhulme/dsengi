@@ -11,7 +11,10 @@ import { SafeDocStore } from "./SafeDocStore.ts";
 
 function createTestDocStore(): DocStore<unknown, unknown, unknown> {
   return {
-    deleteById: async () => ({ code: DocStoreDeleteByIdResultCode.DELETED }),
+    deleteById: async () => ({
+      code: DocStoreDeleteByIdResultCode.DELETED,
+      sessionToken: "",
+    }),
     exists: async () => ({ found: true }),
     fetch: async () => ({
       doc: { id: "1234", docType: "test", docVersion: "aaaa", docOpIds: [] },
@@ -21,7 +24,10 @@ function createTestDocStore(): DocStore<unknown, unknown, unknown> {
     selectByDigest: async () => ({ docs: [], queryCharge: 0 }),
     selectByFilter: async () => ({ docs: [], queryCharge: 0 }),
     selectByIds: async () => ({ docs: [], queryCharge: 0 }),
-    upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
+    upsert: async () => ({
+      code: DocStoreUpsertResultCode.CREATED,
+      sessionToken: "",
+    }),
   };
 }
 
@@ -41,6 +47,7 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
 
   assertEquals(await safeDocStore.deleteById("", "", "", {}), {
     code: DocStoreDeleteByIdResultCode.DELETED,
+    sessionToken: "",
   });
   assertEquals(await safeDocStore.exists("", "", "", {}), {
     found: true,
@@ -70,6 +77,7 @@ Deno.test("A safe doc store passes through values from the underlying doc store.
   });
   assertEquals(await safeDocStore.upsert("", "", {}, null, {}), {
     code: DocStoreUpsertResultCode.CREATED,
+    sessionToken: "",
   });
 });
 

@@ -103,7 +103,10 @@ Deno.test("A document can be deleted.", async () => {
     "003",
     {},
   );
-  assertEquals(result, { code: DocStoreDeleteByIdResultCode.DELETED });
+  assertEquals(result, {
+    code: DocStoreDeleteByIdResultCode.DELETED,
+    sessionToken: "",
+  });
   assertEquals(docs.length, 5);
   assertEquals(docs.map((d) => d.id), ["001", "002", "101", "102", "103"]);
 });
@@ -117,7 +120,10 @@ Deno.test("A non-existent document can be deleted without error.", async () => {
     "200",
     {},
   );
-  assertEquals(result, { code: DocStoreDeleteByIdResultCode.NOT_FOUND });
+  assertEquals(result, {
+    code: DocStoreDeleteByIdResultCode.NOT_FOUND,
+    sessionToken: "",
+  });
   assertEquals(docs.length, 6);
   assertEquals(docs.map((d) => d.id), [
     "001",
@@ -349,7 +355,10 @@ Deno.test("Insert a new document and rely on doc store to generate doc version."
     null,
     {},
   );
-  assertEquals(result, { code: DocStoreUpsertResultCode.CREATED });
+  assertEquals(result, {
+    code: DocStoreUpsertResultCode.CREATED,
+    sessionToken: "",
+  });
   assertEquals(docs.length, 7);
   assertEquals(docs.map((d) => d.id), [
     "001",
@@ -390,7 +399,10 @@ Deno.test("Update an existing document.", async () => {
     null,
     {},
   );
-  assertEquals(result, { code: DocStoreUpsertResultCode.REPLACED });
+  assertEquals(result, {
+    code: DocStoreUpsertResultCode.REPLACED,
+    sessionToken: "",
+  });
   assertEquals(docs.length, 6);
   assertEquals(docs.map((d) => d.id), [
     "001",
@@ -430,7 +442,10 @@ Deno.test("Update an existing document with a required version.", async () => {
     "a102",
     {},
   );
-  assertEquals(result, { code: DocStoreUpsertResultCode.REPLACED });
+  assertEquals(result, {
+    code: DocStoreUpsertResultCode.REPLACED,
+    sessionToken: "",
+  });
   assertEquals(docs.length, 6);
   assertEquals(docs.map((d) => d.id), [
     "001",
@@ -472,6 +487,7 @@ Deno.test("Fail to update an existing document if the required version is unavai
   );
   assertEquals(result, {
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
+    sessionToken: "",
   });
   assertEquals(docs.length, 6);
   assertEquals(docs[4], {

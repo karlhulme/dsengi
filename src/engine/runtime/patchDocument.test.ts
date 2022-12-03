@@ -233,6 +233,7 @@ Deno.test("Patching a document is an idempotent operation based on the digest on
 Deno.test("Fail to patch document when required version is not available.", async () => {
   const { sengi } = createSengiForTest({
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
+    sessionToken: "",
   });
 
   await assertRejects(() =>
@@ -250,6 +251,7 @@ Deno.test("Fail to patch document when required version is not available.", asyn
 Deno.test("Fail to patch document if it changes between fetch and upsert.", async () => {
   const { sengi } = createSengiForTest({
     code: DocStoreUpsertResultCode.VERSION_NOT_AVAILABLE,
+    sessionToken: "",
   });
 
   await assertRejects(() =>
