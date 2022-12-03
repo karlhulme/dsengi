@@ -17,7 +17,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: [],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "002",
@@ -28,7 +27,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: [],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "003",
@@ -39,7 +37,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: ["abcd"],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 0,
     },
     {
       id: "101",
@@ -50,7 +47,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: [],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "102",
@@ -61,7 +57,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: [],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 1234,
     },
     {
       id: "103",
@@ -72,7 +67,6 @@ function createDocs(): DocStoreRecord[] {
       docOpIds: [],
       docDigests: [],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 1234,
     },
   ];
 }
@@ -178,7 +172,6 @@ Deno.test("A document can be fetched.", async () => {
       docOpIds: [],
       docDigests: ["abcd"],
       partitionKey: "_central",
-      lastSyncedMillisecondsSinceEpoch: 0,
     },
   });
 });
@@ -499,6 +492,5 @@ Deno.test("Fail to update an existing document if the required version is unavai
     docOpIds: [],
     docDigests: [],
     partitionKey: "_central",
-    lastSyncedMillisecondsSinceEpoch: 1234,
   });
 });
