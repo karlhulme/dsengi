@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/karlhulme/dsengi/schema.json",
+  "title": "Sengi table schema.",
+  "description": "A table that is managed by Sengi.",
+  "type": "object",
+  "properties": {
+    "system": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    }
+  }
+}
