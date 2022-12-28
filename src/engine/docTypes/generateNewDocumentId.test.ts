@@ -9,7 +9,6 @@ Deno.test("Generate a new document id.", () => {
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
@@ -29,7 +28,6 @@ Deno.test("Fail to generate a new document id if function not supplied.", () => 
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
@@ -55,7 +53,6 @@ Deno.test("Fail to generate a new document id if function throws an error.", () 
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
@@ -80,7 +77,6 @@ Deno.test("Fail to generate a new document id if function returns a non-string."
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},

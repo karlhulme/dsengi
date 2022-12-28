@@ -29,7 +29,6 @@ Deno.test("A valid patch that changes a value is applied.", () => {
 
   executePatch<ExampleDoc>(
     "test",
-    [],
     doc,
     {
       propA: "AAA",
@@ -54,7 +53,6 @@ Deno.test("A valid patch that removes a value is applied.", () => {
 
   executePatch<ExampleDoc>(
     "test",
-    [],
     doc,
     {
       propC: null,
@@ -73,7 +71,6 @@ Deno.test("A patch that attempts to change a system field is rejected.", () => {
     () =>
       executePatch<ExampleDoc>(
         "test",
-        [],
         createDoc(),
         {
           id: "321",
@@ -81,21 +78,5 @@ Deno.test("A patch that attempts to change a system field is rejected.", () => {
       ),
     SengiPatchValidationFailedError,
     "system field",
-  );
-});
-
-Deno.test("A patch that attempts to change a readonly field is rejected.", () => {
-  assertThrows(
-    () =>
-      executePatch<ExampleDoc>(
-        "test",
-        ["propA"],
-        createDoc(),
-        {
-          propA: "321",
-        },
-      ),
-    SengiPatchValidationFailedError,
-    "read-only field",
   );
 });

@@ -9,7 +9,6 @@ function createDocTypes() {
   const docTypes: DocType<"test" | "example", string>[] = [{
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
@@ -20,7 +19,6 @@ function createDocTypes() {
   }, {
     name: "example",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},

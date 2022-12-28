@@ -9,7 +9,6 @@ Deno.test("Remain silent if policy allows delete action.", () => {
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
@@ -29,7 +28,6 @@ Deno.test("Raise error if policy disallows delete action.", () => {
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},
@@ -53,7 +51,6 @@ Deno.test("Raise error if policy not specified for delete action.", () => {
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    readOnlyFieldNames: [],
     redactFieldNames: {},
     validateDoc: () => {},
     validateFields: () => {},

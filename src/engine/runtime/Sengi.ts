@@ -520,7 +520,6 @@ export class Sengi<
 
       executePatch(
         props.docTypeName,
-        docType.readOnlyFieldNames,
         doc as Doc,
         props.patch,
       );

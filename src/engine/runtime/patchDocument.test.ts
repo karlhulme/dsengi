@@ -281,24 +281,6 @@ Deno.test("Reject a patch to a non-existent doc.", async () => {
     }), SengiDocNotFoundError);
 });
 
-Deno.test("Reject a patch to any field that is marked as readonly.", async () => {
-  const { sengi } = createSengiForTest();
-
-  await assertRejects(
-    () =>
-      sengi.patchDocument<Car>({
-        ...defaultRequestProps,
-        id: "06151119-065a-4691-a7c8-2d84ec746ba9",
-        operationId: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
-        patch: {
-          manufacturer: "tesla",
-        },
-      }),
-    SengiPatchValidationFailedError,
-    "Cannot patch read-only field",
-  );
-});
-
 Deno.test("Reject a patch that would leave the document in an invalid state.", async () => {
   const { sengi } = createSengiForTest();
 

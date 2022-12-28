@@ -32,7 +32,6 @@ export function createCarDocType(
   return {
     name: "car",
     docStoreParams: { custom: "prop" },
-    readOnlyFieldNames: ["manufacturer"],
     redactFieldNames: {
       manufacturer: "*",
       model: "-",

@@ -10,14 +10,11 @@ import {
  * are not valid for the overall document, if these are not corrected by the preSave
  * then an error will be raised when the document is validated.
  * @param docTypeName The name of a document type.
- * @param readOnlyFieldNames An array of the read-only fields.
- * of the document to be patched.
  * @param doc The doc that will be patched.
  * @param patch The patch to be applied.
  */
 export function executePatch<Doc extends DocBase>(
   docTypeName: string,
-  readOnlyFieldNames: string[],
   doc: Doc,
   patch: PartialNullable<Doc>,
 ): void {
@@ -28,13 +25,6 @@ export function executePatch<Doc extends DocBase>(
       throw new SengiPatchValidationFailedError(
         docTypeName,
         `Cannot patch system field '${patchKey}'.`,
-      );
-    }
-
-    if (readOnlyFieldNames?.includes(patchKey)) {
-      throw new SengiPatchValidationFailedError(
-        docTypeName,
-        `Cannot patch read-only field '${patchKey}'.`,
       );
     }
 

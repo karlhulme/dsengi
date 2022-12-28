@@ -21,12 +21,6 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   policy?: DocTypePolicy;
 
   /**
-   * An array of field names that cannot be patched.
-   * System fields are always read-only and do not need to be specified.
-   */
-  readOnlyFieldNames: string[];
-
-  /**
    * Indicates if documents of this type should be saved into a
    * single central partition.
    */
