@@ -20,10 +20,11 @@ function createDoc(): ExampleDoc {
 Deno.test("Redact a document where fields are present.", () => {
   const doc = createDoc();
 
-  redactDoc(doc, {
-    propA: "-",
-    propC: 0,
-  }, "REDACT-001");
+  redactDoc(
+    doc,
+    [{ fieldName: "propA", value: "-" }, { fieldName: "propC", value: 0 }],
+    "REDACT-001",
+  );
 
   assertEquals(doc, {
     propA: "-",
@@ -35,9 +36,7 @@ Deno.test("Redact a document where fields are present.", () => {
 Deno.test("Redact a document using the redact value.", () => {
   const doc = createDoc();
 
-  redactDoc(doc, {
-    propA: "*",
-  }, "REDACT-001");
+  redactDoc(doc, [{ fieldName: "propA", value: "*" }], "REDACT-001");
 
   assertEquals(doc, {
     propA: "REDACT-001",

@@ -13,7 +13,7 @@ Deno.test("Remain silent if policy allows replace document action.", () => {
     validateFields: () => {},
     newId: () => "abcd",
     changeFieldNames: [],
-    redactFieldNames: {},
+    redactFields: [],
     policy: {
       canReplaceDocuments: true,
     },
@@ -28,7 +28,7 @@ Deno.test("Raise error if policy disallows replace document action.", () => {
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
@@ -51,7 +51,7 @@ Deno.test("Raise error if policy not specified for replace document action.", ()
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",

@@ -9,7 +9,7 @@ Deno.test("Remain silent if policy allows fetch whole collection action.", () =>
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
@@ -28,7 +28,7 @@ Deno.test("Raise error if policy disallows fetch whole collection action.", () =
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
@@ -51,7 +51,7 @@ Deno.test("Raise error if policy not specified for fetch whole collection action
   const docType: DocType<"test", string> = {
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",

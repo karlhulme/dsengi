@@ -9,7 +9,7 @@ function createDocTypes() {
   const docTypes: DocType<"test" | "example", string>[] = [{
     name: "test",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",
@@ -19,7 +19,7 @@ function createDocTypes() {
   }, {
     name: "example",
     docStoreParams: "",
-    redactFieldNames: {},
+    redactFields: [],
     validateDoc: () => {},
     validateFields: () => {},
     newId: () => "abcd",

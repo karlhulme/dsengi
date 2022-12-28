@@ -24,7 +24,7 @@ Deno.test("Create a Sengi using a mock doc store and the default functions which
     docTypes: [{
       name: "car",
       docStoreParams: { custom: "props" },
-      redactFieldNames: {},
+      redactFields: [],
       validateDoc: () => {},
       validateFields: () => {},
       newId: () => "abcd",

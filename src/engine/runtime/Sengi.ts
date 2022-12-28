@@ -688,7 +688,7 @@ export class Sengi<
 
       appendDocOpId(doc, props.operationId, docType.policy?.maxOpIds);
 
-      redactDoc(doc, docType.redactFieldNames, props.redactValue);
+      redactDoc(doc, docType.redactFields, props.redactValue);
 
       doc.docRedactedByUserId = props.userId;
       doc.docRedactedMillisecondsSinceEpoch = this.getMillisecondsSinceEpoch();

@@ -54,12 +54,13 @@ export interface DocType<DocTypeNames extends string, DocStoreParams> {
   changeFieldNames: string[];
 
   /**
-   * A mapping between the field names and the values that should
-   * be applied upon redaction.  If the value to be applied is '*'
+   * An array of fields that should be changed when the document is
+   * redacted.  If the value to be applied is the '*' string
    * then the redactionValue will be applied instead.  This is typically
-   * an identifier so that original values can be looked up.
+   * an identifier so that original values can be retrieved from a
+   * separate governance/record system.
    */
-  redactFieldNames: Record<string, unknown>;
+  redactFields: { fieldName: string; value: unknown }[];
 
   /**
    * A validator function that returns a string describing the validation
