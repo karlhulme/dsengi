@@ -1,6 +1,6 @@
 import { DocBase } from "../doc/index.ts";
 
-type OmittedDocFieldNames =
+export type OmittedNewDocumentFieldNames =
   | "id"
   | "docType"
   | "docStatus"
@@ -49,7 +49,7 @@ export interface NewDocumentProps<
   /**
    * The new document.  All of the system fields will be added automatically.
    */
-  doc: Partial<Omit<Doc, OmittedDocFieldNames>>;
+  doc: Partial<Omit<Doc, OmittedNewDocumentFieldNames>>;
 
   /**
    * If supplied, this value will be used as the id of the new document.

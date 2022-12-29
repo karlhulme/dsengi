@@ -1,6 +1,6 @@
 import { PartialNullable } from "../generic/index.ts";
 
-type OmittedDocFieldNames =
+export type OmittedPatchDocumentFieldNames =
   | "id"
   | "docType"
   | "docStatus"
@@ -53,7 +53,7 @@ export interface PatchDocumentProps<
   /**
    * The patch to be applied.
    */
-  patch: Omit<PartialNullable<Doc>, OmittedDocFieldNames>;
+  patch: Omit<PartialNullable<Doc>, OmittedPatchDocumentFieldNames>;
 
   /**
    * The required version of the document.  If specified, then this
