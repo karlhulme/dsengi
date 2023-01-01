@@ -1,5 +1,5 @@
 {
   "deno.enable": true,
   "editor.formatOnSave": true,
-  "editor.inlayHints.enabled": "offUnlessPressed",
+  "editor.inlayHints.enabled": "offUnlessPressed"
 }
