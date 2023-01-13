@@ -19,11 +19,6 @@ export {
 export { match, spy } from "https://cdn.skypack.dev/sinon@v15.0.1?dts";
 
 export {
-  OperationTransitoryError,
-  retryable,
-} from "https://raw.githubusercontent.com/karlhulme/dpiggle/main/mod.ts";
-
-export {
   convertCosmosKeyToCryptoKey,
   createCollection,
   createDatabase,
