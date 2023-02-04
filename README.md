@@ -22,6 +22,8 @@ A NoSQL database offers a few specific benefits:
 However there are a number of specific drawbacks compared to a SQL database:
 
 - Loss of transaction support.
+- Loss of cross-container join support, so you can't easily view data from a
+  parent record next to it's associated child records.
 - Loss of aggregation, for example, determining the top 5 records for a given
   ordering requires that all the individual physical containers be queried first
   and then the resultant top 5 determined afterwards.
@@ -72,7 +74,7 @@ denormalised records need to be updated whenever a constituent record changes.
 
 We do not rely on the underlying change feed of the document store because these
 don't always provide the fidilty required. For example, Cosmos does not include
-deletions in the change feed, and it does include the before/after fields of
+deletions in the change feed, and it does not include the before/after fields of
 each change.
 
 Before any mutation is attempted a change document is created and written to a
@@ -93,7 +95,7 @@ Either use a separate tool for this or write one-off scripts as the need arises.
 
 Most documents will require a partition key so that the database knows how to
 shard the data. Alternatively, you can specify single-partition collections.
-These collections will be stored (by default) using the __central_ partition
+These collections will be stored (by default) using the `_central` partition
 key. This may simplify access but be aware that this collection will be subject
 to the maximum size (document count and data volume) and throughput of a
 physical partition supported by the database.
@@ -113,7 +115,7 @@ id lookup, based on `partitionKey > docType > id`.
 Specify a consistency level of SESSION and associate the session-token returned
 from write operations with the user that triggered the operation. This ensures
 that any subsequent read operations will reflect the previous writes. If this
-cannot be achieved then the BOUNDED STALENSS level will serialise changes such
+cannot be achieved then the BOUNDED STALENESS level will serialise changes such
 that every node of the service sees the same results but it will double the RU
 cost of each query.
 
