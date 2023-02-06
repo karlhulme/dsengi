@@ -462,6 +462,30 @@ Deno.test("Select all documents of a type from a single partition.", async () =>
   }
 });
 
+Deno.test("Select all documents of a type from a single partition, excluding archived.", async () => {
+  await initDb();
+
+  const docStore = createMongoDbDocStore();
+
+  try {
+    const result = await docStore.selectAll(
+      "treePack",
+      "forest",
+      false,
+      { databaseName: "sengi-ci", collectionName: "treePacks" },
+    );
+    const sortedDocs = result.docs.sort((a, b) =>
+      (a.id as string).localeCompare(b.id as string)
+    );
+    assertEquals(
+      sortedDocs.map((doc) => subsetDoc(doc, ["id"])),
+      [{ id: "02" }],
+    );
+  } finally {
+    await docStore.close();
+  }
+});
+
 Deno.test("Select documents using a filter.", async () => {
   await initDb();
 

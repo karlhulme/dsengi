@@ -302,29 +302,25 @@ export class MongoDbDocStore implements
   ): Promise<DocStoreQueryResult> {
     const coll = this.getCollection(docStoreParams);
 
-    switch (query.type) {
-      default:
-      case "count": {
-        const count = await coll.countDocuments(query.filter);
+    if (query.type === "count") {
+      const count = await coll.countDocuments(query.filter);
 
-        return {
-          data: count,
-          queryCharge: 0,
-        };
+      return {
+        data: count,
+        queryCharge: 0,
+      };
+    } else { // query.type === 'aggregate'
+      const aggCursor = coll.aggregate(query.pipeline);
+      const aggResult: unknown[] = [];
+
+      for await (const doc of aggCursor) {
+        aggResult.push(doc);
       }
-      case "aggregate": {
-        const aggCursor = coll.aggregate(query.pipeline);
-        const aggResult: unknown[] = [];
 
-        for await (const doc of aggCursor) {
-          aggResult.push(doc);
-        }
-
-        return {
-          data: aggResult,
-          queryCharge: 0,
-        };
-      }
+      return {
+        data: aggResult,
+        queryCharge: 0,
+      };
     }
   }
 
