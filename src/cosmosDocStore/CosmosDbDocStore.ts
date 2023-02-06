@@ -33,7 +33,7 @@ const MAX_DOCS_TO_SELECT = 200;
  * Defines the parameters that must be passed to the Cosmos
  * document store.
  */
-export type CosmosDbDocStoreParams = {
+export interface CosmosDbDocStoreParams {
   /**
    * The name of a Cosmos database.
    */
@@ -49,7 +49,7 @@ export type CosmosDbDocStoreParams = {
    * a previous write operation.
    */
   sessionToken?: string;
-};
+}
 
 /**
  * Represents a parameter in a Cosmos SQL statement or clause.
@@ -166,7 +166,7 @@ interface CosmosDbDocStoreConstructorProps {
 }
 
 /**
- * An document store implementation for Microsoft's Azure Cosmos DB.
+ * A document store implementation for Microsoft's Azure Cosmos DB.
  */
 export class CosmosDbDocStore implements
   DocStore<
