@@ -119,6 +119,23 @@ cannot be achieved then the BOUNDED STALENESS level will serialise changes such
 that every node of the service sees the same results but it will double the RU
 cost of each query.
 
+## Mongo Setup
+
+The defaults seem fine.
+
+## Choosing between Mongo and Cosmos
+
+| Topic               | Cosmos                              | Mongo                                |
+| ------------------- | ----------------------------------- | ------------------------------------ |
+| Collection limit    | 25 on 400 RUs                       | 500 on shared M0                     |
+| HTTPS interface     | yes                                 | Only on hosted Atlas                 |
+| Native driver       | May be usable                       | yes                                  |
+| Offline development | Emulator in preview (slow progress) | Community edition, well supported    |
+| Location            | anywhere                            | Ireland for M0, UK from M10+         |
+| For £0/mo           | Serverless                          | M0 server (100 dbs, 500 collections) |
+| For £50/mo          | ~1000 RUs or 10 collections         | M10 server (zero downtime upgrading) |
+| For £500/mo         | ~10K RUs or 100 collections         | M30 server (sharding)                |
+
 ## Environment variables
 
 You will need to set the following environment variables to run the tests:
@@ -126,6 +143,7 @@ You will need to set the following environment variables to run the tests:
 - **COSMOS_URL** The url to the Cosmos db instance, e.g.
   https://myapp.documents.azure.net
 - **COSMOS_KEY** The value of the shared access key.
+- **MONGO_URL** The url to the Mongo db instance.
 
 ## Commands
 
