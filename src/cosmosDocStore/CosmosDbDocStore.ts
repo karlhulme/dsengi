@@ -588,6 +588,7 @@ export class CosmosDbDocStore implements
 
   /**
    * Store a single document in the store, overwriting an existing if necessary.
+   * Documents passed to this function are guaranteed to have an id property.
    * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param doc The document to store.

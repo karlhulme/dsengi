@@ -121,7 +121,8 @@ cost of each query.
 
 ## Mongo Setup
 
-The defaults seem fine.
+In production, always create indexes for any filters required, including one for
+id lookup, based on `partitionKey > docType > id`.
 
 ## Choosing between Mongo and Cosmos
 
