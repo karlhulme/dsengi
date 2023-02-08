@@ -1,7 +1,7 @@
 # dsengi
 
 A utility for retrieving, storing and mutating documents stored in a NoSQL
-database such as Azure Cosmos DB.
+database such as Azure Cosmos DB..
 
 You can use Jsonotron to generate interfaces and validation functions for each
 document type to be saved.
