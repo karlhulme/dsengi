@@ -15,7 +15,7 @@ import {
  * Defines the maximum length of a query or filter string
  * before it is truncated.
  */
-const MAX_LEN_QUERY_FILTER_LOG_STRING = 20;
+const MAX_LEN_QUERY_FILTER_LOG_STRING = 50;
 
 /**
  * The options for the safe doc store.
