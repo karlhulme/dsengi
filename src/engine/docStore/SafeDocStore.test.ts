@@ -43,7 +43,9 @@ function createBespokeDocStore(
 
 Deno.test("A safe doc store passes through values from the underlying doc store.", async () => {
   const docStore = createTestDocStore();
-  const safeDocStore = new SafeDocStore(docStore);
+  const safeDocStore = new SafeDocStore(docStore, {
+    logPerformance: true,
+  });
 
   assertEquals(await safeDocStore.deleteById("", "", "", {}), {
     code: DocStoreDeleteByIdResultCode.DELETED,

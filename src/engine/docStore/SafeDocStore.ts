@@ -12,6 +12,23 @@ import {
 } from "../../interfaces/index.ts";
 
 /**
+ * Defines the maximum length of a query or filter string
+ * before it is truncated.
+ */
+const MAX_LEN_QUERY_FILTER_LOG_STRING = 20;
+
+/**
+ * The options for the safe doc store.
+ */
+interface SafeDocStoreOptions {
+  /**
+   * If true, the time taken to complete each operation is logged
+   * to the console.
+   */
+  logPerformance?: boolean;
+}
+
+/**
  * A document store that wraps any errors so the source can be identified.
  */
 export class SafeDocStore<DocStoreParams, Filter, Query>
@@ -24,6 +41,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    */
   constructor(
     readonly docStore: DocStore<DocStoreParams, Filter, Query>,
+    readonly options: SafeDocStoreOptions = {},
   ) {
     const functionNames = [
       "deleteById",
@@ -46,6 +64,13 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     });
   }
 
+  private logPerformance(start: number, label: string) {
+    if (this.options.logPerformance) {
+      const duration = performance.now() - start;
+      console.log(`${label} ${duration.toFixed(0)} ms`);
+    }
+  }
+
   /**
    * Delete a single document from the store using it's id.
    * @param docTypeName The name of a doc type.
@@ -59,6 +84,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     id: string,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreDeleteByIdResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.deleteById(
         docTypeName,
@@ -69,6 +96,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("deleteById", err as Error);
+    } finally {
+      this.logPerformance(start, `DeleteById ${docTypeName} ${id}`);
     }
   }
 
@@ -85,6 +114,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     id: string,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreExistsResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.exists(
         docTypeName,
@@ -95,6 +126,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("exists", err as Error);
+    } finally {
+      this.logPerformance(start, `Exists ${docTypeName} ${id}`);
     }
   }
 
@@ -111,6 +144,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     id: string,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreFetchResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.fetch(
         docTypeName,
@@ -121,6 +156,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("fetch", err as Error);
+    } finally {
+      this.logPerformance(start, `Fetch ${docTypeName} ${id}`);
     }
   }
 
@@ -135,6 +172,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     query: Query,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreQueryResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.query(
         docTypeName,
@@ -144,6 +183,12 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("query", err as Error);
+    } finally {
+      const qs = JSON.stringify(query);
+      const qsShort = qs.length > MAX_LEN_QUERY_FILTER_LOG_STRING
+        ? (qs.slice(0, MAX_LEN_QUERY_FILTER_LOG_STRING) + "...")
+        : qs;
+      this.logPerformance(start, `Query ${docTypeName} ${qsShort}`);
     }
   }
 
@@ -160,6 +205,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.selectAll(
         docTypeName,
@@ -170,6 +217,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("selectAll", err as Error);
+    } finally {
+      this.logPerformance(start, `SelectAll ${docTypeName}`);
     }
   }
 
@@ -188,6 +237,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     includeArchived: boolean,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.selectByFilter(
         docTypeName,
@@ -199,6 +250,12 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("selectByFilter", err as Error);
+    } finally {
+      const fs = JSON.stringify(filter);
+      const fsShort = fs.length > MAX_LEN_QUERY_FILTER_LOG_STRING
+        ? (fs.slice(0, MAX_LEN_QUERY_FILTER_LOG_STRING) + "...")
+        : fs;
+      this.logPerformance(start, `SelectByFilter ${docTypeName} ${fsShort}`);
     }
   }
 
@@ -215,6 +272,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     ids: string[],
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.selectByIds(
         docTypeName,
@@ -225,6 +284,12 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("selectByIds", err as Error);
+    } finally {
+      const idss = JSON.stringify(ids);
+      const idssShort = idss.length > MAX_LEN_QUERY_FILTER_LOG_STRING
+        ? (idss.slice(0, MAX_LEN_QUERY_FILTER_LOG_STRING) + "...")
+        : idss;
+      this.logPerformance(start, `SelectByIds ${docTypeName} ${idssShort}`);
     }
   }
 
@@ -241,6 +306,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     digest: string,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.selectByDigest(
         docTypeName,
@@ -251,6 +318,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("selectByDigest", err as Error);
+    } finally {
+      this.logPerformance(start, `SelectByDigest ${docTypeName} ${digest}`);
     }
   }
 
@@ -270,6 +339,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
     reqVersion: string | null,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreUpsertResult> {
+    const start = performance.now();
+
     try {
       const result = await this.docStore.upsert(
         docTypeName,
@@ -281,6 +352,8 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       return result;
     } catch (err) {
       throw new UnexpectedDocStoreError("upsert", err as Error);
+    } finally {
+      this.logPerformance(start, `Upsert ${docTypeName} ${doc.id}`);
     }
   }
 }

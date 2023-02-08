@@ -146,6 +146,12 @@ export interface SengiConstructorProps<
    * to store a change.
    */
   changeDocStoreParams?: DocStoreParams;
+
+  /**
+   * If true, the time in milliseconds to perform each operation is
+   * logged to the console.
+   */
+  logPerformance?: boolean;
 }
 
 /**
@@ -199,7 +205,9 @@ export class Sengi<
       throw new Error("Must supply a docStore.");
     }
 
-    this.safeDocStore = new SafeDocStore(props.docStore);
+    this.safeDocStore = new SafeDocStore(props.docStore, {
+      logPerformance: props.logPerformance,
+    });
 
     this.cache = new TtlCache<DocBase>(
       typeof props.cacheSize === "number"
