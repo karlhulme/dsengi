@@ -12,6 +12,12 @@ import {
 } from "../interfaces/index.ts";
 import { MongoDbDocStore } from "./MongoDbDocStore.ts";
 
+// MongoDbDocStore will ensure that all inserted documents contain both an
+// `_id` field and an `id` field.  The former is required for Mongo, the
+// later is the standardised identity field required for Sengi.
+// The `initDb` function that seeds the test database must provide both
+// identity field values.
+
 const TestPartition = "testPartition";
 
 const MONGO_URL = Deno.env.get("MONGO_URL") || "";
@@ -58,6 +64,7 @@ async function initDb(): Promise<void> {
     const trees: DocStoreRecord[] = [
       {
         _id: "01",
+        id: "01",
         docType: "tree",
         docStatus: "active",
         partitionKey: "testPartition",
@@ -69,6 +76,7 @@ async function initDb(): Promise<void> {
       },
       {
         _id: "02",
+        id: "02",
         docType: "tree",
         docStatus: "active",
         partitionKey: "testPartition",
@@ -80,6 +88,7 @@ async function initDb(): Promise<void> {
       },
       {
         _id: "03",
+        id: "03",
         docType: "tree",
         docStatus: "active",
         partitionKey: "testPartition",
@@ -100,6 +109,7 @@ async function initDb(): Promise<void> {
     const treePacks: DocStoreRecord[] = [
       {
         _id: "01",
+        id: "01",
         docType: "treePack",
         docStatus: "archived",
         partitionKey: "forest",
@@ -112,6 +122,7 @@ async function initDb(): Promise<void> {
       },
       {
         _id: "02",
+        id: "02",
         docType: "treePack",
         docStatus: "active",
         partitionKey: "forest",
@@ -124,6 +135,7 @@ async function initDb(): Promise<void> {
       },
       {
         _id: "03",
+        id: "03",
         docType: "treePack",
         docStatus: "active",
         partitionKey: "tropical",
@@ -136,6 +148,7 @@ async function initDb(): Promise<void> {
       },
       {
         _id: "04",
+        id: "04",
         docType: "treePack",
         docStatus: "active",
         partitionKey: "tropical",

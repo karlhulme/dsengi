@@ -208,7 +208,7 @@ export class MongoDbDocStore implements
    * @param docStoreParams The parameters for the document store.
    */
   async deleteById(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     id: string,
     docStoreParams: MongoDbDocStoreParams,
@@ -216,9 +216,8 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const deleteOneResult = await coll.deleteOne({
-      _id: id,
-      docType: docTypeName,
       partitionKey: partition,
+      id: id,
     });
 
     const resultCode = deleteOneResult.deletedCount > 0
@@ -233,13 +232,13 @@ export class MongoDbDocStore implements
 
   /**
    * Determines if a document with the given id is in the datastore.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param docStoreParams The parameters for the document store.
    */
   async exists(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     id: string,
     docStoreParams: MongoDbDocStoreParams,
@@ -247,9 +246,8 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const count = await coll.countDocuments({
-      _id: id,
-      docType: docTypeName,
       partitionKey: partition,
+      id: id,
     });
 
     return { found: count === 1 };
@@ -257,13 +255,13 @@ export class MongoDbDocStore implements
 
   /**
    * Fetch a single document using it's id.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param id The id of a document.
    * @param docStoreParams The parameters for the document store.
    */
   async fetch(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     id: string,
     docStoreParams: MongoDbDocStoreParams,
@@ -271,9 +269,8 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const findOneResult = await coll.findOne({
-      _id: id,
-      docType: docTypeName,
       partitionKey: partition,
+      _id: id,
     });
 
     let doc = null;
@@ -326,11 +323,11 @@ export class MongoDbDocStore implements
 
   /**
    * Select any documents that are hosting the given digest.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByDigest(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     digest: string,
     docStoreParams: MongoDbDocStoreParams,
@@ -338,7 +335,6 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const findCursor = coll.find({
-      docType: docTypeName,
       partitionKey: partition,
       docDigests: {
         $in: [digest],
@@ -361,13 +357,13 @@ export class MongoDbDocStore implements
 
   /**
    * Select all documents of a specified type.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param includeArchived True if the selection should include archived documents.
    * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     includeArchived: boolean,
     docStoreParams: MongoDbDocStoreParams,
@@ -375,7 +371,6 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const query: Filter<DocStoreRecord> = {
-      docType: docTypeName,
       partitionKey: partition,
     };
 
@@ -401,7 +396,7 @@ export class MongoDbDocStore implements
 
   /**
    * Select documents of a specified type that also match a filter.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
@@ -409,7 +404,7 @@ export class MongoDbDocStore implements
    * @param docStoreParams The parameters for the document store.
    */
   async selectByFilter(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     filter: MongoDbDocStoreFilter,
     includeArchived: boolean,
@@ -418,7 +413,6 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const query: Filter<DocStoreRecord> = {
-      docType: docTypeName,
       partitionKey: partition,
       ...filter.whereClause,
     };
@@ -453,13 +447,13 @@ export class MongoDbDocStore implements
 
   /**
    * Select documents of a specified type that also have one of the given ids.
-   * @param docTypeName The name of a doc type.
+   * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
    * @param ids An array of document ids.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByIds(
-    docTypeName: string,
+    _docTypeName: string,
     partition: string,
     ids: string[],
     docStoreParams: MongoDbDocStoreParams,
@@ -467,7 +461,6 @@ export class MongoDbDocStore implements
     const coll = this.getCollection(docStoreParams);
 
     const query: Filter<DocStoreRecord> = {
-      docType: docTypeName,
       partitionKey: partition,
       _id: {
         $in: ids,
