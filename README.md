@@ -1,7 +1,7 @@
 # dsengi
 
 A utility for retrieving, storing and mutating documents stored in a NoSQL
-database such as Azure Cosmos DB..
+database such as Azure Cosmos DB.
 
 You can use Jsonotron to generate interfaces and validation functions for each
 document type to be saved.
@@ -126,6 +126,12 @@ id lookup, based on `partitionKey > id`.
 
 ## Choosing between Mongo and Cosmos
 
+The primary reason for choosing Mongo over Cosmos right now, is that Mongo
+provides a fully supported local development experience. That's the direct
+install of Mongo and the use of Compass to interact with it. A similar setup can
+be achieved with Cosmos, except the emulator is in preview (and has been for
+years) and there is no visual editor for quick changes.
+
 | Topic               | Cosmos                              | Mongo                                |
 | ------------------- | ----------------------------------- | ------------------------------------ |
 | Collection limit    | 25 on 400 RUs                       | 500 on shared M0                     |
@@ -136,6 +142,12 @@ id lookup, based on `partitionKey > id`.
 | For £0/mo           | Serverless                          | M0 server (100 dbs, 500 collections) |
 | For £50/mo          | ~1000 RUs or 10 collections         | M10 server (zero downtime upgrading) |
 | For £500/mo         | ~10K RUs or 100 collections         | M30 server (sharding)                |
+| Same region perf    | ~50ms on HTTPS                      | ~10ms on Native                      |
+
+**Mongo M10**: A dedicated server, which can be hosted in UK South, and can be
+maintained without downtime.
+
+**Mongo M30**: Supports sharding.
 
 ## Environment variables
 
