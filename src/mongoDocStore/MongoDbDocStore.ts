@@ -503,7 +503,9 @@ export class MongoDbDocStore implements
   ): Promise<DocStoreUpsertResult> {
     const coll = this.getCollection(docStoreParams);
 
-    const uploadableDoc = structuredClone(doc);
+    // Not as fast as structuredClone but this removes
+    // fields that are present but have an undefined value.
+    const uploadableDoc = JSON.parse(JSON.stringify(doc));
 
     uploadableDoc._id = uploadableDoc.id;
     uploadableDoc.docVersion = this.generateDocVersionFunc();
