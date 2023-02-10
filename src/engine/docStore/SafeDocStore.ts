@@ -67,7 +67,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
   private logPerformance(start: number, label: string) {
     if (this.options.logPerformance) {
       const duration = performance.now() - start;
-      console.log(`  ${label} (${duration.toFixed(0)}ms)`);
+      console.log(`  DB ${label} (${duration.toFixed(0)}ms)`);
     }
   }
 
