@@ -22,3 +22,5 @@ export * from "./SelectDocumentsByIdsProps.ts";
 export * from "./SelectDocumentsByIdsResult.ts";
 export * from "./SelectDocumentsProps.ts";
 export * from "./SelectDocumentsResult.ts";
+export * from "./SelectPatchesProps.ts";
+export * from "./SelectPatchesResult.ts";

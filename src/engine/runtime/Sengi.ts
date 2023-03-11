@@ -34,6 +34,8 @@ import {
   SelectDocumentsByIdsResult,
   SelectDocumentsProps,
   SelectDocumentsResult,
+  SelectPatchesProps,
+  SelectPatchesResult,
   SengiDocNotFoundError,
 } from "../../interfaces/index.ts";
 import { ensureUpsertSuccessful, SafeDocStore } from "../docStore/index.ts";
@@ -464,7 +466,6 @@ export class Sengi<
           props.operationId,
           doc.id!,
           props.docTypeName,
-          partition,
           props.userId,
           subsetOfDocStoreRecord(
             doc as DocStoreRecord,
@@ -584,7 +585,6 @@ export class Sengi<
           props.operationId,
           props.id,
           props.docTypeName,
-          partition,
           props.userId,
           props.patch as DocStoreRecord,
         );
@@ -951,11 +951,42 @@ export class Sengi<
     };
   }
 
+  /**
+   * Selects all the patches for a given document.
+   * @param props A property bag.
+   */
+  async selectPatches(
+    props: SelectPatchesProps,
+  ): Promise<SelectPatchesResult> {
+    ensurePatchingConfig(
+      this.patchDocTypeName,
+      this.patchDocStoreParams,
+    );
+
+    const selectResult = await this.safeDocStore.selectAll(
+      this.patchDocTypeName,
+      props.documentId,
+      false,
+      this.patchDocStoreParams!,
+    );
+
+    return {
+      patches: selectResult.docs.map((d) => ({
+        id: d.id as string,
+        patchedDocId: d.patchedDocId as string,
+        patchedDocType: d.patchedDocType as string,
+        docCreatedByUserId: d.docCreatedByUserId as string,
+        docCreatedMillisecondsSinceEpoch: d
+          .docCreatedMillisecondsSinceEpoch as number,
+        patch: d.patch as Record<string, unknown>,
+      })),
+    };
+  }
+
   private async recordPatch(
     operationId: string,
     documentId: string,
     docTypeName: string,
-    partition: string,
     userId: string,
     patch: DocStoreRecord,
   ) {
@@ -981,7 +1012,7 @@ export class Sengi<
 
     await this.safeDocStore.upsert(
       this.patchDocTypeName!,
-      partition,
+      documentId,
       patchDoc,
       null,
       this.patchDocStoreParams!,

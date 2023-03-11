@@ -139,7 +139,7 @@ Deno.test("Patches can be stored.", async () => {
 
   assert(spyUpsert.calledWith(
     "patch",
-    "_central",
+    "06151119-065a-4691-a7c8-2d84ec746ba9",
     {
       id: "3ba01b5c-1ff1-481f-92f1-43d2060e11e7",
       docType: "patch",
