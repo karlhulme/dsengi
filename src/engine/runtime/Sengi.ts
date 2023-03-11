@@ -12,6 +12,7 @@ import {
   DocStoreDeleteByIdResultCode,
   DocStoreRecord,
   DocStoreUpsertResultCode,
+  DocSystemFieldNames,
   DocType,
   GetDocumentByIdProps,
   GetDocumentByIdResult,
@@ -450,11 +451,33 @@ export class Sengi<
       : null;
 
     if (processedDocs.docs.length === 0) {
+      // Once all the document validations are complete, we write the
+      // patch event to the patch document store (if requested).  A failure
+      // at this point means we've logged a patch that wasn't applied,
+      // but this is better than missing a log of a patch that was applied.
+      if (docType.storePatches) {
+        const fieldNames = Object.keys(doc).filter((f) =>
+          !DocSystemFieldNames.includes(f)
+        );
+
+        await this.recordPatch(
+          props.operationId,
+          doc.id!,
+          props.docTypeName,
+          partition,
+          props.userId,
+          subsetOfDocStoreRecord(
+            doc as DocStoreRecord,
+            fieldNames,
+          ) as DocStoreRecord,
+        );
+      }
+
       // We have created a new document so we need to upsert it.
       await this.safeDocStore.upsert(
         props.docTypeName,
         partition,
-        doc as unknown as DocStoreRecord,
+        doc as DocStoreRecord,
         props.reqVersion || null,
         docType.docStoreParams,
       );
@@ -557,39 +580,20 @@ export class Sengi<
       // at this point means we've logged a patch that wasn't applied,
       // but this is better than missing a log of a patch that was applied.
       if (docType.storePatches) {
-        ensurePatchingConfig(
-          this.patchDocTypeName,
-          this.patchDocStoreParams,
-        );
-
-        const patchDoc = {
-          id: props.operationId,
-          docType: this.patchDocTypeName!,
-          patchedDocId: props.id,
-          patchedDocType: props.docTypeName,
-          patch: props.patch,
-        };
-
-        applyCommonFieldValuesToDoc(
-          patchDoc,
-          this.getMillisecondsSinceEpoch(),
-          props.userId,
-          this.getNewDocVersion(),
-        );
-
-        await this.safeDocStore.upsert(
-          this.patchDocTypeName!,
+        await this.recordPatch(
+          props.operationId,
+          props.id,
+          props.docTypeName,
           partition,
-          patchDoc,
-          null,
-          this.patchDocStoreParams!,
+          props.userId,
+          props.patch as DocStoreRecord,
         );
       }
 
       const upsertResult = await this.safeDocStore.upsert(
         props.docTypeName,
         partition,
-        doc as unknown as DocStoreRecord,
+        doc as DocStoreRecord,
         props.reqVersion || loadedDocVersion,
         docType.docStoreParams,
       );
@@ -945,6 +949,43 @@ export class Sengi<
     return {
       doc: result.docs[0] as Doc,
     };
+  }
+
+  private async recordPatch(
+    operationId: string,
+    documentId: string,
+    docTypeName: string,
+    partition: string,
+    userId: string,
+    patch: DocStoreRecord,
+  ) {
+    ensurePatchingConfig(
+      this.patchDocTypeName,
+      this.patchDocStoreParams,
+    );
+
+    const patchDoc = {
+      id: operationId,
+      docType: this.patchDocTypeName!,
+      patchedDocId: documentId,
+      patchedDocType: docTypeName,
+      patch,
+    };
+
+    applyCommonFieldValuesToDoc(
+      patchDoc,
+      this.getMillisecondsSinceEpoch(),
+      userId,
+      this.getNewDocVersion(),
+    );
+
+    await this.safeDocStore.upsert(
+      this.patchDocTypeName!,
+      partition,
+      patchDoc,
+      null,
+      this.patchDocStoreParams!,
+    );
   }
 
   /**

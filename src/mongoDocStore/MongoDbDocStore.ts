@@ -1,4 +1,5 @@
 import {
+  Document,
   Filter,
   MongoClient,
   MongoClientOptions,
@@ -270,7 +271,8 @@ export class MongoDbDocStore implements
 
     const findOneResult = await coll.findOne({
       partitionKey: partition,
-      _id: id,
+      // deno-lint-ignore no-explicit-any
+      _id: id as any,
     });
 
     let doc = null;
@@ -307,7 +309,7 @@ export class MongoDbDocStore implements
         queryCharge: 0,
       };
     } else { // query.type === 'aggregate'
-      const aggCursor = coll.aggregate(query.pipeline);
+      const aggCursor = coll.aggregate(query.pipeline as Document[]);
       const aggResult: unknown[] = [];
 
       for await (const doc of aggCursor) {
@@ -463,7 +465,8 @@ export class MongoDbDocStore implements
     const query: Filter<DocStoreRecord> = {
       partitionKey: partition,
       _id: {
-        $in: ids,
+        // deno-lint-ignore no-explicit-any
+        $in: ids as any,
       },
     };
 
@@ -514,11 +517,13 @@ export class MongoDbDocStore implements
     const replaceResult = await coll.replaceOne(
       reqVersion
         ? {
-          _id: uploadableDoc._id as string,
+          // deno-lint-ignore no-explicit-any
+          _id: uploadableDoc._id as any,
           docVersion: reqVersion,
         }
         : {
-          _id: uploadableDoc._id as string,
+          // deno-lint-ignore no-explicit-any
+          _id: uploadableDoc._id as any,
         },
       uploadableDoc,
       {

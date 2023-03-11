@@ -31,28 +31,6 @@
     "https://deno.land/x/mock@0.13.0/stub.ts": "4cbf836fed2916d5293ac4fb8b185f5a28dd7e814beb5ea8113ea37c4e6e5593",
     "https://deno.land/x/mock@0.13.0/time.ts": "9e685cf14541abbb40818b48801973c821d0ef3e439e0afda51da6c2b5005d49",
     "https://deno.land/x/ttl@1.0.1/mod.ts": "f108e3c1da8233c36d0c49b7f44c964cdf59175da335c04f187a7a5cf07980aa",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/deps.ts": "352199117f341b0a68121ab00097ae69b01febe96fc6bc8a2e3d52afbb2edd99",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/mod.ts": "8950f261c03b03d1474eb7a092ca892fd7b11f84d8e1d9ff6facb7844d685779",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/convertCosmosKeyToCryptoKey.ts": "2b9858439830ce9301da9c2250241e20651879ab71590d3d389b513b6be1c474",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/cosmosRetryable.ts": "54b2b75607b223f025ceee28242b8eee8be3aea7029b1750bdc887b34882afe0",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/createCollection.ts": "d1a35a32e1edb87ecff980be93cb64058674817951850af6d0859526c1ac3b4b",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/createDatabase.ts": "b7c9d722bc09744493f2f6abc0799b9202bb65d70435cac04d7b68cb5dcf86a7",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/createDocument.ts": "d221e1b6a63ec31378508d6a8dd2c4f658a11969123210617cd3fd463cb48de3",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/deleteCollection.ts": "ef8abbd3cf2c6acc546ca0a43c1bb05bcbc240c7e884555e7ba79e63eebd22e7",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/deleteDatabase.ts": "64c2ebc28a21fc88d2b786efaae481b328afc2c2bbe53dd9c964a8fcbe56b26e",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/deleteDocument.ts": "f7150fbf9ae5e0d7dd6125b35455357b85552736530b722d39fccdebcef2daa1",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/ensureRaisingOfTransitoryErrors.ts": "836fadc38f20764f20af3b13a1876b6544b1cebbf4cf2ec4562837245f3a2e86",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/formatPartitionKeyValue.ts": "97d5ab4f9b76551348e561ebba81acfdcc4a5f88f16bccc71be1686e857b2a7e",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/generateCosmosReqHeaders.ts": "8e6af9e46ac66437ba587a83b85e010ff6d832929ca4ed17c5d341899a9352d9",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/getCollection.ts": "2e4b63073c31365a2a18fc1303991dcccddc2256e414b076a193adc0f6adfa74",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/getDocument.ts": "280bd152b396cb2f072d55eff96c4ef29a87bab56927205f2fa170b8e485e5c0",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/index.ts": "327f1fa8ee81dc7c859d2acfd9528269cd092a7e5b06d1308c34f4116f20eebd",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/listCollections.ts": "4d5b9550aa22c12c036cbc68a7e9b4f543e9828bece489e8fbd4cbdc4c835efa",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/listDatabases.ts": "fa4fb681083b69bbc1a053a92ced1361273d664caf631b604d6326a8066b4ca8",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/logPerformance.ts": "8358d68b924bd61a5e7571fc70c97e529bb8b4ffaa17c75d61dfd57baa5f2178",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/queryDocumentsContainersDirect.ts": "b267b51b81eac9a007431c509605c8206398b0d7ba7833864d1d3ff1d7a9a7be",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/queryDocumentsGateway.ts": "24e61bf57a4282b6196b3e7db3b7d3161470dd915eb1252a24ddf6685dcef31b",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/main/src/replaceDocument.ts": "19d3eecdc315e29dcf44087e2a0f3528c9030c007d417fb0e720274954cd1c87",
     "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/deps.ts": "352199117f341b0a68121ab00097ae69b01febe96fc6bc8a2e3d52afbb2edd99",
     "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/mod.ts": "8950f261c03b03d1474eb7a092ca892fd7b11f84d8e1d9ff6facb7844d685779",
     "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/convertCosmosKeyToCryptoKey.ts": "2b9858439830ce9301da9c2250241e20651879ab71590d3d389b513b6be1c474",
@@ -85,11 +63,11 @@
   },
   "npm": {
     "specifiers": {
-      "mongodb@5.0": "mongodb@5.0.1"
+      "mongodb@5.1": "mongodb@5.1.0"
     },
     "packages": {
-      "@types/node@18.13.0": {
-        "integrity": "sha512-gC3TazRzGoOnoKAhUx+Q0t8S9Tzs74z7m0ipwGpSqQrleP14hKxP4/JUeEQcD3W1/aIpnWl8pHowI7WokuZpXg==",
+      "@types/node@18.15.0": {
+        "integrity": "sha512-z6nr0TTEOBGkzLGmbypWOGnpSpSIBorEhC4L+4HeQ2iezKCi4f77kyslRwvHeNitymGQ+oFyIWGP96l/DPSV9w==",
         "dependencies": {}
       },
       "@types/webidl-conversions@7.0.0": {
@@ -99,12 +77,12 @@
       "@types/whatwg-url@8.2.2": {
         "integrity": "sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==",
         "dependencies": {
-          "@types/node": "@types/node@18.13.0",
+          "@types/node": "@types/node@18.15.0",
           "@types/webidl-conversions": "@types/webidl-conversions@7.0.0"
         }
       },
-      "bson@5.0.0": {
-        "integrity": "sha512-EL2KpZdyhshyyptj6pnQfnFKPoncD9KwZYvgmj/FXQiOUU1HWTHWmBOP4TZXU3YzStcI5qgpIl68YnMo16s26A==",
+      "bson@5.0.1": {
+        "integrity": "sha512-y09gBGusgHtinMon/GVbv1J6FrXhnr/+6hqLlSmEFzkz6PodqF6TxjyvfvY3AfO+oG1mgUtbC86xSbOlwvM62Q==",
         "dependencies": {}
       },
       "ip@2.0.0": {
@@ -122,10 +100,10 @@
           "whatwg-url": "whatwg-url@11.0.0"
         }
       },
-      "mongodb@5.0.1": {
-        "integrity": "sha512-KpjtY+NWFmcic6UDYEdfn768ZTuKyv7CRaui7ZSd6q/0/o1AURMC7KygTUwB1Cl8V10Pe5NiP+Y2eBMCDs/ygQ==",
+      "mongodb@5.1.0": {
+        "integrity": "sha512-qgKb7y+EI90y4weY3z5+lIgm8wmexbonz0GalHkSElQXVKtRuwqXuhXKccyvIjXCJVy9qPV82zsinY0W1FBnJw==",
         "dependencies": {
-          "bson": "bson@5.0.0",
+          "bson": "bson@5.0.1",
           "mongodb-connection-string-url": "mongodb-connection-string-url@2.6.0",
           "saslprep": "saslprep@1.0.3",
           "socks": "socks@2.7.1"

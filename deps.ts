@@ -35,6 +35,6 @@ export {
 
 export { default as TtlCache } from "https://deno.land/x/ttl@1.0.1/mod.ts";
 
-export type { Filter, MongoClientOptions } from "npm:mongodb@5.0";
+export type { Document, Filter, MongoClientOptions } from "npm:mongodb@5.1";
 
-export { MongoClient, ServerApiVersion } from "npm:mongodb@5.0";
+export { MongoClient, ServerApiVersion } from "npm:mongodb@5.1";

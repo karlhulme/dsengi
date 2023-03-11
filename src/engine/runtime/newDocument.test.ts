@@ -68,6 +68,58 @@ Deno.test("Adding a new document should call exists and then upsert on doc store
   ));
 });
 
+Deno.test("Adding a new document should should store a new version in the patches collection.", async () => {
+  const { docStore, sengi } = createSengiWithMockStore(
+    {
+      upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
+    },
+    {},
+    {
+      storePatches: true,
+    },
+  );
+
+  const spyUpsert = spy(docStore, "upsert");
+
+  await sengi.newDocument({
+    ...defaultRequestProps,
+    docTypeName: "car",
+    operationId: "00000000-0000-0000-0000-111122223333",
+    doc: {
+      ...newCarTemplate,
+    },
+  });
+
+  // Once for the patch record, and once for the actual doc.
+  assertEquals(spyUpsert.callCount, 2);
+
+  assert(spyUpsert.calledWith(
+    "patch",
+    "_central",
+    {
+      id: "00000000-0000-0000-0000-111122223333",
+      docType: "patch",
+      patchedDocId: "00000000-1234-1234-1234-000000000000",
+      patchedDocType: "car",
+      patch: {
+        manufacturer: "ford",
+        model: "ka",
+        registration: "HG12 3AB",
+      },
+      docStatus: "active",
+      docVersion: "1111-2222",
+      docOpIds: [],
+      docDigests: [],
+      docCreatedMillisecondsSinceEpoch: 1629881470000,
+      docCreatedByUserId: "user-0001",
+      docLastUpdatedMillisecondsSinceEpoch: 1629881470000,
+      docLastUpdatedByUserId: "user-0001",
+    },
+    null,
+    { custom: "patch-props" },
+  ));
+});
+
 Deno.test("Adding a new document with an explicit id and a required version.", async () => {
   const { docStore, sengi } = createSengiWithMockStore({
     upsert: async () => ({ code: DocStoreUpsertResultCode.CREATED }),
