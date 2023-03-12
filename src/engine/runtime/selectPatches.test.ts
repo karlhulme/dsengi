@@ -4,7 +4,7 @@ import { createSengiWithMockStore } from "./shared.test.ts";
 
 const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
   return createSengiWithMockStore({
-    selectAll: async () => ({
+    selectByFilter: async () => ({
       docs: [{
         id: "00000000-0000-0000-0000-aaaa00000000",
         patchedDocId: "ffffffff-0000-0000-0000-000000000000",
@@ -32,11 +32,14 @@ const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
 Deno.test("Select all patches for a document.", async () => {
   const { sengi, docStore } = createSengiForTests();
 
-  const spySelectAll = spy(docStore, "selectAll");
+  const spySelectByFilter = spy(docStore, "selectByFilter");
 
   assertEquals(
     await sengi.selectPatches({
+      partition: "_central",
       documentId: "ffffffff-0000-0000-0000-000000000000",
+      from: "first",
+      limit: 20,
     }),
     {
       patches: [
@@ -65,12 +68,13 @@ Deno.test("Select all patches for a document.", async () => {
     },
   );
 
-  assertEquals(spySelectAll.callCount, 1);
+  assertEquals(spySelectByFilter.callCount, 1);
 
   assert(
-    spySelectAll.calledWith(
+    spySelectByFilter.calledWith(
       "patch",
-      "ffffffff-0000-0000-0000-000000000000",
+      "_central",
+      "_central ffffffff-0000-0000-0000-000000000000 first 20",
       false,
       { custom: "patch-props" },
     ),

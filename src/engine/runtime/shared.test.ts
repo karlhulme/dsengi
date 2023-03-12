@@ -149,6 +149,12 @@ export const createSengiWithMockStore = (
     getNewDocVersion: () => "1111-2222",
     cacheSize: 100,
     patchDocStoreParams: { custom: "patch-props" },
+    patchSelectionFilter: (
+      partition: string,
+      documentId: string,
+      from?: string,
+      limit?: number,
+    ) => `${partition} ${documentId} ${from} ${limit}`,
     changeDocStoreParams: { custom: "change-event-props" },
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     DocTypeNames,

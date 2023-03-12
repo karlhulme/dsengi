@@ -95,7 +95,7 @@ Deno.test("Adding a new document should should store a new version in the patche
 
   assert(spyUpsert.calledWith(
     "patch",
-    "00000000-1234-1234-1234-000000000000",
+    "_central",
     {
       id: "00000000-0000-0000-0000-111122223333",
       docType: "patch",

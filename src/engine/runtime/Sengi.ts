@@ -140,6 +140,17 @@ export interface SengiConstructorProps<
   patchDocStoreParams?: DocStoreParams;
 
   /**
+   * A function that returns a filter for retrieving patches given
+   * a partition and document id.
+   */
+  patchSelectionFilter?: (
+    partition: string,
+    documentId: string,
+    from?: string,
+    limit?: number,
+  ) => Filter;
+
+  /**
    * The name of the doc type that stores changes.
    */
   changeDocTypeName?: string;
@@ -180,6 +191,12 @@ export class Sengi<
   private cache: TtlCache<DocBase>;
   private patchDocTypeName: string;
   private patchDocStoreParams?: DocStoreParams;
+  private patchSelectionFilter?: (
+    partition: string,
+    documentId: string,
+    from?: string,
+    limit?: number,
+  ) => Filter;
   private changeDocTypeName: string;
   private changeDocStoreParams?: DocStoreParams;
 
@@ -221,6 +238,7 @@ export class Sengi<
     this.patchDocTypeName = props.patchDocTypeName ||
       DEFAULT_PATCH_DOC_TYPE_NAME;
     this.patchDocStoreParams = props.patchDocStoreParams;
+    this.patchSelectionFilter = props.patchSelectionFilter;
 
     this.changeDocTypeName = props.changeDocTypeName ||
       DEFAULT_CHANGE_DOC_TYPE_NAME;
@@ -463,6 +481,7 @@ export class Sengi<
         );
 
         await this.recordPatch(
+          partition,
           props.operationId,
           doc.id!,
           props.docTypeName,
@@ -582,6 +601,7 @@ export class Sengi<
       // but this is better than missing a log of a patch that was applied.
       if (docType.storePatches) {
         await this.recordPatch(
+          partition,
           props.operationId,
           props.id,
           props.docTypeName,
@@ -961,11 +981,18 @@ export class Sengi<
     ensurePatchingConfig(
       this.patchDocTypeName,
       this.patchDocStoreParams,
+      this.patchSelectionFilter,
     );
 
-    const selectResult = await this.safeDocStore.selectAll(
+    const selectResult = await this.safeDocStore.selectByFilter(
       this.patchDocTypeName,
-      props.documentId,
+      props.partition,
+      this.patchSelectionFilter!(
+        props.partition,
+        props.documentId,
+        props.from,
+        props.limit,
+      ),
       false,
       this.patchDocStoreParams!,
     );
@@ -984,6 +1011,7 @@ export class Sengi<
   }
 
   private async recordPatch(
+    partition: string,
     operationId: string,
     documentId: string,
     docTypeName: string,
@@ -993,6 +1021,7 @@ export class Sengi<
     ensurePatchingConfig(
       this.patchDocTypeName,
       this.patchDocStoreParams,
+      this.patchSelectionFilter,
     );
 
     const patchDoc = {
@@ -1012,7 +1041,7 @@ export class Sengi<
 
     await this.safeDocStore.upsert(
       this.patchDocTypeName!,
-      documentId,
+      partition,
       patchDoc,
       null,
       this.patchDocStoreParams!,
