@@ -6,7 +6,8 @@ const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
   return createSengiWithMockStore({
     selectByFilter: async () => ({
       docs: [{
-        id: "00000000-0000-0000-0000-aaaa00000000",
+        id: "00000000-a111-0000-0000-aaaa00000000",
+        operationId: "00000000-0000-0000-0000-aaaa00000000",
         patchedDocId: "ffffffff-0000-0000-0000-000000000000",
         patchedDocType: "testDoc",
         docCreatedByUserId: "test_user",
@@ -16,7 +17,8 @@ const createSengiForTests = (sengiCtorOverrides?: Record<string, unknown>) => {
           field2: "two",
         },
       }, {
-        id: "00000000-0000-0000-0000-bbbb00000000",
+        id: "00000000-b111-0000-0000-bbbb00000000",
+        operationId: "00000000-0000-0000-0000-bbbb00000000",
         patchedDocId: "ffffffff-0000-0000-0000-000000000000",
         patchedDocType: "testDoc",
         docCreatedByUserId: "test_user",
@@ -44,9 +46,10 @@ Deno.test("Select all patches for a document.", async () => {
     {
       patches: [
         {
+          id: "00000000-a111-0000-0000-aaaa00000000",
           docCreatedByUserId: "test_user",
           docCreatedMillisecondsSinceEpoch: 1629881470000,
-          id: "00000000-0000-0000-0000-aaaa00000000",
+          operationId: "00000000-0000-0000-0000-aaaa00000000",
           patch: {
             field1: "one",
             field2: "two",
@@ -55,9 +58,10 @@ Deno.test("Select all patches for a document.", async () => {
           patchedDocType: "testDoc",
         },
         {
+          id: "00000000-b111-0000-0000-bbbb00000000",
           docCreatedByUserId: "test_user",
           docCreatedMillisecondsSinceEpoch: 1629881470000,
-          id: "00000000-0000-0000-0000-bbbb00000000",
+          operationId: "00000000-0000-0000-0000-bbbb00000000",
           patch: {
             field3: "three",
           },

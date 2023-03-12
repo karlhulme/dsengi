@@ -19,6 +19,12 @@ interface Patch {
   id: string;
 
   /**
+   * The id of the operation that triggered the creation
+   * of the patch.
+   */
+  operationId: string;
+
+  /**
    * The id of the document that was patched.
    */
   patchedDocId: string;

@@ -6,6 +6,7 @@ import { SengiMissingPatchConfigError } from "../../interfaces/index.ts";
  * @param patchDocStoreParams The params to be passed to the document
  * store when writing new patches.
  * @param patchSelectionFilter A function for selecting patches.
+ * @param patchNewId A function for generating an id for a new patch.
  */
 export function ensurePatchingConfig<DocStoreParams, Filter>(
   patchDocTypeName?: string,
@@ -16,6 +17,7 @@ export function ensurePatchingConfig<DocStoreParams, Filter>(
     from?: string,
     limit?: number,
   ) => Filter,
+  patchNewId?: () => string,
 ) {
   if (typeof patchDocTypeName !== "string") {
     throw new SengiMissingPatchConfigError("patchDocTypeName");
@@ -27,5 +29,9 @@ export function ensurePatchingConfig<DocStoreParams, Filter>(
 
   if (typeof patchSelectionFilter !== "function") {
     throw new SengiMissingPatchConfigError("patchSelectionFilter");
+  }
+
+  if (typeof patchNewId !== "function") {
+    throw new SengiMissingPatchConfigError("patchNewId");
   }
 }

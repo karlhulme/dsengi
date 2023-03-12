@@ -151,6 +151,11 @@ export interface SengiConstructorProps<
   ) => Filter;
 
   /**
+   * A function that generates a new id for patch documents.
+   */
+  patchNewId?: () => string;
+
+  /**
    * The name of the doc type that stores changes.
    */
   changeDocTypeName?: string;
@@ -197,6 +202,7 @@ export class Sengi<
     from?: string,
     limit?: number,
   ) => Filter;
+  private patchNewId?: () => string;
   private changeDocTypeName: string;
   private changeDocStoreParams?: DocStoreParams;
 
@@ -239,6 +245,7 @@ export class Sengi<
       DEFAULT_PATCH_DOC_TYPE_NAME;
     this.patchDocStoreParams = props.patchDocStoreParams;
     this.patchSelectionFilter = props.patchSelectionFilter;
+    this.patchNewId = props.patchNewId;
 
     this.changeDocTypeName = props.changeDocTypeName ||
       DEFAULT_CHANGE_DOC_TYPE_NAME;
@@ -982,6 +989,7 @@ export class Sengi<
       this.patchDocTypeName,
       this.patchDocStoreParams,
       this.patchSelectionFilter,
+      this.patchNewId,
     );
 
     const selectResult = await this.safeDocStore.selectByFilter(
@@ -1000,6 +1008,7 @@ export class Sengi<
     return {
       patches: selectResult.docs.map((d) => ({
         id: d.id as string,
+        operationId: d.operationId as string,
         patchedDocId: d.patchedDocId as string,
         patchedDocType: d.patchedDocType as string,
         docCreatedByUserId: d.docCreatedByUserId as string,
@@ -1022,11 +1031,13 @@ export class Sengi<
       this.patchDocTypeName,
       this.patchDocStoreParams,
       this.patchSelectionFilter,
+      this.patchNewId,
     );
 
     const patchDoc = {
-      id: operationId,
+      id: this.patchNewId!(),
       docType: this.patchDocTypeName!,
+      operationId,
       patchedDocId: documentId,
       patchedDocType: docTypeName,
       patch,

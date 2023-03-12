@@ -155,6 +155,7 @@ export const createSengiWithMockStore = (
       from?: string,
       limit?: number,
     ) => `${partition} ${documentId} ${from} ${limit}`,
+    patchNewId: () => "90909",
     changeDocStoreParams: { custom: "change-event-props" },
   }, sengiCtorOverrides) as unknown as SengiConstructorProps<
     DocTypeNames,
