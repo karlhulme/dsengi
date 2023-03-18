@@ -18,6 +18,9 @@ A NoSQL database offers a few specific benefits:
 - None of the mutations require locks on other tables so performance is
   predictable.
 - It can be globally distributed, storing data nearer customers.
+- A deep heirarchy (perhaps originally multiple documents) can be stored for
+  retrieval under a single key. This makes it very efficient when working with a
+  sets.
 
 However there are a number of specific drawbacks compared to a SQL database:
 
@@ -60,10 +63,10 @@ database is brought back into a known state.
   parameters) is written to the document when it is changed or created. When a
   repeat instruction is issued the presence of the digest will prevent it being
   applied again. The engine will treat these as successful mutations. When
-  creating or mutation multiple documents using identical parameters as part of
+  creating or mutating multiple documents using identical parameters as part of
   a single operation you must also provide a sequence number or the 2nd update
   onwards will be ignored.
-- DELETE instructions can all be repeated because the end result is the same. A
+- DELETE instructions can be repeated because the end result is the same. A
   digest is not written to the file for this.
 
 ### Change records

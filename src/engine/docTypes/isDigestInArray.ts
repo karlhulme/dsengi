@@ -7,7 +7,6 @@ export function isDigestInArray(digest: string, docDigests?: string[]) {
   if (Array.isArray(docDigests)) {
     return docDigests.includes(digest);
   }
-  {
-    return false;
-  }
+
+  return false;
 }
