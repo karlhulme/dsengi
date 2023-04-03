@@ -26,10 +26,4 @@ export interface GetDocumentByIdProps<
    * be cached for the given number of milliseconds.
    */
   cacheMilliseconds?: number;
-
-  /**
-   * True if archived documents should be included in the response.
-   * By default, archived documents will not be returned.
-   */
-  includeArchived?: boolean;
 }
