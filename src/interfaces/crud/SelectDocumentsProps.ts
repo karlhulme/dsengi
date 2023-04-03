@@ -1,4 +1,12 @@
 /**
+ * The statuses of the documents.
+ */
+export type SelectDocumentsStatuses =
+  | "all"
+  | "active"
+  | "archived";
+
+/**
  * Defines the properties that are required to extract all
  * the documents from a collection.
  */
@@ -16,8 +24,8 @@ export interface SelectDocumentsProps<
   partition: string | null;
 
   /**
-   * True if archived documents should be included in the response.
-   * By default, archived documents will not be returned.
+   * The document statuses that should be included in the response.
+   * If not specified, all document statuses shall be included.
    */
-  includeArchived?: boolean;
+  statuses?: SelectDocumentsStatuses;
 }

@@ -1,4 +1,12 @@
 /**
+ * The statuses of the documents.
+ */
+export type SelectDocumentsByFilterStatuses =
+  | "all"
+  | "active"
+  | "archived";
+
+/**
  * Defines the properties that are required to select from a
  * document collection using a filter.
  */
@@ -22,8 +30,8 @@ export interface SelectDocumentsByFilterProps<
   filter: Filter;
 
   /**
-   * True if archived documents should be included in the response.
-   * By default, archived documents will not be returned.
+   * The document statuses that should be included in the response.
+   * If not specified, all document statuses shall be included.
    */
-  includeArchived?: boolean;
+  statuses?: SelectDocumentsByFilterStatuses;
 }

@@ -10,6 +10,7 @@ import {
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
+  DocStoreSelectStatuses,
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
@@ -214,18 +215,18 @@ export class MemDocStore implements
    * Selects all documents of a specified type.
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param statuses The document statuses to include in the response.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
       d.docType === docTypeName && d.partitionKey === partition &&
-      (includeArchived || d.docStatus === DocStatuses.Active)
+      this.matchDocStatus(d, statuses)
     );
     return this.buildSelectResult(matchedDocs);
   }
@@ -235,19 +236,19 @@ export class MemDocStore implements
    * @param docTypeName The type of document.
    * @param partition The partition where the document is stored.
    * @param filter A filter.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param statuses: The document statuses to include in the response.
    * @param _docStoreParams The parameters for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
     filter: MemDocStoreFilter,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     _docStoreParams: MemDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const matchedDocs = this.docs.filter((d) =>
       d.docType === docTypeName && d.partitionKey === partition && filter(d) &&
-      (includeArchived || d.docStatus === DocStatuses.Active)
+      this.matchDocStatus(d, statuses)
     );
     return this.buildSelectResult(matchedDocs);
   }
@@ -312,6 +313,31 @@ export class MemDocStore implements
         this.docs.push(docCopy);
         return { code: DocStoreUpsertResultCode.CREATED, sessionToken: "" };
       }
+    }
+  }
+
+  /**
+   * Returns true if the document has a status that matches the
+   * given statuses.
+   * @param doc A document to check.
+   * @param includedStatuses The statuses to be included in the response.
+   */
+  matchDocStatus(
+    doc: DocStoreRecord,
+    includedStatuses: DocStoreSelectStatuses,
+  ) {
+    if (includedStatuses === "all") {
+      return true;
+    } else if (
+      includedStatuses === "active" && doc.docStatus === DocStatuses.Active
+    ) {
+      return true;
+    } else if (
+      includedStatuses === "archived" && doc.docStatus === DocStatuses.Archived
+    ) {
+      return true;
+    } else {
+      return false;
     }
   }
 }

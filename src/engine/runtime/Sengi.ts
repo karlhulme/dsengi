@@ -829,7 +829,7 @@ export class Sengi<
       props.docTypeName,
       partition,
       props.filter,
-      Boolean(props.includeArchived),
+      props.statuses || "all",
       docType.docStoreParams,
     );
 
@@ -893,11 +893,8 @@ export class Sengi<
       }
     }
 
-    const filteredDocs = docs
-      .filter((d) => d.docStatus === "active" || props.includeArchived);
-
     return {
-      docs: filteredDocs,
+      docs,
     };
   }
 
@@ -921,7 +918,7 @@ export class Sengi<
     const selectResult = await this.safeDocStore.selectAll(
       props.docTypeName,
       partition,
-      Boolean(props.includeArchived),
+      props.statuses || "all",
       docType.docStoreParams,
     );
 
@@ -940,7 +937,6 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      includeArchived: Boolean(props.includeArchived),
       cacheMilliseconds: props.cacheMilliseconds,
     });
 
@@ -962,7 +958,6 @@ export class Sengi<
       docTypeName: props.docTypeName,
       ids: [props.id],
       partition: props.partition,
-      includeArchived: Boolean(props.includeArchived),
       cacheMilliseconds: props.cacheMilliseconds,
     });
 
@@ -1001,7 +996,7 @@ export class Sengi<
         props.from,
         props.limit,
       ),
-      false,
+      "all",
       this.patchDocStoreParams!,
     );
 

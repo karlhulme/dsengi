@@ -460,7 +460,7 @@ Deno.test("Select all documents of a type from a single partition.", async () =>
     const result = await docStore.selectAll(
       "tree",
       TestPartition,
-      true,
+      "all",
       { databaseName: "sengi-ci", collectionName: "trees" },
     );
     const sortedDocs = result.docs.sort((a, b) =>
@@ -484,7 +484,7 @@ Deno.test("Select all documents of a type from a single partition, excluding arc
     const result = await docStore.selectAll(
       "treePack",
       "forest",
-      false,
+      "active",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
     const sortedDocs = result.docs.sort((a, b) =>
@@ -513,7 +513,7 @@ Deno.test("Select documents using a filter.", async () => {
           heightInCms: { "$gt": 215 },
         },
       },
-      true,
+      "all",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
 
@@ -536,7 +536,7 @@ Deno.test("Select documents using a filter that are not archived.", async () => 
       "treePack",
       "forest",
       { whereClause: { heightInCms: { "$gt": 200 } } },
-      false,
+      "active",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
 
@@ -563,7 +563,7 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
         orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
         limit: 1,
       },
-      true,
+      "all",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
 
@@ -590,7 +590,7 @@ Deno.test("Select documents using a filter, descending order by clause and limit
         orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
         limit: 1,
       },
-      true,
+      "all",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
 
@@ -615,7 +615,7 @@ Deno.test("Select documents using an ordering clause with multiple results.", as
       {
         orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
       },
-      true,
+      "all",
       { databaseName: "sengi-ci", collectionName: "treePacks" },
     );
 

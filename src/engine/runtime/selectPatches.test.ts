@@ -79,7 +79,7 @@ Deno.test("Select all patches for a document.", async () => {
       "patch",
       "_central",
       "_central ffffffff-0000-0000-0000-000000000000 first 20",
-      false,
+      "all",
       { custom: "patch-props" },
     ),
   );

@@ -445,7 +445,7 @@ Deno.test("Select all documents of a type from a single partition.", async () =>
   const result = await docStore.selectAll(
     "tree",
     TestPartition,
-    true,
+    "all",
     { databaseName: "sengi", collectionName: "trees" },
   );
   const sortedDocs = result.docs.sort((a, b) =>
@@ -466,7 +466,7 @@ Deno.test("Select documents using a filter.", async () => {
     "treePack",
     "forest",
     { whereClause: "d.heightInCms > 215" },
-    true,
+    "all",
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -485,7 +485,7 @@ Deno.test("Select documents using a filter that are not archived.", async () => 
     "treePack",
     "forest",
     { whereClause: "d.heightInCms > 200" },
-    false,
+    "active",
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -508,7 +508,7 @@ Deno.test("Select documents using a filter, order by clause and limit.", async (
       orderByFields: [{ fieldName: "heightInCms", direction: "ascending" }],
       limit: 1,
     },
-    true,
+    "all",
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -531,7 +531,7 @@ Deno.test("Select documents using a filter, descending order by clause and limit
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
       limit: 1,
     },
-    true,
+    "all",
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 
@@ -552,7 +552,7 @@ Deno.test("Select documents using an ordering clause with multiple results.", as
     {
       orderByFields: [{ fieldName: "heightInCms", direction: "descending" }],
     },
-    true,
+    "all",
     { databaseName: "sengi", collectionName: "treePacks" },
   );
 

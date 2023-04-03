@@ -78,7 +78,7 @@ Deno.test("Select all documents of a type in a collection.", async () => {
     spySelectAll.calledWith(
       "car",
       "_central",
-      true,
+      "all",
       { custom: "prop" },
     ),
   );

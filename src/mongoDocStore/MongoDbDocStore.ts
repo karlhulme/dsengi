@@ -15,6 +15,7 @@ import {
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
+  DocStoreSelectStatuses,
   DocStoreUpsertResult,
   DocStoreUpsertResultCode,
 } from "../interfaces/index.ts";
@@ -361,13 +362,13 @@ export class MongoDbDocStore implements
    * Select all documents of a specified type.
    * @param _docTypeName The name of a doc type.
    * @param partition The name of a partition where documents are stored.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param statuses The document statuses to include in the response.
    * @param docStoreParams The parameters for the document store.
    */
   async selectAll(
     _docTypeName: string,
     partition: string,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     docStoreParams: MongoDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const coll = this.getCollection(docStoreParams);
@@ -376,8 +377,10 @@ export class MongoDbDocStore implements
       partitionKey: partition,
     };
 
-    if (!includeArchived) {
+    if (statuses === "active") {
       query.docStatus = DocStatuses.Active;
+    } else if (statuses === "archived") {
+      query.docStatus = DocStatuses.Archived;
     }
 
     const findCursor = coll.find(query, {
@@ -402,14 +405,14 @@ export class MongoDbDocStore implements
    * @param partition The name of a partition where documents are stored.
    * @param filter A filter expression that resulted from invoking the filter.
    * implementation on the doc type.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param statuses The document statuses to include in the response.
    * @param docStoreParams The parameters for the document store.
    */
   async selectByFilter(
     _docTypeName: string,
     partition: string,
     filter: MongoDbDocStoreFilter,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     docStoreParams: MongoDbDocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const coll = this.getCollection(docStoreParams);
@@ -419,8 +422,10 @@ export class MongoDbDocStore implements
       ...filter.whereClause,
     };
 
-    if (!includeArchived) {
+    if (statuses === "active") {
       query.docStatus = DocStatuses.Active;
+    } else if (statuses === "archived") {
+      query.docStatus = DocStatuses.Archived;
     }
 
     const findCursor = coll.find(query, {

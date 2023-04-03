@@ -6,6 +6,7 @@ import {
   DocStoreQueryResult,
   DocStoreRecord,
   DocStoreSelectResult,
+  DocStoreSelectStatuses,
   DocStoreUpsertResult,
   MissingDocStoreFunctionError,
   UnexpectedDocStoreError,
@@ -196,13 +197,13 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * Select all documents of a specified type.
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param includeStatuses The statuses to be included in the response.
    * @param docStoreParams The params for the document store.
    */
   async selectAll(
     docTypeName: string,
     partition: string,
-    includeArchived: boolean,
+    includeStatuses: DocStoreSelectStatuses,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const start = performance.now();
@@ -211,7 +212,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
       const result = await this.docStore.selectAll(
         docTypeName,
         partition,
-        includeArchived,
+        includeStatuses,
         docStoreParams,
       );
       return result;
@@ -227,14 +228,14 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
    * @param docTypeName The name of a doc type.
    * @param partition The name of a document partition.
    * @param filter A filter.
-   * @param includeArchived True if the selection should include archived documents.
+   * @param includeStatuses The statuses to be included in the response.
    * @param docStoreParams The params for the document store.
    */
   async selectByFilter(
     docTypeName: string,
     partition: string,
     filter: Filter,
-    includeArchived: boolean,
+    includeStatuses: DocStoreSelectStatuses,
     docStoreParams: DocStoreParams,
   ): Promise<DocStoreSelectResult> {
     const start = performance.now();
@@ -244,7 +245,7 @@ export class SafeDocStore<DocStoreParams, Filter, Query>
         docTypeName,
         partition,
         filter,
-        includeArchived,
+        includeStatuses,
         docStoreParams,
       );
       return result;

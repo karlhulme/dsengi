@@ -220,7 +220,7 @@ Deno.test("All documents of a type can be selected.", async () => {
   const result = await docStore.selectAll(
     "test",
     "_central",
-    true,
+    "all",
     {},
   );
   assertEquals(
@@ -231,7 +231,7 @@ Deno.test("All documents of a type can be selected.", async () => {
   const result2 = await docStore.selectAll(
     "test2",
     "_central",
-    true,
+    "all",
     {},
   );
   assertEquals(
@@ -247,7 +247,7 @@ Deno.test("All documents of a type that are not archived can be selected.", asyn
   const result = await docStore.selectAll(
     "test2",
     "_central",
-    false,
+    "active",
     {},
   );
   assertEquals(
@@ -262,7 +262,7 @@ Deno.test("All documents of an unrecognised type can be selected.", async () => 
   const result = await docStore.selectAll(
     "test3",
     "_central",
-    true,
+    "all",
     {},
   );
   assertEquals(result, { docs: [], queryCharge: 0 });
@@ -275,7 +275,7 @@ Deno.test("Select documents using a filter.", async () => {
     "test2",
     "_central",
     (d) => (d.vehicle as string).startsWith("c"),
-    true,
+    "all",
     {},
   );
   assertEquals(
@@ -291,7 +291,7 @@ Deno.test("Select documents using a filter that are not archived.", async () => 
     "test2",
     "_central",
     (d) => (d.vehicle as string).startsWith("c"),
-    false,
+    "active",
     {},
   );
   assertEquals(

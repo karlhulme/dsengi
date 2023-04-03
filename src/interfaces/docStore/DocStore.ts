@@ -7,6 +7,11 @@ import { DocStoreSelectResult } from "./DocStoreSelectResult.ts";
 import { DocStoreUpsertResult } from "./DocStoreUpsertResult.ts";
 
 /**
+ * The statuses of a document to include when executing a select statement.
+ */
+export type DocStoreSelectStatuses = "all" | "active" | "archived";
+
+/**
  * Defines the functions that must be implemented by a document store.
  */
 export interface DocStore<DocStoreParams, Filter, Query> {
@@ -65,7 +70,7 @@ export interface DocStore<DocStoreParams, Filter, Query> {
   selectAll: (
     docTypeName: string,
     partition: string,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
@@ -77,7 +82,7 @@ export interface DocStore<DocStoreParams, Filter, Query> {
     docTypeName: string,
     partition: string,
     filter: Filter,
-    includeArchived: boolean,
+    statuses: DocStoreSelectStatuses,
     docStoreParams: DocStoreParams,
   ) => Promise<DocStoreSelectResult>;
 
