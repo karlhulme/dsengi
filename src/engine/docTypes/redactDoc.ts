@@ -1,6 +1,9 @@
 import { DocBase } from "../../interfaces/index.ts";
 
 /**
+ * Redacts the values in a given document.  A * value indicates
+ * the given redactValue should be used. A # value indicates
+ * the field should be deleted.
  * @param doc A document to be redacted.
  * @param redactFields An array of fields that should be
  * redacted that are both comformant to the field validation
@@ -16,12 +19,16 @@ export function redactDoc<Doc extends DocBase>(
   const docRecord = doc as unknown as Record<string, unknown>;
 
   for (const redactField of redactFields) {
-    const newValue = redactField.value === "*"
-      ? redactValue
-      : redactField.value;
-
     if (typeof docRecord[redactField.fieldName] !== "undefined") {
-      docRecord[redactField.fieldName] = newValue;
+      if (redactField.value === "#") {
+        delete docRecord[redactField.fieldName];
+      } else {
+        const newValue = redactField.value === "*"
+          ? redactValue
+          : redactField.value;
+
+        docRecord[redactField.fieldName] = newValue;
+      }
     }
   }
 }

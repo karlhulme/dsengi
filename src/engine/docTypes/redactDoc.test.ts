@@ -44,3 +44,14 @@ Deno.test("Redact a document using the redact value.", () => {
     propC: 1234,
   } as ExampleDoc);
 });
+
+Deno.test("Redact a document by deleting a field.", () => {
+  const doc = createDoc();
+
+  redactDoc(doc, [{ fieldName: "propA", value: "#" }], "REDACT-001");
+
+  assertEquals(doc, {
+    propB: "boring",
+    propC: 1234,
+  } as ExampleDoc);
+});
