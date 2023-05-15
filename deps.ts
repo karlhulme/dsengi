@@ -31,7 +31,7 @@ export {
   queryDocumentsContainersDirect,
   queryDocumentsGateway,
   replaceDocument,
-} from "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/mod.ts";
+} from "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/mod.ts";
 
 export { default as TtlCache } from "https://deno.land/x/ttl@1.0.1/mod.ts";
 

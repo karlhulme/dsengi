@@ -31,43 +31,43 @@
     "https://deno.land/x/mock@0.13.0/stub.ts": "4cbf836fed2916d5293ac4fb8b185f5a28dd7e814beb5ea8113ea37c4e6e5593",
     "https://deno.land/x/mock@0.13.0/time.ts": "9e685cf14541abbb40818b48801973c821d0ef3e439e0afda51da6c2b5005d49",
     "https://deno.land/x/ttl@1.0.1/mod.ts": "f108e3c1da8233c36d0c49b7f44c964cdf59175da335c04f187a7a5cf07980aa",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/deps.ts": "352199117f341b0a68121ab00097ae69b01febe96fc6bc8a2e3d52afbb2edd99",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/mod.ts": "8950f261c03b03d1474eb7a092ca892fd7b11f84d8e1d9ff6facb7844d685779",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/convertCosmosKeyToCryptoKey.ts": "2b9858439830ce9301da9c2250241e20651879ab71590d3d389b513b6be1c474",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/cosmosRetryable.ts": "54b2b75607b223f025ceee28242b8eee8be3aea7029b1750bdc887b34882afe0",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/createCollection.ts": "d1a35a32e1edb87ecff980be93cb64058674817951850af6d0859526c1ac3b4b",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/createDatabase.ts": "b7c9d722bc09744493f2f6abc0799b9202bb65d70435cac04d7b68cb5dcf86a7",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/createDocument.ts": "893b58b5be35009452a545b3a47b56b746b7c2615aa786b26623cf0d129f4130",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/deleteCollection.ts": "ef8abbd3cf2c6acc546ca0a43c1bb05bcbc240c7e884555e7ba79e63eebd22e7",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/deleteDatabase.ts": "64c2ebc28a21fc88d2b786efaae481b328afc2c2bbe53dd9c964a8fcbe56b26e",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/deleteDocument.ts": "777ff4610031c6a9464fbc57f76220a40424222d8a18af58c360a310b4dea553",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/ensureRaisingOfTransitoryErrors.ts": "836fadc38f20764f20af3b13a1876b6544b1cebbf4cf2ec4562837245f3a2e86",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/formatPartitionKeyValue.ts": "97d5ab4f9b76551348e561ebba81acfdcc4a5f88f16bccc71be1686e857b2a7e",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/generateCosmosReqHeaders.ts": "8e6af9e46ac66437ba587a83b85e010ff6d832929ca4ed17c5d341899a9352d9",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/getCollection.ts": "2e4b63073c31365a2a18fc1303991dcccddc2256e414b076a193adc0f6adfa74",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/getDocument.ts": "280bd152b396cb2f072d55eff96c4ef29a87bab56927205f2fa170b8e485e5c0",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/index.ts": "327f1fa8ee81dc7c859d2acfd9528269cd092a7e5b06d1308c34f4116f20eebd",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/listCollections.ts": "4d5b9550aa22c12c036cbc68a7e9b4f543e9828bece489e8fbd4cbdc4c835efa",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/listDatabases.ts": "fa4fb681083b69bbc1a053a92ced1361273d664caf631b604d6326a8066b4ca8",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/queryDocumentsContainersDirect.ts": "07f19a05b8433274ca789e2e59f48c09aedda45b6a9e01002372ef2b04c6b977",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/queryDocumentsGateway.ts": "c5f64ddb4dddacd025bc6477e82043d0d59e170733f50f39f01f0ed24bf4e729",
-    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.0/src/replaceDocument.ts": "741405022e1a799cbc7bc2e5f363ca82b6d99a3160874b35a46cc318d5d16563",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/deps.ts": "1650421e2137773fa808fae9206a3ff1da51808b92ed0db5ac8455b0d2e06790",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/mod.ts": "242727cba09291256f94e84725041dd8145fe9e2863cbb14256bef27e2c6524a",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/core/index.ts": "ff9b618a9e5154296c7ff2fc8450c913561788122fe2b47a7248e6bbc4de760c",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/core/isTransitoryNetworkError.ts": "5b633205cd7950b2491876340adaf8b9b555e537f627ca17048d6eb6fadaea11",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/core/retryable.ts": "afa8fd2debcf572c60bc247f2ac10d9c4cc7e89642f0ed98ea23ad6909afaf5f",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/errors/OperationInterruptedError.ts": "1165d717d1486ca546b28004164684f5e06f159c501e29eaa9579756f841b4d8",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/errors/OperationTransitoryError.ts": "33ad4ea5c977b09ed79f79f01491240a6bd45197efee7ec9ce878b935aa8a4f0",
-    "https://raw.githubusercontent.com/karlhulme/dpiggle/main/src/errors/index.ts": "1f0cef71207cbb97cdb2e2b706a6e79bdfe4e9d0b1c2863f103411155d150f04"
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/deps.ts": "5554cb1183926c59e1205819bb5426b0ad28883e7d5844d693bf8990bc2acdb9",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/mod.ts": "8950f261c03b03d1474eb7a092ca892fd7b11f84d8e1d9ff6facb7844d685779",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/convertCosmosKeyToCryptoKey.ts": "2b9858439830ce9301da9c2250241e20651879ab71590d3d389b513b6be1c474",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/cosmosRetryable.ts": "54b2b75607b223f025ceee28242b8eee8be3aea7029b1750bdc887b34882afe0",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/createCollection.ts": "d1a35a32e1edb87ecff980be93cb64058674817951850af6d0859526c1ac3b4b",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/createDatabase.ts": "b7c9d722bc09744493f2f6abc0799b9202bb65d70435cac04d7b68cb5dcf86a7",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/createDocument.ts": "893b58b5be35009452a545b3a47b56b746b7c2615aa786b26623cf0d129f4130",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/deleteCollection.ts": "ef8abbd3cf2c6acc546ca0a43c1bb05bcbc240c7e884555e7ba79e63eebd22e7",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/deleteDatabase.ts": "64c2ebc28a21fc88d2b786efaae481b328afc2c2bbe53dd9c964a8fcbe56b26e",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/deleteDocument.ts": "777ff4610031c6a9464fbc57f76220a40424222d8a18af58c360a310b4dea553",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/ensureRaisingOfTransitoryErrors.ts": "836fadc38f20764f20af3b13a1876b6544b1cebbf4cf2ec4562837245f3a2e86",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/formatPartitionKeyValue.ts": "97d5ab4f9b76551348e561ebba81acfdcc4a5f88f16bccc71be1686e857b2a7e",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/generateCosmosReqHeaders.ts": "8e6af9e46ac66437ba587a83b85e010ff6d832929ca4ed17c5d341899a9352d9",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/getCollection.ts": "2e4b63073c31365a2a18fc1303991dcccddc2256e414b076a193adc0f6adfa74",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/getDocument.ts": "280bd152b396cb2f072d55eff96c4ef29a87bab56927205f2fa170b8e485e5c0",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/index.ts": "327f1fa8ee81dc7c859d2acfd9528269cd092a7e5b06d1308c34f4116f20eebd",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/listCollections.ts": "4d5b9550aa22c12c036cbc68a7e9b4f543e9828bece489e8fbd4cbdc4c835efa",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/listDatabases.ts": "fa4fb681083b69bbc1a053a92ced1361273d664caf631b604d6326a8066b4ca8",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/queryDocumentsContainersDirect.ts": "07f19a05b8433274ca789e2e59f48c09aedda45b6a9e01002372ef2b04c6b977",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/queryDocumentsGateway.ts": "c5f64ddb4dddacd025bc6477e82043d0d59e170733f50f39f01f0ed24bf4e729",
+    "https://raw.githubusercontent.com/karlhulme/dazure-cosmos/v1.0.2/src/replaceDocument.ts": "741405022e1a799cbc7bc2e5f363ca82b6d99a3160874b35a46cc318d5d16563",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/deps.ts": "1650421e2137773fa808fae9206a3ff1da51808b92ed0db5ac8455b0d2e06790",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/mod.ts": "242727cba09291256f94e84725041dd8145fe9e2863cbb14256bef27e2c6524a",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/core/index.ts": "ff9b618a9e5154296c7ff2fc8450c913561788122fe2b47a7248e6bbc4de760c",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/core/isTransitoryNetworkError.ts": "5b633205cd7950b2491876340adaf8b9b555e537f627ca17048d6eb6fadaea11",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/core/retryable.ts": "afa8fd2debcf572c60bc247f2ac10d9c4cc7e89642f0ed98ea23ad6909afaf5f",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/errors/OperationInterruptedError.ts": "1165d717d1486ca546b28004164684f5e06f159c501e29eaa9579756f841b4d8",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/errors/OperationTransitoryError.ts": "33ad4ea5c977b09ed79f79f01491240a6bd45197efee7ec9ce878b935aa8a4f0",
+    "https://raw.githubusercontent.com/karlhulme/dpiggle/v0.0.1/src/errors/index.ts": "1f0cef71207cbb97cdb2e2b706a6e79bdfe4e9d0b1c2863f103411155d150f04"
   },
   "npm": {
     "specifiers": {
       "mongodb@5.1": "mongodb@5.1.0"
     },
     "packages": {
-      "@types/node@18.15.0": {
-        "integrity": "sha512-z6nr0TTEOBGkzLGmbypWOGnpSpSIBorEhC4L+4HeQ2iezKCi4f77kyslRwvHeNitymGQ+oFyIWGP96l/DPSV9w==",
+      "@types/node@18.16.3": {
+        "integrity": "sha512-OPs5WnnT1xkCBiuQrZA4+YAV4HEJejmHneyraIaxsbev5yCEr6KMwINNFP9wQeFIw8FWcoTqF3vQsa5CDaI+8Q==",
         "dependencies": {}
       },
       "@types/webidl-conversions@7.0.0": {
@@ -77,12 +77,12 @@
       "@types/whatwg-url@8.2.2": {
         "integrity": "sha512-FtQu10RWgn3D9U4aazdwIE2yzphmTJREDqNdODHrbrZmmMqI0vMheC/6NE/J1Yveaj8H+ela+YwWTjq5PGmuhA==",
         "dependencies": {
-          "@types/node": "@types/node@18.15.0",
+          "@types/node": "@types/node@18.16.3",
           "@types/webidl-conversions": "@types/webidl-conversions@7.0.0"
         }
       },
-      "bson@5.0.1": {
-        "integrity": "sha512-y09gBGusgHtinMon/GVbv1J6FrXhnr/+6hqLlSmEFzkz6PodqF6TxjyvfvY3AfO+oG1mgUtbC86xSbOlwvM62Q==",
+      "bson@5.2.0": {
+        "integrity": "sha512-HevkSpDbpUfsrHWmWiAsNavANKYIErV2ePXllp1bwq5CDreAaFVj6RVlZpJnxK4WWDCJ/5jMUpaY6G526q3Hjg==",
         "dependencies": {}
       },
       "ip@2.0.0": {
@@ -103,7 +103,7 @@
       "mongodb@5.1.0": {
         "integrity": "sha512-qgKb7y+EI90y4weY3z5+lIgm8wmexbonz0GalHkSElQXVKtRuwqXuhXKccyvIjXCJVy9qPV82zsinY0W1FBnJw==",
         "dependencies": {
-          "bson": "bson@5.0.1",
+          "bson": "bson@5.2.0",
           "mongodb-connection-string-url": "mongodb-connection-string-url@2.6.0",
           "saslprep": "saslprep@1.0.3",
           "socks": "socks@2.7.1"
