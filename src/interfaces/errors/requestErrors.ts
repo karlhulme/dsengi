@@ -9,12 +9,15 @@ export class SengiActionForbiddenByPolicyError extends SengiRequestError { // HT
 }
 
 export class SengiConflictOnSaveError extends SengiRequestError { // HTTP 409
+  __isTransitory: boolean;
+
   constructor() {
     super(
       "Document could not be updated as it was changed by another process during the operation.",
     );
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
+    this.__isTransitory = true;
   }
 }
 
