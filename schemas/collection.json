@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$id": "https://raw.githubusercontent.com/karlhulme/dsengi/main/schemas/collection.json",
+  "title": "Sengi document collection schema.",
+  "description": "A document collection that is accessed by Sengi.",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "system": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "pluralName": {
+      "type": "string"
+    },
+    "idPrefix": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "deprecated": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "labels": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "value": "string"
+          }
+        },
+        "required": ["type", "value"],
+        "additionalProperties": false
+      }
+    },
+    "redactFields": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fieldName": {
+            "type": "string"
+          },
+          "value": {}
+        },
+        "required": ["fieldName", "value"],
+        "additionalProperties": false
+      }
+    },
+    "changeFieldNames": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "useSinglePartition": {
+      "type": "boolean"
+    },
+    "storePatches": {
+      "type": "boolean"
+    },
+    "trackChanges": {
+      "type": "boolean"
+    },
+    "policy": {
+      "type": "object",
+      "properties": {
+        "canDeleteDocuments": {
+          "type": "boolean"
+        },
+        "canFetchWholeCollection": {
+          "type": "boolean"
+        },
+        "canReplaceDocuments": {
+          "type": "boolean"
+        },
+        "maxDigests": {
+          "type": "number"
+        },
+        "maxOpIds": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    },
+    "properties": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "propertyType": {
+            "$ref": "https://raw.githubusercontent.com/karlhulme/djsonotron/main/schemas/types.json"
+          },
+          "isRequired": {
+            "type": "boolean"
+          },
+          "isArray": {
+            "type": "boolean"
+          },
+          "deprecated": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "summary",
+          "propertyType"
+        ]
+      }
+    },
+    "types": {
+      "type": "object",
+      "properties": {
+        "enums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": ".+_.+",
+                "description": "Prefix this value with the document collection name and an underscore."
+              },
+              "pluralName": {
+                "type": "string",
+                "pattern": ".+_.+",
+                "description": "Prefix this value with the document collection name name and an underscore."
+              },
+              "summary": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "string"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "value": "string"
+                    }
+                  },
+                  "required": ["type", "value"],
+                  "additionalProperties": false
+                }
+              },
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "value": {
+                      "type": "string"
+                    },
+                    "deprecated": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "value"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "pluralName",
+              "summary",
+              "items"
+            ]
+          }
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "pattern": ".+_.+",
+                "description": "Prefix this value with the document collection name and an underscore."
+              },
+              "pluralName": {
+                "type": "string",
+                "pattern": ".+_.+",
+                "description": "Prefix this value with the document collection name and an underscore."
+              },
+              "summary": {
+                "type": "string"
+              },
+              "deprecated": {
+                "type": "string"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "value": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              },
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "summary": {
+                      "type": "string"
+                    },
+                    "propertyType": {
+                      "$ref": "https://raw.githubusercontent.com/karlhulme/djsonotron/main/schemas/types.json"
+                    },
+                    "isRequired": {
+                      "type": "boolean"
+                    },
+                    "isArray": {
+                      "type": "boolean"
+                    },
+                    "isNull": {
+                      "type": "boolean"
+                    },
+                    "deprecated": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false,
+                  "required": [
+                    "name",
+                    "summary",
+                    "propertyType"
+                  ]
+                }
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "pluralName",
+              "summary",
+              "properties"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "system",
+    "name",
+    "pluralName",
+    "idPrefix",
+    "summary",
+    "properties"
+  ]
+}
