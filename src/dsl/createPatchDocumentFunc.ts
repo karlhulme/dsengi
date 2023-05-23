@@ -1,5 +1,4 @@
-import { TypescriptTreeFunction } from "../../deps.ts";
-import { capitalizeFirstLetter } from "./capitalizeFirstLetter.ts";
+import { capitalizeFirstLetter, TypescriptTreeFunction } from "../../deps.ts";
 
 /**
  * Returns an patchDocument function definition.

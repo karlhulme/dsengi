@@ -27,6 +27,7 @@ export type {
 
 export {
   appendJsonotronTypesToTree,
+  capitalizeFirstLetter,
   stdSystemTypes,
 } from "https://raw.githubusercontent.com/karlhulme/djsonotron/v2.7.2/mod.ts";
 

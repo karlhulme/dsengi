@@ -1,4 +1,5 @@
 import {
+  capitalizeFirstLetter,
   EnumTypeDef,
   generateTypescript,
   newTypescriptTree,
@@ -7,7 +8,6 @@ import {
 import { appendJsonotronTypesToTree, stdSystemTypes } from "../../deps.ts";
 import { DslCollection } from "./DslCollection.ts";
 import { DslDb } from "./DslDb.ts";
-import { capitalizeFirstLetter } from "./capitalizeFirstLetter.ts";
 import { createArchiveDocumentFunc } from "./createArchiveDocumentFunc.ts";
 import { createDeleteDocumentFunc } from "./createDeleteDocumentFunc.ts";
 import { createGetDocumentByIdFunc } from "./createGetDocumentByIdFunc.ts";
